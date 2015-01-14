@@ -1,0 +1,9 @@
+# Android
+platforms/android
+
+# iOS
+platforms/ios
+ 
+# All platforms
+
+plugins/

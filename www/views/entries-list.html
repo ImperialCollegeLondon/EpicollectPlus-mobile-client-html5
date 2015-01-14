@@ -1,0 +1,89 @@
+<!-------  ENTRIES LIST PAGE -------------------------------------------------------------->
+<!-- Entry list, listing all entries for a form-->
+<div data-role="page" id="entries" data-theme="a">
+
+    <!-- Add panel for entries list option -->
+    <div data-role="panel" id="entries-options" data-position="right" data-display="push" data-dismissable="true" class="ec-panel">
+        <!-- <ul class="ec-option-list" id="entries-options-list" data-role="listview" data-inset="true" data-theme="a" data-corners="false">
+
+        </ul> -->
+    </div>
+    <!-- /panel -->
+
+    <div data-role="header">
+
+        <div data-href="entries-nav-btn" class="h-nav-item">
+            <i class="fa fa-bars fa-ep-large" ></i>
+            <span class="project-name"></span>
+        </div>
+        
+        <!-- Navigation drawer  -->
+            <div id="entries-nav-drawer" data-role="panel" data-position="left" data-display="overlay" data-dismissable="true" data-inset="true" data-swipe-close="true" class="ec-panel">
+                <ul class="ec-option-list" data-role="listview" data-inset="true" data-theme="a" data-corners="false">
+                    <li id="home" class="v-nav-item">
+                        <div data-href="home">
+                            <i class="fa fa-home  fa-fw v-nav-item-icon" data-href="help"></i><span class="v-nav-item-label" data-i10n="home">&nbsp; Home</span>
+                        </div>
+                    </li>
+                    <li class="v-nav-item ui-disabled">
+                        <div data-href="help">
+                            <i class="fa fa-question  fa-fw v-nav-item-icon" data-href="help"></i><span class="v-nav-item-label" data-i10n="help">&nbsp; Help</span>
+                        </div>
+                    </li>
+                    <li class="v-nav-item">
+                        <div data-href="settings" >
+                            <i class="fa fa-cog  fa-fw v-nav-item-icon" data-href="settings"></i><span class="v-nav-item-label" data-i10n="settings">&nbsp; Settings</span>
+                        </div>
+                    </li>
+                    <li class="v-nav-item ui-disabled">
+                        <div data-href="rate">
+                            <i class="fa fa-star  fa-fw v-nav-item-icon" data-href="rate"></i><span class="v-nav-item-label" data-i10n="rate_us">&nbsp; Rate Us</span>
+                        </div>
+                    </li>
+
+                </ul>
+            </div><!-- /panel -->
+
+        <div id="entries-actionbar"class="ui-btn-right" data-role="controlgroup" data-type="horizontal">
+            <i class="fa fa-plus-square-o fa-ep fa-fw" data-href="add-entry"></i>
+        </div>
+
+        <div data-role="navbar" data-iconpos="left">
+            <ul>
+                <li class="tab-nav inactive-tab">
+                    <i class="fa fa-caret-left fa-fw fa-ep-small" data-href="#forms"></i><span data-i10n="forms">Forms</span>
+                </li>
+                <li class="tab-nav active-tab">
+
+                    <span>-current-form-name</span>
+                </li>
+            </ul>
+        </div><!-- /navbar -->
+
+    </div><!-- /header -->
+
+    <!--  List of entries for form-->
+    <div id="entries-list" data-role="content" data-theme="a">
+        <ul data-role="listview" data-filter="false" data-filter-placeholder="Filter entries..." data-theme="a" data-clear-btn="false">
+            <!-- Entries will be listed here -->
+        </ul>
+        <div id="empty-entries-list"class="not-shown">
+            <p data-i10n="no_entries_found">
+                No entries found!
+            </p>
+            <p>
+                <span data-i10n="tap_the">Tap the</span> <i class="fa fa-plus-square-o fa-fw fa-ep-small"></i><span data-i10n="button">button</span> <span data-i10n="to_add">to add </span><span class="form-name">-form_name-</span>.
+            </p>
+
+        </div>
+        <div class="more-items-btn not-shown">
+            <i class="fa fa-angle-double-down fa-ep-show-more fa-fw v-nav-item-icon"></i>
+            <span data-i10n="show_more">Show more</span>
+            <i class="fa fa-angle-double-down fa-ep-show-more fa-fw v-nav-item-icon"></i>
+        </div>
+        <div class="more-items-btn-spinner not-shown">
+            <i class="fa fa-spinner fa-spin"></i>
+        </div>
+    </div><!-- /content -->
+
+</div><!-- /entries -->

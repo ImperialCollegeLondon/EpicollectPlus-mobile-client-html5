@@ -1,0 +1,44 @@
+<!-------  BRANCH ENTRY VALUES LIST PAGE -------------------------------------------------------------->
+<!-- Branch entry values list, listing all saved values for a branch entry-->
+<div data-role="page" id="branch-entry-values">
+
+    <!-- Panel with options   -->
+    <div id="branch-entry-values-options" data-role="panel" data-position="right" data-display="overlay" data-dismissable="true" data-inset="true" class="ec-panel">
+        <ul class="ec-option-list" id="branch-entry-values-options-list" data-role="listview" data-inset="true" data-theme="a" data-corners="false">
+            <li id="delete-branch-entry" data-icon="false" class="v-nav-item">
+
+                <div data-href="delete-entry" >
+                    <i class="fa fa-trash-o  fa-fw v-nav-item-icon"></i><span class="v-nav-item-label" data-i10n="delete_entry">&nbsp; Delete Entry</span>
+                </div>
+            </li>
+
+        </ul>
+    </div>
+
+    <div data-role="header">
+
+        <div data-href="back-btn" class="h-nav-item">
+            <i class="fa fa-angle-left fa-ep-large" ></i>
+            <span class="form-name"> -main-form_name-</span>
+        </div>
+
+        <div class="ui-btn-right" data-role="controlgroup" data-type="horizontal">
+            <i class="fa fa-ellipsis-v fa-fw fa-ep" data-href="branch-entry-values-options"></i>
+        </div>
+
+        <div class="ui-grid-solo branch-form-name">
+            <div class="ui-block-a">
+                <span class="ui-btn-active"> <span class="ui-btn-inner"></span> </span>
+            </div>
+        </div>
+
+    </div><!-- /header -->
+
+    <!--  List of values for a branch entry-->
+    <div id="branch-entry-values-list" data-role="content">
+        <ul data-role="listview" data-filter="false" data-filter-placeholder="Filter values..." data-theme="a" data-clear-btn="false">
+            <!-- Banch entry values will be listed here -->
+        </ul>
+    </div><!-- /content -->
+</div><!-- /entries -->
+<!--  ---------------------------------------------------------------------------------------->

@@ -1,0 +1,66 @@
+<!-- INPUT TYPE = VIDEO,   --------------------------------------------------------------------------------------------------------------->
+<div id="video" data-role="page" data-theme="a" data-dom-cache="true">
+
+    <div data-role="header"  data-id="footer">
+        <div data-href="back-btn" class="h-nav-item">
+            <i class="fa fa-angle-left fa-ep-large" ></i>
+            <span class="form-name">-form_name- entries</span>
+        </div>
+
+        <div class="ui-btn-right store-edit not-shown" >
+            <i class="fa fa-check fa-ep fa-fw" data-href="store-edit"></i>
+        </div>
+
+        <div class="ui-grid-solo parent-key">
+            <div class="ui-block-a">
+                <span class="ui-btn-active"> <span class="ui-btn-inner"></span> </span>
+            </div>
+        </div>
+
+        <div class="ui-grid-b input-nav-tabs">
+            <div class="ui-block-a input-prev-btn">
+                <span class="input-btn-inner"> <i class="fa fa-caret-left fa-fw fa-ep-small" data-href="previous"></i><span data-i10n="prev">Previous</span> </span>
+            </div>
+            <div class="ui-block-b input-progress-bar">
+                <div class="bar_container container_tiny">
+                    <span class="form-completion-percent">0%</span>
+                    <div class="bar_mortice mortice_tiny">
+                        <div class="progress progress_tiny" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="ui-block-c input-next-btn">
+                <span class="input-btn-inner"> <span data-i10n="next">Next</span> <i class="fa fa-caret-right fa-fw fa-ep-small" data-href="next"></i> </span>
+            </div>
+        </div><!-- /grid-b -->
+    </div><!-- /header -->
+
+    <div id="input-video" data-role="content" data-theme="a">
+        <span class="label"></span>
+
+        <div id="video-btn" class="embedded-btn">
+            <i class="fa fa-video-camera  fa-fw fa-ep-embedded-btn"></i>
+            <span class="v-nav-item-label" data-i10n="add_video">Add Video</span>
+        </div>
+       
+
+        <div id="play-video-btn" class="embedded-btn ui-disabled">
+            <i class="fa fa-play  fa-fw fa-ep-embedded-btn"></i>
+            <span class="v-nav-item-label" data-i10n="play_video">Play Video</span>
+        </div>
+        
+        
+        
+         <div id="ios-video-player-wrapper" class="embedded-btn not-shown">
+            <video id="ios-video-player" src="#" controls ></video>
+        </div>
+        
+
+        <input id="cached-video-uri" type="hidden" value=""/>
+        <input id="stored-video-uri" type="hidden" value=""/>
+        
+        
+
+    </div><!-- /content -->
+
+</div><!-- /text -->

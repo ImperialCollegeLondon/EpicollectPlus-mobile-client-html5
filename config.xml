@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="uk.ac.imperial.epicollect5-64bit" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+	<name>Epicollect5-64bit</name>
+	<description>A sample Apache Cordova application that responds to the deviceready event.</description>
+	<author email="dev@cordova.apache.org" href="http://cordova.io">Apache Cordova Team</author>
+	<content src="index.html" />
+	<access origin="*" />
+	
+	<platform name="ios">
+		<!-- Fix status bar on ios 7+ -->
+	<preference name="StatusBarOverlaysWebView" value="false" />
+		<!-- Automatically install plugin dependencies -->
+		<hook type="after_platform_add" src="hooks/install-plugins.js" />
+		<!-- iPhone 6 Plus  -->
+		<icon src="res/ios/icon-60@3x.png" width="180" height="180" />
+		<!-- iOS 7.0+ -->
+		<!-- iPhone / iPod Touch  -->
+		<icon src="res/ios/icon-60.png" width="60" height="60" />
+		<icon src="res/ios/icon-60@2x.png" width="120" height="120" />
+		<!-- iPad -->
+		<icon src="res/ios/icon-76.png" width="76" height="76" />
+		<icon src="res/ios/icon-76@2x.png" width="152" height="152" />
+
+		<!-- images are determined by width and height. The following are supported -->
+		<!-- <splash src="res/screen/ios/Default~iphone.png" width="320" height="480"/> -->
+		<splash src="res/ios/Default@2x~iphone.png" width="640" height="960"/>
+		<!-- <splash src="res/screen/ios/Default-Portrait~ipad.png" width="768" height="1024"/>
+		<splash src="res/screen/ios/Default-Portrait@2x~ipad.png" width="1536" height="2048"/>
+		<splash src="res/screen/ios/Default-Landscape~ipad.png" width="1024" height="768"/>
+		<splash src="res/screen/ios/Default-Landscape@2x~ipad.png" width="2048" height="1536"/> -->
+		<splash src="res/ios/Default-568h@2x~iphone.png" width="640" height="1136"/>
+		<splash src="res/ios/Default-667h.png" width="750" height="1334"/>
+		<splash src="res/ios/Default-736h.png" width="1242" height="2208"/>
+		<!-- <splash src="res/ios/Default-Landscape-736h.png" width="2208" height="1242"/> -->
+		<preference name="MediaPlaybackRequiresUserAction" value="true"/>
+		<!-- Avoid iCloud backups, only local via iTunes -->
+		<preference name="BackupWebStorage" value="local"/>
+	</platform>
+	<platform name="android">
+		<hook type="after_platform_add" src="hooks/install-plugins.js" />
+	</platform>
+</widget>

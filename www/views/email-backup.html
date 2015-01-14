@@ -1,0 +1,30 @@
+<!-- Email backup page, asking email addresses to send the backup to-->
+<div data-role="page" id="email-backup" data-theme="a">
+
+    <div data-role="header" data-id="footer">
+
+        <div data-href="back-btn" class="h-nav-item">
+            <i class="fa fa-angle-left fa-ep"></i>
+            <span class="project-name" data-i10n="forms">Forms</span>
+        </div>
+
+        <div id="send-email" class="ui-btn-right" >
+            <i class="fa fa-mail-forward fa-ep fa-fw" data-href="load-project-confirm"></i>
+        </div>
+
+        <div data-role="navbar" data-iconpos="left">
+            <ul>
+                <li class="tab-nav title-tab">
+                    <span id="email-backup-label"><span data-i10n="email_backup_to">Email Backup for </span><span class="project-name-inline">-project_name-</span></span>
+                </li>
+            </ul>
+        </div><!-- /navbar -->
+
+    </div><!-- /header -->
+
+    <div id="email-address-wrapper" data-role="content">
+        <span class="label" data-i10n="enter_mail">Enter email address</span>
+        <input id="email-address" type="text" value=""/>
+        <!-- <input id="send-email" type="button" value="Send"/> -->
+    </div><!-- /content -->
+</div><!-- /settings -->

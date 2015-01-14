@@ -1,0 +1,44 @@
+<!-------  BRANCH ENTRIES LIST PAGE -------------------------------------------------------------->
+<!-- Entries list, listing all entries for a form-->
+<div data-role="page" id="branch-entries" data-theme="a">
+
+    <!-- Add panel for entries list option -->
+    <div data-role="panel" id="entries-options" data-position="right" data-display="push" data-dismissable="true" class="ec-panel">
+        <!-- <ul class="ec-option-list" id="entries-options-list" data-role="listview" data-inset="true" data-theme="a" data-corners="false">
+
+        </ul> -->
+    </div>
+    <!-- /panel -->
+
+    <div data-role="header">
+
+        <div data-href="back-btn" class="h-nav-item">
+            <i class="fa fa-angle-left fa-ep-large" ></i>
+            <span class="form-name"> -main-form_name-</span>
+        </div>
+
+        <div class="ui-grid-solo branch-form-name">
+            <div class="ui-block-a">
+                <span class="ui-btn-active"> <span class="ui-btn-inner"></span> </span>
+            </div>
+        </div>
+
+    </div><!-- /header -->
+
+    <!--  List of branch entries for form-->
+    <div id="branch-entries-list" data-role="content" data-theme="a">
+        <ul data-role="listview" data-filter="false" data-filter-placeholder="Filter entries..." data-theme="a" data-clear-btn="false">
+            <!-- Entries will be listed here -->
+        </ul>
+       
+        <div class="more-items-btn not-shown">
+            <i class="fa fa-angle-double-down fa-ep-show-more fa-fw v-nav-item-icon"></i>
+            <span data-i10n="show_more">Show more</span>
+            <i class="fa fa-angle-double-down fa-ep-show-more fa-fw v-nav-item-icon"></i>
+        </div>
+        <div class="more-items-btn-spinner not-shown">
+            <i class="fa fa-spinner fa-spin"></i>
+        </div>
+    </div><!-- /content -->
+
+</div><!-- /entries -->

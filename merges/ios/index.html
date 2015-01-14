@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>EpiCollect5 64bit iOS</title>
+        <!-- WARNING: for iOS 7, remove the width=device-width and height=device-height attributes. See https://issues.apache.org/jira/browse/CB-4323 -->
+        <meta
+        name="viewport"
+        content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1" />
+        <meta name="format-detection" content="telephone=no">
+        <link rel="icon" type="image/png" href="favicon.png">
+        <link rel="stylesheet" href="css/jquery.mobile.theme.epicollect.css" />
+        <link rel="stylesheet" href="css/jquery.mobile.structure.1.3.2.css" />
+
+        <!-- Load custom css  -->
+        <link rel="stylesheet" href="css/epicollect5.css"/>
+        <link rel="stylesheet" href="css/progress-bar/css3-progress-bar.css" />
+        <!-- Load fontawesome css -->
+        <link rel='stylesheet' href='css/font/font-awesome.css'/>
+
+        <!-- Load jQuery ------------------------------->
+        <script src="js/core/jquery.min.js"></script>
+
+        <!-- Load Cordova (404 during development)-->
+        <script type="text/javascript" src="cordova.js"></script>
+
+        <!-- Load JQM dependencies and configurations -->
+        <script src="js/core/jquery.mobile.config.js"></script>
+        <script src="js/core/jquery.mobile-1.3.2.min.js"></script>
+
+        <!-- Load useful libraries and plugins -->
+        <script src="js/core/fastclick.js"></script>
+
+        <!-- Load different  -->
+        <script src="js/core/xml2json.js"></script>
+        <!-- <script src="js/plugins/SQLitePlugin.js"></script>
+        <script src="js/plugins/Toast-ios.js"></script>
+        <script src="js/plugins/activityIndicator.js"></script>-->
+        <!-- <script src="js/plugins/ios-barcodescanner.js"></script>  -->
+        <!-- <script src="js/plugins/ios-email-composer-2.js"></script>
+        <script src="js/plugins/IDFVPlugin.js"></script>
+        <script src="js/plugins/ios_appversion.js"></script> --> -->
+        <script src="js/core/jquery.swipebox.min.js"></script>
+
+        <!-- Load utilities and const-->
+        <script src="js/utils/EC.Utils.js"></script>
+        <script src="js/config/EC.Init.js"></script>
+        <script src="js/config/EC.Const.js"></script>
+        <script src="js/config/EC.Config.js"></script>
+        <script src="js/utils/EC.Notification.js"></script>
+        <script src="js/utils/EC.Ui.js"></script>
+
+        <!-- Parse ---------------------------------------------------------------->
+        <script src="js/parsing/EC.Parse.js"></script>
+        <script src="js/parsing/EC.Parse.parseInputObject.js"></script>
+        <script src="js/parsing/EC.Parse.parseXML.js"></script>
+        <script src="js/parsing/EC.Parse.mapPositionToInput.js"></script>
+
+        <!-- Routing -------------------------------------------------------------->
+        <script src="js/routing/EC.Routing.indexPageEvents.js"></script>
+        <script src="js/routing/EC.Routing.inputsPageEvents.js"></script>
+        <script src="js/routing/EC.Routing.branchInputsPageEvents.js"></script>
+        <script src="js/routing/EC.Routing.changePage.js"></script>
+        <script src="js/routing/EC.Routing.goBack.js"></script>
+
+        <!-- Localisation  --------------------------------------------------------------------->
+        <script src="js/localisation/EC.Dictionary.js"></script>
+        <script src="js/localisation/EC.Localise.js"></script>
+
+        <!-- Load models  ---------------------------------------------------------------------->
+        <!-------------------------------------------------------------------------------------->
+        <!-------------------------------------------------------------------------------------->
+        <script src="js/model/database/Structure/EC.Structure.commitAll.js"></script>
+        <script src="js/model/database/Structure/EC.Hierarchy.js"></script>
+        <script src="js/model/database/Structure/EC.Hierarchy.commitProject.js"></script>
+        <script src="js/model/database/Structure/EC.Hierarchy.commitForms_IOS.js"></script>
+        <script src="js/model/database/Structure/EC.Hierarchy.commitInputs.js"></script>
+        <script src="js/model/database/Structure/EC.Hierarchy.commitInputOptions.js"></script>
+        <script src="js/model/database/Structure/EC.Branch.js"></script>
+        <script src="js/model/database/Structure/EC.Branch.commitBranchForms_IOS.js"></script>
+        <script src="js/model/database/Structure/EC.Branch.commitBranchInputs.js"></script>
+        <script src="js/model/database/Structure/EC.Branch.commitBranchInputOptions.js"></script>
+        <script src="js/model/database/Structure/EC.DBAdapter.js"></script>
+
+        <!-- Model (Select) -->
+        <script src="js/model/database/Select/EC.Select.js"></script>
+        <script src="js/model/database/Select/EC.Select.getProjects.js"></script>
+        <script src="js/model/database/Select/EC.Select.getProjectRowId_IOS.js"></script>
+        <script src="js/model/database/Select/EC.Select.getAllowDownloadEdits.js"></script>
+        <script src="js/model/database/Select/EC.Select.getForms.js"></script>
+        <script src="js/model/database/Select/EC.Select.getBranchFormLocalIDs.js"></script>
+        <script src="js/model/database/Select/EC.Select.getBranchInputsLocalIDs.js"></script>
+        <script src="js/model/database/Select/EC.Select.getEntries.js"></script>
+        <script src="js/model/database/Select/EC.Select.getEntryKeys.js"></script>
+        <script src="js/model/database/Select/EC.Select.getInputs.js"></script>
+        <script src="js/model/database/Select/EC.Select.getEntryValues.js"></script>
+        <script src="js/model/database/Select/EC.Select.getChildEntries.js"></script>
+        <script src="js/model/database/Select/EC.Select.getAllProjectEntries.js"></script>
+        <script src="js/model/database/Select/EC.Select.getCountBranchEntries.js"></script>
+        <script src="js/model/database/Select/EC.Select.getLocalInputIDs.js"></script>
+        <script src="js/model/database/Select/EC.Select.getFullParentPath.js"></script>
+        <script src="js/model/database/Select/EC.Select.getBranchFormDetails.js"></script>
+        <script src="js/model/database/Select/EC.Select.getBranchInputs.js"></script>
+        <script src="js/model/database/Select/EC.Select.getBranchEntryKeys.js"></script>
+        <script src="js/model/database/Select/EC.Select.getBranchEntries.js"></script>
+        <script src="js/model/database/Select/EC.Select.getBranchEntryValues.js"></script>
+
+        <!-- Model (Upload)  -->
+        <script src="js/model/database/Select/upload/EC.Select.getOneHierarchyMediaPerType.js"></script>
+        <script src="js/model/database/Select/upload/EC.Select.getUploadURL.js"></script>
+        <script src="js/model/database/Select/upload/EC.Select.getOneBranchEntry.js"></script>
+        <script src="js/model/database/Select/upload/EC.Select.getOneHierarchyEntry.js"></script>
+        <script src="js/model/database/Select/upload/EC.Select.getOneHierarchyMediaFile.js"></script>
+        <script src="js/model/database/Select/upload/EC.Select.getOneBranchMediaFile.js"></script>
+        <script src="js/model/database/Select/upload/EC.Select.getOneBranchAudioFile.js"></script>
+        <script src="js/model/database/Select/upload/EC.Select.getOneBranchPhotoFile.js"></script>
+        <script src="js/model/database/Select/upload/EC.Select.getOneBranchVideoFile.js"></script>
+        <script src="js/model/database/Select/upload/EC.Select.getBranchForms.js"></script>
+
+        <!-- Model (Update)  ----------------------------------------------------------------------->
+        <script src="js/model/database/Update/EC.Update.js"></script>
+        <script src="js/model/database/Update/EC.Update.countSyncedDeleted.js"></script>
+        <script src="js/model/database/Update/EC.Update.setCachedBranchesAsStored.js"></script>
+        <script src="js/model/database/Update/EC.Update.updateBranchEntriesCounter.js"></script>
+        <script src="js/model/database/Update/EC.Update.commitBranchForm.js"></script>
+        <script src="js/model/database/Update/EC.Update.unsyncAllEntries.js"></script>
+        <script src="js/model/database/Update/EC.Update.setBranchEntryAsSynced.js"></script>
+        <script src="js/model/database/Update/EC.Update.setHierarchyEntryAsSynced.js"></script>
+        <script src="js/model/database/Update/EC.Update.updateHierarchyEntriesCounter.js"></script>
+        <script src="js/model/database/Update/EC.Update.flagOneFileAsSynced.js"></script>
+        <script src="js/model/database/Update/EC.Update.setHierarchyEntryAsSynced.js"></script>
+        <script src="js/model/database/Update/EC.Update.unsyncOneHierarchyEntry.js"></script>
+        <script src="js/model/database/Update/EC.Update.emptyMediaValues.js"></script>
+        <script src="js/model/database/Update/EC.Update.updateHierarchyEntryValues.js"></script>
+
+        <script src="js/model/database/Create/EC.Create.js"></script>
+        <script src="js/model/database/Create/EC.Create.insertFormValues.js"></script>
+        <script src="js/model/database/Create/EC.Create.insertBranchDataRows.js"></script>
+        <script src="js/model/database/Create/EC.Create.commitRemoteEntry.js"></script>
+        <script src="js/model/database/Create/EC.Create.insertBranchFormValues.js"></script>
+
+        <!-- Model (Delete) -------------------------------------------------------------------------->
+        <script src="js/model/database/Delete/EC.Delete.js"></script>
+        <script src="js/model/database/Delete/EC.Delete.deleteProject.js"></script>
+        <script src="js/model/database/Delete/EC.Delete.deleteBranchEntry.js"></script>
+        <script src="js/model/database/Delete/EC.Delete.deleteEntry.js"></script>
+        <script src="js/model/database/Delete/EC.Delete.deleteAllEntries.js"></script>
+        <script src="js/model/database/Delete/EC.Delete.deleteAllSynced.js"></script>
+
+        <!-- Model (File) ---------------------------------------------------------------------------->
+        <script src="js/model/file/EC.File.js"></script>
+        <script src="js/model/file/EC.File.moveIOS.js"></script>
+        <script src="js/model/file/EC.File.copyVideo.js"></script>
+        <script src="js/model/file/EC.File.moveVideoIOS.js"></script>
+        <script src="js/model/file/EC.File.upload.js"></script>
+        <script src="js/model/file/EC.File.deleteAllMedia.js"></script>
+        <script src="js/model/file/EC.File.remove.js"></script>
+        <script src="js/model/file/EC.File.backup.js"></script>
+        <script src="js/model/file/EC.File.restoreFromBackup.js"></script>
+        <script src="js/model/file/EC.File.hasBackup.js"></script>
+
+        <!-- Load controllers  ----------------------------------------------------------------->
+        <!-------------------------------------------------------------------------------------->
+        <!-------------------------------------------------------------------------------------->
+        <script src="js/controller/projects/EC.Project.js"></script>
+        <script src="js/controller/projects/EC.Project.backupCurrentProject.js"></script>
+        <script src="js/controller/projects/EC.Project.restoreFromBackup.js"></script>
+        <script src="js/controller/projects/EC.Project.loadRemoteXML.js"></script>
+        <script src="js/controller/projects/EC.Project.renderAddProjectView.js"></script>
+        <script src="js/controller/projects/EC.Project.request.js"></script>
+
+        <script src="js/controller/forms/EC.Forms.getList.js"></script>
+        <script src="js/controller/forms/EC.Forms.renderList.js"></script>
+
+        <!-- Controller (Entries) -->
+        <script src="js/controller/entries/EC.Entries.js"></script>
+        <script src="js/controller/entries/EC.Entries.getList.js"></script>
+        <script src="js/controller/entries/EC.Entries.renderList.js"></script>
+        <script src="js/controller/entries/EC.Entries.getEntryValues.js"></script>
+        <script src="js/controller/entries/EC.Entries.renderEntryValues.js"></script>
+        <script src="js/controller/entries/EC.Entries.renderChildEntriesList.js"></script>
+        <script src="js/controller/entries/EC.Entries.getBranchEntriesList.js"></script>
+        <script src="js/controller/entries/EC.Entries.getBranchEntryValues.js"></script>
+        <script src="js/controller/entries/EC.Entries.renderBranchEntriesList.js"></script>
+        <script src="js/controller/entries/EC.Entries.renderBranchEntryValues.js"></script>
+
+        <!-- Controllers (Upload) -->
+        <script src="js/controller/upload/EC.Upload.js"></script>
+        <script src="js/controller/upload/EC.Upload.postBranchEntries.js"></script>
+        <script src="js/controller/upload/EC.Upload.postOneBranchEntry.js"></script>
+        <script src="js/controller/upload/EC.Upload.prepareOneHierarchyEntry.js"></script>
+        <script src="js/controller/upload/EC.Upload.prepareOneBranchEntry.js"></script>
+        <script src="js/controller/upload/EC.Upload.postOneHierarchyEntry.js"></script>
+        <script src="js/controller/upload/EC.Upload.renderUploadView.js"></script>
+        <script src="js/controller/upload/EC.Upload.uploadNextFile.js"></script>
+
+        <!-- Controllers (Utilities) -->
+        <script src="js/controller/email_backup/EC.EmailBackup.js"></script>
+        <script src="js/controller/download/EC.Download.js"></script>
+        <script src="js/controller/settings/EC.Settings.js"></script>
+
+        <!-- Inputs controller --------------------------------------------------------------->
+        <script src="js/controller/inputs/EC.Inputs.js"></script>
+        <!-- Inputs controllers (Navigation)-------------------------------------------------->
+        <script src="js/controller/inputs/navigation/EC.Inputs.backToEntriesList.js"></script>
+        <script src="js/controller/inputs/navigation/EC.Inputs.backToBranchEntryValuesList.js"></script>
+        <script src="js/controller/inputs/navigation/EC.Inputs.backToEntryValuesList.js"></script>
+        <script src="js/controller/inputs/navigation/EC.Inputs.bindBackBtn.js"></script>
+        <script src="js/controller/inputs/navigation/EC.Inputs.gotoNextPage.js"></script>
+        <script src="js/controller/inputs/navigation/EC.Inputs.gotoPrevPage.js"></script>
+        <script src="js/controller/inputs/navigation/EC.Inputs.onNextBtnTapped.js"></script>
+        <script src="js/controller/inputs/navigation/EC.Inputs.onPrevBtnTapped.js"></script>
+        <script src="js/controller/inputs/navigation/EC.Inputs.popInputsTrail.js"></script>
+        <script src="js/controller/inputs/navigation/EC.Inputs.pushInputsTrail.js"></script>
+        <script src="js/controller/inputs/navigation/EC.Inputs.spliceInputsTrail.js"></script>
+
+        <!-- Inputs controllers (Store) ------------------------------------------------------>
+        <script src="js/controller/inputs/store/EC.Inputs.amendSkippedValues.js"></script>
+        <script src="js/controller/inputs/store/EC.Inputs.buildRows.js"></script>
+        <script src="js/controller/inputs/store/EC.Inputs.prepareStoreEdit.js"></script>
+        <script src="js/controller/inputs/store/EC.Inputs.storeData.js"></script>
+        <script src="js/controller/inputs/store/EC.Inputs.saveValuesOnExit.js"></script>
+        <script src="js/controller/inputs/render/EC.Inputs.prepareFeedback.js"></script>
+        <script src="js/controller/inputs/render/EC.Inputs.prepareFirstInput.js"></script>
+        <script src="js/controller/inputs/render/EC.Inputs.renderFeedbackView.js"></script>
+        <script src="js/controller/inputs/render/EC.Inputs.renderInput.js"></script>
+        <script src="js/controller/inputs/render/EC.Inputs.renderInputView.js"></script>
+        <script src="js/controller/inputs/render/EC.Inputs.renderSaveConfirmView.js"></script>
+        <script src="js/controller/inputs/render/EC.Inputs.renderStoreEditFeedback.js"></script>
+
+        <!-- Inputs controllers (Types) ----------------------------------------------------->
+        <script src="js/controller/inputs/types/EC.AddBranch.js"></script>
+        <script src="js/controller/inputs/types/EC.Audio.js"></script>
+        <script src="js/controller/inputs/types/EC.Barcode.js"></script>
+        <script src="js/controller/inputs/types/EC.Checkbox.js"></script>
+        <script src="js/controller/inputs/types/EC.Date.js"></script>
+        <script src="js/controller/inputs/types/EC.Decimal.js"></script>
+        <script src="js/controller/inputs/types/EC.Dropdown.js"></script>
+        <script src="js/controller/inputs/types/EC.Integer.js"></script>
+        <script src="js/controller/inputs/types/EC.Location.js"></script>
+        <script src="js/controller/inputs/types/EC.Photo.js"></script>
+        <script src="js/controller/inputs/types/EC.Radio.js"></script>
+        <script src="js/controller/inputs/types/EC.Text.js"></script>
+        <script src="js/controller/inputs/types/EC.Textarea.js"></script>
+        <script src="js/controller/inputs/types/EC.Time.js"></script>
+        <script src="js/controller/inputs/types/EC.Video.js"></script>
+
+        <!-- Inputs controllers (Values) ----------------------------------------------------->
+        <script src="js/controller/inputs/values/EC.Inputs.getCachedInputValue.js"></script>
+        <script src="js/controller/inputs/values/EC.Inputs.getCloneValue.js"></script>
+        <script src="js/controller/inputs/values/EC.Inputs.getCurrentValue.js"></script>
+        <script src="js/controller/inputs/values/EC.Inputs.getMainFormCurrentKeyValue.js"></script>
+        <script src="js/controller/inputs/values/EC.Inputs.isEmptyPrimaryKey.js"></script>
+        <script src="js/controller/inputs/values/EC.Inputs.setCachedInputValue.js"></script>
+        <script src="js/controller/inputs/values/EC.Inputs.validateValue.js"></script>
+        <script src="js/controller/inputs/values/EC.Inputs.valuesMatch.js"></script>
+
+        <!-- Branch Inputs controllers ------------------------------------------------------------->
+        <script src="js/controller/branch_inputs/EC.BranchInputs.js"></script>
+
+        <!-- Branch Inputs controllers (Render)----------------------------------------------------->
+        <script src="js/controller/branch_inputs/render/EC.BranchInputs.prepareFirstInput.js"></script>
+        <script src="js/controller/branch_inputs/render/EC.BranchInputs.renderInput.js"></script>
+        <script src="js/controller/branch_inputs/render/EC.BranchInputs.renderInputView.js"></script>
+        <script src="js/controller/branch_inputs/render/EC.BranchInputs.updateFormCompletion.js"></script>
+        <script src="js/controller/branch_inputs/render/EC.BranchInputs.renderFeedbackView.js"></script>
+        <script src="js/controller/branch_inputs/render/EC.BranchInputs.prepareFeedback.js"></script>
+        <script src="js/controller/branch_inputs/render/EC.BranchInputs.renderSaveConfirmView.js"></script>
+        <script src="js/controller/branch_inputs/render/EC.BranchInputs.renderStoreEditFeedback.js"></script>
+
+        <!-- Branch Inputs controllers (Values)----------------------------------------------------->
+        <script src="js/controller/branch_inputs/values/EC.BranchInputs.getCachedInputValue.js"></script>
+        <script src="js/controller/branch_inputs/values/EC.BranchInputs.getCloneValue.js"></script>
+        <script src="js/controller/branch_inputs/values/EC.BranchInputs.getCurrentValue.js"></script>
+        <script src="js/controller/branch_inputs/values/EC.BranchInputs.setCachedInputValue.js"></script>
+        <script src="js/controller/branch_inputs/values/EC.BranchInputs.validateValue.js"></script>
+        <script src="js/controller/branch_inputs/values/EC.BranchInputs.isEmptyPrimaryKey.js"></script>
+
+        <!-- Branch Inputs controllers (Navigation)-------------------------------------------------->
+        <script src="js/controller/branch_inputs/navigation/EC.BranchInputs.backToHierarchyForm.js"></script>
+        <script src="js/controller/branch_inputs/navigation/EC.BranchInputs.bindBackBtn.js"></script>
+        <script src="js/controller/branch_inputs/navigation/EC.BranchInputs.gotoNextPage.js"></script>
+        <script src="js/controller/branch_inputs/navigation/EC.BranchInputs.gotoPrevPage.js"></script>
+        <script src="js/controller/branch_inputs/navigation/EC.BranchInputs.popInputsTrail.js"></script>
+        <script src="js/controller/branch_inputs/navigation/EC.BranchInputs.pushInputsTrail.js"></script>
+        <script src="js/controller/branch_inputs/navigation/EC.BranchInputs.spliceInputsTrail.js"></script>
+        <script src="js/controller/branch_inputs/navigation/EC.BranchInputs.onNextBtnTapped.js"></script>
+        <script src="js/controller/branch_inputs/navigation/EC.BranchInputs.onPrevBtnTapped.js"></script>
+
+        <!-- Branch Inputs controllers (Store) -->
+        <script src="js/controller/branch_inputs/store/EC.BranchInputs.amendSkippedValues.js"></script>
+        <script src="js/controller/branch_inputs/store/EC.BranchInputs.buildRows.js"></script>
+        <script src="js/controller/branch_inputs/store/EC.BranchInputs.prepareStoreEdit.js"></script>
+        <script src="js/controller/branch_inputs/store/EC.BranchInputs.storeData.js"></script>
+        <script src="js/controller/branch_inputs/store/EC.BranchInputs.saveValuesOnExit.js"></script>
+
+        <!-- Branch Inputs controllers (Types) ----------------------------------------------------->
+        <script src="js/controller/branch_inputs/types/EC.BranchAudio.js"></script>
+        <script src="js/controller/branch_inputs/types/EC.BranchBarcode.js"></script>
+        <script src="js/controller/branch_inputs/types/EC.BranchCheckbox.js"></script>
+        <script src="js/controller/branch_inputs/types/EC.BranchDate.js"></script>
+        <script src="js/controller/branch_inputs/types/EC.BranchDecimal.js"></script>
+        <script src="js/controller/branch_inputs/types/EC.BranchDropdown.js"></script>
+        <script src="js/controller/branch_inputs/types/EC.BranchInteger.js"></script>
+        <script src="js/controller/branch_inputs/types/EC.BranchLocation.js"></script>
+        <script src="js/controller/branch_inputs/types/EC.BranchPhoto.js"></script>
+        <script src="js/controller/branch_inputs/types/EC.BranchRadio.js"></script>
+        <script src="js/controller/branch_inputs/types/EC.BranchText.js"></script>
+        <script src="js/controller/branch_inputs/types/EC.BranchTextarea.js"></script>
+        <script src="js/controller/branch_inputs/types/EC.BranchTime.js"></script>
+        <script src="js/controller/branch_inputs/types/EC.BranchVideo.js"></script>
+
+        <!-- Stress Test -->
+        <script src="js/model/database/Test/EC.Test.insertEntries.js"></script>
+
+        <!-- Loa handler script for index page  -->
+        <script src="js/app.js"></script>
+
+    </head>
+    <body>
+        <!-- Index page, listing all projects-->
+        <div id="index" data-role="page" data-theme="a" data-dom-cache="true">
+
+            <!-- Settings panel  -->
+            <div class="home-settings" data-role="panel" data-position="left" data-display="overlay" data-dismissable="true" data-inset="true" data-swipe-close="true" class="ec-panel">
+                <ul class="ec-option-list" id="settings-list"data-role="listview" data-inset="true" data-theme="a" data-corners="false">
+                    <li class="v-nav-item ui-disabled">
+                        <div data-href="home">
+                            <i class="fa fa-home  fa-fw v-nav-item-icon" data-href="help"></i><span class="v-nav-item-label" data-i10n="home">Home</span>
+                        </div>
+                    </li>
+                    <li class="v-nav-item ui-disabled">
+                        <div data-href="help">
+                            <i class="fa fa-question  fa-fw v-nav-item-icon" data-href="help"></i><span class="v-nav-item-label" data-i10n="help">Help</span>
+                        </div>
+                    </li>
+                    <li class="v-nav-item">
+                        <div data-href="settings" >
+                            <i class="fa fa-cog  fa-fw v-nav-item-icon" data-href="settings"></i><span class="v-nav-item-label" data-i10n="settings">Settings</span>
+                        </div>
+                    </li>
+                    <li class="v-nav-item ui-disabled">
+                        <div data-href="rate">
+                            <i class="fa fa-star  fa-fw v-nav-item-icon" data-href="rate"></i><span class="v-nav-item-label" data-i10n="rate_us">Rate Us</span>
+                        </div>
+                    </li>
+
+                </ul>
+            </div><!-- /panel -->
+
+            <div data-role="header">
+
+                <div data-href="home-settings" class="h-nav-item">
+                    <i class="fa fa-bars fa-ep-large"></i>
+                    <span class="app-name">Epicollect</span>
+                </div>
+
+                <div class="ui-btn-right" data-href="add-project">
+                    <i class="fa fa-plus-square-o fa-ep fa-fw" ></i>
+                </div>
+
+                <div data-role="navbar" data-iconpos="left">
+                    <ul>
+                        <li class="tab-nav title-tab">
+                            <span data-i10n="projects">Projects</span>
+                        </li>
+                    </ul>
+                </div><!-- /navbar -->
+            </div><!-- /header -->
+            <!--  Add list of project if any-->
+            <div id="project-list" data-role="content" data-theme="a">
+                <ul id="ul-project-list" data-role="listview"  data-filter="false" data-filter-placeholder="Filter projects..." data-theme="a" data-clear-btn="false" >
+                </ul>
+                <div id="empty-list">
+                    <p data-i10n="no_projects_found">
+                        No projects found!
+                    </p>
+                    <p>
+                        <span data-i10n="tap_the"> Tap the </span><i class="fa fa-plus-square-o fa-fw fa-ep-small"></i><span data-i10n="button">button</span><span data-i10n="to_add_one">to add one.</span>
+                    </p>
+
+                </div>
+
+            </div><!-- /content -->
+        </div><!-- /index -->
+    </body>
+</html>
+

@@ -1,0 +1,44 @@
+<!-- Upload page, dealing with data upload ------------------------------------------------->
+<div data-role="page" id="upload" data-theme="a">
+
+    <div data-role="header"  data-id="footer">
+        <div data-href="back-btn" class="h-nav-item">
+            <i class="fa fa-angle-left fa-ep-large"></i>
+            <span class="app-name" data-i10n="forms"></span>
+        </div>
+
+        <div data-role="navbar" data-iconpos="left">
+            <ul>
+                <li class="tab-nav title-tab">
+                    <span id="upload-label"><span data-i10n="upload_to">Upload to </span><span>-project_name-</span></span>
+                </li>
+            </ul>
+        </div><!-- /navbar -->
+
+    </div><!-- /header -->
+
+    <!--  Upload options, only data or only media-->
+    <div id="upload-options" data-role="content">
+      
+        <div id="upload-data-btn" class="embedded-btn ui-disabled">
+            <i class="fa fa-files-o  fa-fw fa-ep-embedded-btn"></i>
+            <span class="v-nav-item-label" data-i10n="upload_data">Upload Data</span>
+        </div>
+
+        <div id="upload-images-btn" class="embedded-btn ui-disabled">
+            <i class="fa fa-picture-o  fa-fw fa-ep-embedded-btn"></i>
+            <span class="v-nav-item-label" data-i10n="upload_images">Upload Images</span>
+        </div>
+
+        <div id="upload-audios-btn" class="embedded-btn ui-disabled">
+            <i class="fa fa-music  fa-fw fa-ep-embedded-btn"></i>
+            <span class="v-nav-item-label" data-i10n="upload_audios">Upload Audios</span>
+        </div>
+
+        <div id="upload-videos-btn" class="embedded-btn ui-disabled">
+            <i class="fa fa-video-camera  fa-fw fa-ep-embedded-btn"></i>
+            <span class="v-nav-item-label" data-i10n="upload_videos">Upload Videos</span>
+        </div>
+
+    </div><!-- /content -->
+</div><!-- /settings ------------------------------------------------------------------------>

@@ -1,0 +1,132 @@
+<!------------------------------------------------------------------------  FORM LIST PAGE------------------------------------------------->
+<!-- Form list page, listing all forms within a project-->
+<div id="forms" data-role="page" data-theme="a">
+
+    <!-- Panel with sync options   -->
+    <div id="sync-options" data-role="panel" data-position="right" data-display="overlay" data-dismissable="true" data-inset="true"  class="ec-panel">
+        <ul class="ec-option-list" id="sync-options-list" data-role="listview" data-inset="true" data-theme="a" data-corners="false">
+            <li data-icon="false">
+                <a href="views/upload.html" data-transition="none"> Upload</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Form Settings panel  -->
+    <div id="project-options" data-role="panel" data-position="right" data-display="overlay" data-dismissable="true" data-inset="true"  class="ec-panel project-options-panel">
+        <ul class="ec-option-list" id="project-options-list"data-role="listview" data-inset="true" data-theme="a" data-corners="false">
+            <li id="backup-project-data" data-icon="false" class="v-nav-item">
+                <div data-href="backup-project-data" >
+                    <i class="fa fa-copy  fa-fw v-nav-item-icon" ></i><span class="v-nav-item-label" data-i10n="backup_data">&nbsp; Backup Project Data</span>
+                </div>
+            </li>
+            <li id="restore-data-from-backup" data-icon="false" class="v-nav-item">
+                <div data-href="restore-data-from-backup" >
+                    <i class="fa fa-cogs  fa-fw v-nav-item-icon"></i><span class="v-nav-item-label" data-i10n="restore_data">&nbsp; Restore Data from Backup</span>
+                </div>
+            </li>
+            <li id="email-backup" data-icon="false" class="v-nav-item" >
+                <!-- <a href="views/email-backup.html" data-transition="none" >Email Backup</a> -->
+                <div data-href="email-backup" >
+                    <i class="fa fa-envelope  fa-fw v-nav-item-icon"></i><span class="v-nav-item-label" data-i10n="email_backup">&nbsp; Email Backup</span>
+                </div>
+            </li>
+            <li id="download-remote-data" data-icon="false" class="v-nav-item">
+                <!-- <a href="views/download.html">Download remote data</a> -->
+                <div data-href="download-remote-data" >
+                    <i class="fa fa-download  fa-fw v-nav-item-icon"></i><span class="v-nav-item-label" data-i10n="download_remote_data">&nbsp; Download remote data</span>
+                </div>
+            </li>
+            <li id="unsync-all-data" data-icon="false" class="v-nav-item">
+                <!-- <a href="#">Unsync All Data</a> -->
+                <div data-href="download-remote-data" >
+                    <i class="fa fa-chain-broken  fa-fw v-nav-item-icon"></i><span class="v-nav-item-label" data-i10n="unsync_entries">&nbsp; Unsync All Entries Data</span>
+                </div>
+            </li>
+            <li id="delete-all-entries" data-icon="false" class="v-nav-item">
+                <!-- <a href="#">Delete All Entries </a> -->
+                <div data-href="download-remote-data" >
+                    <i class="fa fa-trash-o  fa-fw v-nav-item-icon"></i><span class="v-nav-item-label" data-i10n="delete_entries">&nbsp; Delete All Entries</span>
+                </div>
+            </li>
+            <li id="delete-synced-entries" data-icon="false" class="v-nav-item">
+                <!-- <a href="#">Delete Synced Entries</a> -->
+                <div data-href="download-remote-data" >
+                    <i class="fa fa-trash-o  fa-fw v-nav-item-icon"></i><span class="v-nav-item-label" data-i10n="delete_synced">&nbsp; Delete Synced Entries</span>
+                </div>
+            </li>
+            <li id="delete-media-files"data-icon="false" class="v-nav-item">
+                <!-- <a href="#">Delete Media Files</a> -->
+                <div data-href="download-remote-data" >
+                    <i class="fa fa-trash-o  fa-fw v-nav-item-icon"></i><span class="v-nav-item-label" data-i10n="delete_media">&nbsp; Delete Media Files</span>
+                </div>
+            </li>
+            <li id="delete-project" data-icon="false" class="v-nav-item">
+
+                <!-- <a href="#">Delete Project</a> -->
+                <div data-href="download-remote-data" class="v-nav-item">
+                    <i class="fa fa-trash-o  fa-fw v-nav-item-icon"></i><span class="v-nav-item-label" data-i10n="delete_project">&nbsp; Delete Project</span>
+                </div>
+            </li>
+        </ul>
+    </div><!-- /panel -->
+
+    <div data-role="header">
+
+        <div data-href="form-nav-btn" class="h-nav-item">
+            <i class="fa fa-bars fa-ep-large"></i>
+            <span class="project-name"></span>
+        </div>
+
+        <!-- Navigation drawer  -->
+        <div id="form-nav-drawer" data-role="panel" data-position="left" data-display="overlay" data-dismissable="true" data-inset="true" data-swipe-close="true" class="ec-panel">
+            <ul class="ec-option-list" data-role="listview" data-inset="true" data-theme="a" data-corners="false">
+                <li id="home" class="v-nav-item">
+                    <div data-href="home">
+                        <i class="fa fa-home  fa-fw v-nav-item-icon" data-href="help"></i><span class="v-nav-item-label" data-i10n="home">&nbsp; Home</span>
+                    </div>
+                </li>
+                <li class="v-nav-item ui-disabled">
+                    <div data-href="help">
+                        <i class="fa fa-question  fa-fw v-nav-item-icon" data-href="help"></i><span class="v-nav-item-label" data-i10n="help">&nbsp; Help</span>
+                    </div>
+                </li>
+                <li class="v-nav-item">
+                    <div data-href="settings">
+                        <i class="fa fa-cog  fa-fw v-nav-item-icon" data-href="settings"></i><span class="v-nav-item-label" data-i10n="settings">&nbsp; Settings</span>
+                    </div>
+                </li>
+                <li class="v-nav-item ui-disabled">
+                    <div data-href="rate">
+                        <i class="fa fa-star  fa-fw v-nav-item-icon" data-href="rate"></i><span class="v-nav-item-label" data-i10n="rate_us">&nbsp; Rate Us</span>
+                    </div>
+                </li>
+
+            </ul>
+        </div><!-- /panel -->
+
+        <div class="ui-btn-right h-nav-item-right first-btn" data-href="upload">
+            <i class="fa fa-cloud-upload fa-fw fa-ep" ></i>
+        </div>
+        <div class="ui-btn-right h-nav-item-right second-btn" data-href="project-options">
+            <i class="fa fa-ellipsis-v fa-fw fa-ep" ></i>
+        </div>
+
+        <div data-role="navbar" data-iconpos="left">
+            <ul>
+                <li class="tab-nav inactive-tab">
+                    <i class="fa fa-caret-left fa-fw fa-ep-small" data-href="upload"></i><span data-i10n="projects">Projects</span>
+                </li>
+                <li class="tab-nav">
+                    <span data-i10n="forms">Forms</span>
+                </li>
+            </ul>
+        </div><!-- /navbar -->
+    </div><!-- /header -->
+
+    <!--  Add list of forms (a project has got minimun 1 form) -->
+    <div id="forms-list" data-role="content" data-theme="a">
+        <ul data-role="listview"  data-filter="false" data-filter-placeholder="Filter forms..." data-theme="a" data-clear-btn="false">
+
+        </ul>
+    </div><!-- /content -->
+</div><!-- /forms -->

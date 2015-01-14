@@ -1,0 +1,406 @@
+* {
+	-webkit-tap-highlight-color: rgba(0,0,0,0);
+	outline: none;
+}
+.clear {
+	clear: both;
+}
+.ui-panel-inner {
+	padding: 0;
+}
+.ui-panel-inner .ui-listview-inset {
+	margin: 0;
+}
+.ui-header > .ui-btn {
+	padding: .2em;
+}
+.ui-header .ui-title {
+	text-align: left;
+	margin: .6em 0 .8em 3em;
+}
+.ui-navbar.ui-mini {
+	border-bottom: 1px solid #222;
+}
+
+.ui-li-desc {
+	margin: .5em 0 0 0;
+}
+div#empty-list, div#add-project-suggest {
+	padding: 1.3em;
+}
+div#empty-list {
+	text-align: center;
+}
+div#add-project-suggest {
+	text-align: left;
+}
+a.last-form span.ui-btn {
+	visibility: hidden;
+}
+/*********Load more entries button************/
+.more-items-btn, .more-items-btn-spinner {
+	margin: 15px -15px -15px -15px;
+	padding: 1em;
+	text-align: center;
+	cursor: pointer;
+	/*border-bottom: 1px solid #dddddd;*/
+}
+.more-items-btn .more-items-btn-spinner {
+
+}
+.more-items-btn > span {
+	vertical-align: middle;
+}
+/*******************************************/
+
+.ui-header .ui-btn-icon-left .ui-btn-inner, .ui-footer .ui-btn-icon-left .ui-btn-inner, .ui-mini.ui-btn-icon-left .ui-btn-inner, .ui-mini .ui-btn-icon-left .ui-btn-inner {
+	padding-left: 18px;
+}
+img#form-preloader {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin-left: -64px;
+}
+.ui-loader .ui-icon {
+	background-color: #000;
+	display: block;
+	width: 44px;
+	height: 44px;
+	padding: 1px;
+	-webkit-border-radius: 3px;
+	border-radius: 3px;
+}
+.input-nav-disable {
+	visibility: hidden;
+	background: #e5e5e5;
+}
+div[data-role="navbar"].ui-navbar ul li {
+	background: #eeeeee;
+}
+/******************************************/
+/* Entries List*/
+div#empty-entries-list {
+	text-align: center;
+}
+/* Titles span multiple lines*/
+div#entries-list > ul a {
+	white-space: normal;
+}
+.invisible {
+	visibility: hidden !important;
+}
+.not-shown {
+	display: none !important;
+}
+.no-border {
+	border: 0 !important;
+}
+.parent-key, .branch-form-name {
+	background: #8156a3;
+	text-align: center;
+	min-height: 2em;
+}
+ul.input-nav li a span.ui-btn-inner {
+	min-height: 20px;
+}
+textarea.ui-input-text {
+	height: inherit;
+	overflow: auto;
+	opacity: 1 !important;
+}
+div#input-photo, div#input-audio, div#branch-input-photo, div#branch-input-audio {
+	text-align: center;
+}
+canvas {
+	background: #ffffff;
+	padding: 8px;
+	border: 1px solid #cccccc;
+}
+/* Swipebox plugin*/
+a#swipebox-close {
+	margin-top:-5px!important;
+}
+
+.ui-li-divider {
+	padding: .8em 0 .8em 1em;
+	font-size: 14px;
+	font-weight: 700;
+}
+li.custom-divider {
+	background: #222222/*{a-bar-background-color}*/;
+	color: #eeeeee !important/*{a-bar-color}*/;
+	font-weight: bold;
+	text-shadow: none !important;
+	margin-top: .5em !important;
+}
+li.custom-divider a {
+	color: #eeeeee !important/*{a-bar-color}*/;
+}
+li.custom-divider a.context-add-child-entry .ui-li-link-alt .ui-btn ui-btn-icon-notext .ui-btn-up-c {
+	margin: .5em 0 !important;
+}
+a.context-add-child-entry {
+	float: right;
+}
+p#upload-response {
+	text-align: center;
+	min-height: 1em;
+	font-weight: bold;
+}
+div.h-nav-item {
+	display: inline-block;
+	padding-right: 1em;
+	cursor: pointer;
+}
+.fa-ep, .fa-ep-large, .fa-ep-show-more {
+	font-size: 1.7em;
+	margin: .2em;
+	cursor: pointer;
+	vertical-align: middle;
+}
+.fa-ep-small {
+	font-size: 1em;
+	color: #2F3E46;
+	cursor: pointer;
+	vertical-align: middle;
+}
+.fa-ep-in-list {
+	margin-top: -0.1em;
+	color: #222222;
+}
+li.v-nav-item {
+	cursor: pointer;
+	background-color: #DDDDDD;
+}
+.v-nav-item-icon {
+	margin: 0 !important;
+	font-size: 1.3em !important;
+	font-weight: bold !important;
+}
+li.tab-nav.ui-block-a, li.tab-nav.ui-block-b {
+	padding: .5em .5em .5em .3em;
+	cursor: pointer;
+	color: #2F3E46;
+	height: 2em;
+}
+li.tab-nav.ui-block-b {
+	background-color: #8156a3 !important;
+	text-align: center;
+	color: #ffffff !important;
+}
+li.tab-nav > span {
+	font-size: .8em;
+	text-shadow: 0 !important;
+	display: block;
+	text-overflow: ellipsis;
+	overflow-y: hidden;
+	white-space: nowrap;
+}
+li.tab-nav i.fa-ep-small {
+	float: left;
+}
+/*****************************************************************/
+/* Inputs navbar, prev, next buttons and percentage bar */
+div.ui-grid-b.input-nav-tabs, div.ui-grid-b.branch-input-nav-tabs {
+	background-color: #EEEEEE;
+	color: #333333;
+	border-top: 1px solid #333333;
+	border-bottom: 1px solid #333333;
+}
+div.ui-grid-b.input-nav-tabs > div, div.ui-grid-b.branch-input-nav-tabs > div {
+	height: 2em;
+}
+div.input-prev-btn {
+	text-align: left;
+	cursor: pointer;
+}
+div.input-progress-bar {
+	text-align: center;
+	border-left: 1px solid #333333;
+}
+div.input-progress-bar div.bar_mortice.mortice_tiny {
+	margin: 0 .5em;
+}
+div.input-next-btn {
+	text-align: right;
+	cursor: pointer;
+	border-left: 1px solid #333333;
+	width: 33%;
+}
+span.form-completion-percent {
+	font-size: .8em;
+}
+/****************************************************************/
+span.input-btn-inner {
+	display: block;
+	line-height: 2em;
+}
+span.project-name, span.app-name, span.form-name, span.branch-form-name {
+	vertical-align: middle;
+}
+
+.ui-icon-ep-next-page {
+	background-image: url("images/caret-right.png");
+}
+div.embedded-btn {
+	display: block;
+	text-align: center;
+	cursor: pointer;
+	position: relative;
+	margin: .5em 0;
+	padding: .5em;
+	font-family: Roboto, Helvetica, Arial, sans-serif/*{global-font-family}*/;
+	text-decoration: none;
+	border: 1px solid #cccccc;
+	background: #eeeeee;
+	font-weight: bold;
+	width: 70%;
+	margin: 1em auto;
+}
+div.embedded-btn i.fa-ep-embedded-btn {
+	float: left;
+	font-size: 1.3em;
+}
+div.embedded-btn span.v-nav-item-label {
+	vertical-align: middle;
+	text-align: center;
+	display: block;
+	margin-left: 2em;
+	/*margin-right:-1.5em;*/
+	text-overflow: ellipsis;
+	overflow-y: hidden;
+}
+div.embedded-btns-wrapper {
+	text-align: center;
+}
+.text-align-left {
+	text-align: left !important;
+}
+p.message {
+	text-align: center;
+}
+/*******************************************************************/
+/** Entry values list **/
+i.fa-ep-entry-value-embedded-btn {
+	font-size: 1.7em;
+}
+div.entry-value-embedded-btn {
+	position: absolute;
+	cursor: pointer;
+	right: 1em;
+	top: .5em;
+}
+
+span.h-entry-value-label, ul.h-entry-value-label {
+	display: block;
+	width: 85%;
+	overflow-y: hidden;
+	text-overflow: ellipsis;
+}
+li.entry-value-btn-wrapper {
+	position: relative;
+	min-height: 1.1em;
+}
+span.h-entry-value-label p {
+	font-weight: bold;
+	color: #2f3e46/*{a-bup-color}*/;
+	font-family: Roboto, Helvetica, Arial, sans-serif/*{global-font-family}*/;
+}
+/*****************************************************************/
+
+li.title-tab {
+	background-color: #8156a3 !important;
+	color: #EEEEEE !important;
+	text-align: center;
+}
+.ui-panel {
+	background-color: #1d1d1d !important;
+}
+.ui-li-has-count .ui-li-count {
+	background-color: #cccccc;
+	right: 4em;
+}
+div#ongoing-recording-spinner {
+	margin: .5em 0;
+	padding: .5em;
+}
+li.autocomplete-spinner {
+	background: none;
+	border: 0;
+	padding: 1em;
+	text-align: center;
+}
+li.autocomplete-spinner i.fa-spin, .more-items-btn-spinner i {
+	font-size: 1.7em;
+}
+/* LImit width of list element to trigger ellipsis*/
+.ui-li .ui-btn-text a.ui-link-inherit {
+	/*max-width: 70%;*/
+}
+.parent-entry-divider {
+	padding: .5em;
+}
+.parent-entry-divider span {
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	max-width: 75%;
+	overflow: hidden;
+	display: inline-block;
+	vertical-align: bottom;
+}
+.parent-entry-divider a {
+}
+div#settings div#settings-values div.ui-radio span.ui-btn-inner {
+	padding: 0.6em 1.1em !important;
+}
+/* Remove focus on select element (the border shadow)*/
+div.ui-select .ui-focus {
+	-moz-box-shadow: 0 !important;
+	-webkit-box-shadow: 0 !important;
+	box-shadow: 0 !important;
+}
+/* Barcode scanner*/
+input#scan-result, input#scan-result-confirm {
+	font-weight: bold;
+	color: #333333;
+	opacity: .8 !important;
+}
+/*Action bar right buttons*/
+div.ui-btn-right {
+	top: 0.1em !important;
+	right: 0 !important;
+}
+div.ui-btn-right.first-btn {
+	right: 52px !important;
+}
+video#ios-video-player {
+	width: 100% !important;
+	height: auto !important;
+}
+label.http {
+	vertical-align: middle !important;
+	width: auto !important;
+	margin: 0 0.5em 0 0 !important;
+}
+/**** Warning when user is editing a primary key field (why it is disabled)*****/
+p.primary-key-not-editable {
+	color: orange;
+}
+/* Disable selection of text aside from inputs and textarea on iOS*/
+*:not(input):not(textarea) {
+	-webkit-user-select: none; /* disable selection/Copy of UIWebView */
+	-webkit-touch-callout: none; /* disable the IOS popup when long-press on a link */
+}
+div#add-project-content {
+	margin-top: -5px;
+}
+/* iOS status bar*/
+.iOS-status-bar {
+
+}
+/* Add project autocomplete*/
+.autocomplete-spinner-loader {
+	width: 100%;
+	text-align: center;
+}

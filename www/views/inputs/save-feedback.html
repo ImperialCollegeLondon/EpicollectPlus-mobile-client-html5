@@ -1,0 +1,45 @@
+<!-- SAVE FEEDBACK: screen to show after saving form data ---------------- ---------------------------------------------------------------->
+<div id="feedback" data-role="page" data-theme="a">
+
+    <div data-role="header"  data-id="footer">
+        <div data-href="back-btn" class="h-nav-item">
+            <i class="fa fa-angle-left fa-ep-large" ></i>
+            <span class="form-name">-form_name- entries</span>
+        </div>
+
+        <div class="ui-grid-solo parent-key">
+            <div class="ui-block-a">
+                <span class="ui-btn-active"> <span class="ui-btn-inner"></span> </span>
+            </div>
+        </div>
+
+    </div><!-- /header -->
+
+    <div id="input-feedback" data-role="content" data-theme="a">
+        <p class="message" data-i10n="data_saved_success">
+            Data saved successfully
+        </p>
+
+        <div class=embedded-btns-wrapper>
+            <div id="upload" data-href="upload.html" class="embedded-btn">
+                <i class="fa fa-cloud-upload  fa-fw fa-ep-embedded-btn"></i>
+                <span class="v-nav-item-label text-align-left" data-i10n="upload">Upload</span>
+            </div>
+            <div id="add-entry-current-form" data-href="inputs.html" class="embedded-btn">
+                <i class="fa fa-file-text-o  fa-fw fa-ep-embedded-btn"></i>
+                <span class="v-nav-item-label text-align-left"><span data-i10n="add_another">Add another </span><span class="entry">-entry-</span></span>
+            </div>
+
+            <div id="list-entries-current-form"  class="embedded-btn">
+                <i class="fa fa-th-list  fa-fw fa-ep-embedded-btn"></i>
+                <span class="v-nav-item-label text-align-left"><span data-i10n="list">List </span><span class="form-name-inline">-form-name-</span> <span>entries </span></span>
+            </div>
+            <div id="add-child-entry" data-href="inputs.html" class="embedded-btn not-shown">
+                <i class="fa fa-sitemap  fa-fw fa-ep-embedded-btn"></i>
+                <span class="v-nav-item-label text-align-left">Add child' to 'form' </span>
+            </div>
+        </div>
+
+    </div><!-- /grid-a -->
+
+</div><!-- /feedback -->

@@ -1,0 +1,36 @@
+<!-- Add project page, asking for a project name---------------------------------------------->
+<div id="add-project" data-role="page" data-theme="a">
+
+    <div data-role="header">
+        <div data-href="back-btn" class="h-nav-item">
+            <i class="fa fa-angle-left fa-ep-large"></i>
+            <span class="app-name" data-i10n="project_list">Project List</span>
+        </div>
+
+        <div class="ui-btn-right" data-href="load-project-confirm" >
+            <i class="fa fa-download fa-ep fa-fw" ></i>
+        </div>
+
+        <!-- <div data-role="navbar" data-iconpos="left">
+        <ul>
+        <li class="tab-nav title-tab">
+        <span data-i10n="add_project">Add Project</span>
+        </li>
+        </ul>
+        </div><!-- /navbar -->
+    </div><!-- /header -->
+    <!--  Add list of project if any-->
+    <div id="add-project-content" data-role="content" data-theme="a">
+        <ul id="projects-autocomplete" data-role="listview" data-filter="true" data-filter-placeholder="type_project_name_here" data-theme="a">
+        </ul>
+        <!-- <div id="add-project-suggest">
+        <!-- <span data-i10n="tap_the">Tap the</span><i class="fa fa-download fa-fw fa-ep-large"></i><span data-i10n="button">button</span><span data-i10n="to_add_one"> to download</span>
+        </div> -->
+    </div><!-- /content -->
+    <div class="autocomplete-spinner-loader not-shown">
+        <i class="fa fa-spinner fa-fw v-nav-item-icon fa-spin"></i>
+    </div>
+
+</div><!-- /add-project -->
+
+<!--  -------------------------------------------------------------------------------------------->

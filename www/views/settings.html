@@ -1,0 +1,51 @@
+<!-- Settings page, listing all user preferences-->
+<div data-role="page" id="settings" data-theme="a">
+
+    <div data-role="header"  data-id="footer">
+        <div data-href="back-btn" class="h-nav-item">
+            <i class="fa fa-angle-left fa-ep"></i>
+            <span class="project-name"></span>
+        </div>
+
+        <div class="ui-btn-right" data-href="save-settings">
+            <i class="fa fa-check fa-ep fa-fw"></i>
+        </div>
+
+        <div data-role="navbar" data-iconpos="left">
+            <ul>
+                <li class="tab-nav title-tab">
+                    <span id="settings-list-label" data-i10n="settings">Settings</span>
+                </li>
+            </ul>
+        </div><!-- /navbar -->
+
+    </div><!-- /header -->
+
+    <!--  List of values for an entry-->
+    <div id="settings-values" data-role="content">
+
+        <span class="label" data-i10n="remote_server_url">Remote Server URL</span>
+
+        <input id="project-server-url" type="url" value=""/>
+
+        <span class="label" data-i10n="pagination">Pagination: entries listed per page</span>
+        <form id="pagination-options">
+            <fieldset data-role="controlgroup" data-type="horizontal">
+                <input type="radio" name="radio-choice-h-2" id="radio-choice-h-2a" value="10">
+                <label for="radio-choice-h-2a">10</label>
+                <input type="radio" name="radio-choice-h-2" id="radio-choice-h-2b" value="20">
+                <label for="radio-choice-h-2b">20</label>
+                <input type="radio" name="radio-choice-h-2" id="radio-choice-h-2c" value="30">
+                <label for="radio-choice-h-2c">30</label>
+                <input type="radio" name="radio-choice-h-2" id="radio-choice-h-2d" value="40">
+                <label for="radio-choice-h-2d">40</label>
+                <input type="radio" name="radio-choice-h-2" id="radio-choice-h-2e" value="50">
+                <label for="radio-choice-h-2e">50</label>
+            </fieldset>
+        </form>
+
+        <p id="version-name">
+            <span data-i10n="app_version">App Version: </span>Epicollect5 <span class="version">---</span> (Beta)
+        </p>
+    </div><!-- /content -->
+</div><!-- /settings -->
