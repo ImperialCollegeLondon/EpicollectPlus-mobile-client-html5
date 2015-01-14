@@ -9,7 +9,8 @@ Epicollect5  Mobile Client refactored to support 64bit architectures
 
 1. Clone repo
 2. Add Android and iOS platforms using Cordova CLI
-2. Plugins dependencies are added automatically via Cordova hooks
-3. Open project in Eclipse (Android) or Xcode (iOS)
-4. Fix deployment info, Java import ect. if needed
-5. Build on device
+3. Plugins dependencies are added automatically via Cordova hooks
+4. Run `cordova prepare` to copy file per each platform
+5. Open project in Eclipse (Android) or Xcode (iOS)
+6. Fix deployment info, Java import ect. if needed
+7. Build on device
