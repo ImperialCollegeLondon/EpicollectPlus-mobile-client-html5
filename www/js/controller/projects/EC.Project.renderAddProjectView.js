@@ -60,6 +60,12 @@ EC.Project = ( function(module) {"use strict";
 			input_value = $("div#add-project-content form div input[data-type='search']");
 			autocomplete_spinning_loader = $(".autocomplete-spinner-loader");
 			project_url = window.localStorage.project_server_url;
+			
+			//if Chrome, prepend proxy (CORS)
+			if(EC.Utils.isChrome()){
+				project_url = EC.Const.PROXY;
+			}
+			
 
 			//Localise
 			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {

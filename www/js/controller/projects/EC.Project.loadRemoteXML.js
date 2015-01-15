@@ -34,9 +34,9 @@ EC.Project = ( function(module) {"use strict";
                 console.log("no projects on device yet");
             }
 
-            //If  Chrome, load xml locally
+            //If  Chrome, load xml using a proxy
             if (EC.Utils.isChrome()) {
-                project_xml_URL = "xml/" + project_name + ".xml";
+                project_xml_URL = EC.Const.PROXY +  project_name + ".xml";
             } else {
 
                 //if the project name is a full url, use that instead of app settings
@@ -51,9 +51,6 @@ EC.Project = ( function(module) {"use strict";
 
             EC.Notification.showProgressDialog();
 
-            if (EC.Utils.isChrome()) {
-                project_xml_URL = "../" + project_xml_URL;
-            }
 
             //all good, load project on device
             $.when(EC.Project.request(project_xml_URL)).then(function() {

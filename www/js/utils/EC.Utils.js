@@ -872,14 +872,18 @@ EC.Utils = ( function() {
             return deferred.promise();
 
         };
+        
+        //set Chrome base URL for debugging (absolute path to index.html)
 
         var getPageBaseURI = function() {
 
             var base_uri;
 
-            //if we are testing with Chrome Chrome/browser
+            //if we are testing with Chrome Chrome/browser on the iMac (replace based on your dev environment if needed)
             if (EC.Utils.isChrome()) {
-                base_uri = "http://localhost:8888/www/";
+               
+                base_uri = window.localStorage.BASE_URI;
+               
             } else {
 
                 switch(window.device.platform) {
