@@ -9,10 +9,6 @@
 		<!-- Fix status bar on ios 7+ -->
 		<preference name="StatusBarOverlaysWebView" value="false" />
 		<preference name="StatusBarStyle" value="default" />
-		<!-- Automatically install plugin dependencies -->
-		<hook type="after_platform_add" src="hooks/install-plugins.js" />
-        <!-- Copy Android customisations -->
-        <hook type="after_prepare" src="hooks/copy-android-res.js" />
 		<!-- iPhone 6 Plus  -->
 		<icon src="res/ios/icon-60@3x.png" width="180" height="180" />
 		<!-- iOS 7.0+ -->
@@ -39,6 +35,9 @@
 		<preference name="BackupWebStorage" value="local"/>
 	</platform>
 	<platform name="android">
+		<!-- Copy Android customisations -->
+		<hook type="after_platform_add" src="hooks/copy-android-res.js" />
+		<!-- Automatically install plugin dependencies (this will also install them for iOS) -->
 		<hook type="after_platform_add" src="hooks/install-plugins.js" />
 	</platform>
 </widget>
