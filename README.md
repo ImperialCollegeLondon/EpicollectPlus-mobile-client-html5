@@ -7,7 +7,7 @@ Epicollect5  Mobile Client refactored to support 64bit architectures
 
 ## Installation 
 
-1. Clone repo (res/ios/*.png was added manually using `git add res/ios/*.png -f`)
+1. Clone repo (png resources was added manually using <code>git add res/ios/*.png -f<code>)
 2. Add Android and iOS platforms using Cordova CLI
 3. Plugins dependencies are added automatically via Cordova hooks
 4. Run `cordova prepare` to copy file per each platform
