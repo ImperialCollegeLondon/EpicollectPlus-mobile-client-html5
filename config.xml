@@ -11,6 +11,8 @@
 		<preference name="StatusBarStyle" value="default" />
 		<!-- Automatically install plugin dependencies -->
 		<hook type="after_platform_add" src="hooks/install-plugins.js" />
+        <!-- Copy Android customisations -->
+        <hook type="after_prepare" src="hooks/copy-android-res.js" />
 		<!-- iPhone 6 Plus  -->
 		<icon src="res/ios/icon-60@3x.png" width="180" height="180" />
 		<!-- iOS 7.0+ -->

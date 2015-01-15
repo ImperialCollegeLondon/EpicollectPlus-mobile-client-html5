@@ -3,7 +3,8 @@
 
 var EC = EC || {};
 EC.InputTypes = EC.InputTypes || {};
-EC.InputTypes = ( function(module) {"use strict";
+EC.InputTypes = ( function(module) {
+		"use strict";
 
 		module.date = function(the_value, the_input) {
 
@@ -19,16 +20,17 @@ EC.InputTypes = ( function(module) {"use strict";
 
 			//update label text
 			span_label.text(input.label + " - " + input.datetime_format);
-			
+
 			//Localise
-			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
+			if(window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
 				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
 			}
 
 			//Add attribute to flag the primary key input field
-			if (parseInt(input.is_primary_key, 10) === 1) {
+			if(parseInt(input.is_primary_key, 10) === 1) {
 				span_label.attr('data-primary-key', 'true');
-			} else {
+			}
+			else {
 
 				//reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
 				span_label.attr('data-primary-key', '');
@@ -59,16 +61,17 @@ EC.InputTypes = ( function(module) {"use strict";
 			 *if the option to show the current date as default is selected in the web form builder,
 			 * the input value gets the value of datetime_format when parsing the xml
 			 */
-			if (value === input.datetime_format) {
+			if(value === input.datetime_format) {
 				datepicker.val(EC.Utils.parseDate(new Date(), input.datetime_format));
-			} else {
+			}
+			else {
 				datepicker.val(value);
 			}
 
 			/*****************************************************************************************
 			 * Android uses the Phonegap official DatePicker plugin
 			 ****************************************************************************************/
-			if (window.device.platform === EC.Const.ANDROID) {
+			if(window.device.platform === EC.Const.ANDROID) {
 
 				/* bind input to 'vclick' insted of focus, as we set the input as readonly.
 				 * this solved problem on android 2.3 where the keyboard was showing because the input is in focus when tapping "cancel"
@@ -82,11 +85,11 @@ EC.InputTypes = ( function(module) {"use strict";
 					//use debouncing/throttling to avoid triggering multiple `focus` event http://goo.gl/NFdHDW
 					var now = new Date();
 					var lastFocus = datepicker.data("lastFocus");
-					if (lastFocus && (now - lastFocus) < 500) {
+					if(lastFocus && (now - lastFocus) < 500) {
 						// Don't do anything
 						return;
 					}
-					
+
 					datepicker.data("lastFocus", now);
 
 					// Same handling for iPhone and Android
@@ -95,13 +98,15 @@ EC.InputTypes = ( function(module) {"use strict";
 						mode : 'date', // date or time or blank for both
 						allowOldDates : true
 					}, function(returned_date) {
-						
+
 						console.log(returned_date);
 
-						var new_date = new Date(returned_date);
+						if(returned_date !== undefined) {
+							var new_date = new Date(returned_date);
 
-						datepicker.val(EC.Utils.parseDate(new_date, input.datetime_format));
-						datepicker.attr("data-raw-date", new_date);
+							datepicker.val(EC.Utils.parseDate(new_date, input.datetime_format));
+							datepicker.attr("data-raw-date", new_date);
+						}
 
 						// This fixes the problem you mention at the bottom of this script with it not working a second/third time around, because it is in focus.
 						datepicker.blur();
@@ -116,7 +121,7 @@ EC.InputTypes = ( function(module) {"use strict";
 			/*****************************************************************************************
 			 * iOS uses the official HTML5 input type="date"
 			 ****************************************************************************************/
-			if (window.device.platform === EC.Const.IOS) {
+			if(window.device.platform === EC.Const.IOS) {
 
 				datepicker.off().on('vclick', function(event) {
 					ios_datepicker.focus();
