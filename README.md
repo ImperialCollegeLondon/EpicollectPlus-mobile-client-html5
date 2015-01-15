@@ -14,3 +14,4 @@ Epicollect5  Mobile Client refactored to support 64bit architectures
 5. Open project in Eclipse (Android) or Xcode (iOS)
 6. Fix deployment info, Java import ect. if needed
 7. Build on device
+8. Look for log errors about missing plugins (iOS) and fix
