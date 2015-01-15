@@ -43,6 +43,9 @@ window.handleOpenURL = function(url) {"use strict";
 
 function onDeviceReady() {"use strict";
 
+	
+	
+
     if (!EC.Utils.isChrome()) {
 
         //request iOS persistent file system
@@ -118,6 +121,9 @@ function onDeviceReady() {"use strict";
         //fallback to English as default language
         window.localStorage.DEVICE_LANGUAGE = "en";
         EC.Localise.setLanguage(window.localStorage.DEVICE_LANGUAGE);
+        
+        //set base URI for debugging on Chrome
+        window.localStorage.BASE_URI = window.location.href.replace("index.html", "");
     }
 
     EC.db = EC.Utils.openDatabase();

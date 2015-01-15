@@ -14,7 +14,7 @@ EC.Const = ( function() {
             ANDROID : "Android",
             IOS : "iOS",
             ANDROID_ASSETS_ABS_PATH : "file:///android_asset/www/",
-            IOS_ASSETS_ABS_PATH : "Epicollect5 64bit.app/www/",
+            IOS_ASSETS_ABS_PATH : "Epicollect5-64bit.app/www/",
 
             //file paths
             ANDROID_APP_PRIVATE_URI : "file:///data/data/uk.ac.imperial.epicollect5",
@@ -128,6 +128,9 @@ EC.Const = ( function() {
 
             // default server
             EPICOLLECT_SERVER_URL : "http://plus.epicollect.net/",
+            
+            //proxy to load xml in Chrome (CORS)
+            PROXY: "http://www.corsproxy.com/plus.epicollect.net/",
 
             //the length of a cached file <timestamp.extension> (Android)
             CACHED_FILENAME_LENGTH : 17,
