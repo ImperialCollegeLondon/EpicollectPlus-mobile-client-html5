@@ -95,6 +95,8 @@ EC.InputTypes = ( function(module) {"use strict";
 						mode : 'date', // date or time or blank for both
 						allowOldDates : true
 					}, function(returned_date) {
+						
+						console.log(returned_date);
 
 						var new_date = new Date(returned_date);
 
