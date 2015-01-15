@@ -14,7 +14,7 @@ EC.Const = ( function() {
             ANDROID : "Android",
             IOS : "iOS",
             ANDROID_ASSETS_ABS_PATH : "file:///android_asset/www/",
-            IOS_ASSETS_ABS_PATH : "Epicollect5 64bit.app/www/",
+            IOS_ASSETS_ABS_PATH : "Epicollect5-64bit.app/www/",
 
             //file paths
             ANDROID_APP_PRIVATE_URI : "file:///data/data/uk.ac.imperial.epicollect5",

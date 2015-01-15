@@ -8,6 +8,7 @@
 	<platform name="ios">
 		<!-- Fix status bar on ios 7+ -->
 		<preference name="StatusBarOverlaysWebView" value="false" />
+		<preference name="StatusBarStyle" value="default" />
 		<!-- Automatically install plugin dependencies -->
 		<hook type="after_platform_add" src="hooks/install-plugins.js" />
 		<!-- iPhone 6 Plus  -->

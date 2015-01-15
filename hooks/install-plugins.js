@@ -31,7 +31,9 @@ var pluginlist = [
 //App Version
 "https://github.com/whiteoctober/cordova-plugin-app-version.git",//
 //status bar in ios7
-"https://github.com/phonegap-build/StatusBarPlugin.git"
+"org.apache.cordova.statusbar",
+//identifier for vendor iOS
+"https://github.com/jcesarmobile/IDFVPlugin.git"
 ];
 
 // no need to configure below
