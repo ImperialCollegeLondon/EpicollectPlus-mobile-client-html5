@@ -11,7 +11,7 @@ Epicollect5  Mobile Client refactored to support 64bit architectures
 2. Add Android using Cordova CLI
 3. Plugins dependencies are added automatically via Cordova hooks when adding Android
 4. Add iOS using Cordova CLI (plugins will be added already from steps above)
-5. Copy `res/android/res/values/styles.xml` and `res/android/res/values-v11/styles.xml` in the platform Android `res` folder
+5. Copy `res/android/` files to proper folder under `platform/android`
 6. Change `android:theme` attribute to `android:theme="@style/Theme.Epicollect5"` 
 7. Run `cordova prepare` to copy file per each platform
 8. Open project in Eclipse (Android) or Xcode (iOS)
