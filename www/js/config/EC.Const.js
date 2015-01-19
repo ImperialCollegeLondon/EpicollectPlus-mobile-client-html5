@@ -17,7 +17,7 @@ EC.Const = ( function() {
             IOS_ASSETS_ABS_PATH : "Epicollect5-64bit.app/www/",
 
             //file paths
-            ANDROID_APP_PRIVATE_URI : "file:///data/data/uk.ac.imperial.epicollect5",
+            ANDROID_APP_PRIVATE_URI : "file:///data/data/uk.ac.imperial.epicollect5_64bit",
             IOS_APP_PRIVATE_URI : "", //set at run time, it is the Documents
             // folder
 

@@ -30,6 +30,8 @@ var pluginlist = [
 "https://github.com/whiteoctober/cordova-plugin-app-version.git", //
 //status bar in ios7
 "org.apache.cordova.statusbar",
+//video player plugin android
+"cordova plugin add https://github.com/macdonst/VideoPlayer",
 //native date picker for android
 "https://github.com/VitaliiBlagodir/cordova-plugin-datepicker",
 //identifier for vendor iOS

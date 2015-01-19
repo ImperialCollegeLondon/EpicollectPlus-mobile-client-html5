@@ -129,7 +129,7 @@ EC.InputTypes = ( function(module) {"use strict";
 			window.requestFileSystem(LocalFileSystem.TEMPORARY, 0, function(the_file_system) {
 
 				console.log(JSON.stringify(the_file_system));
-				cached_path = the_file_system.root.fullPath;
+				cached_path = the_file_system.root.nativeURL;
 				console.log('Fullpath: ' + cached_path);
 
 			}, function(error) {
