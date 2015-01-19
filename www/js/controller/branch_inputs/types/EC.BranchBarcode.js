@@ -2,7 +2,8 @@
 /*global $, jQuery*/
 var EC = EC || {};
 EC.BranchInputTypes = EC.BranchInputTypes || {};
-EC.BranchInputTypes = ( function(module) {"use strict";
+EC.BranchInputTypes = ( function(module) {
+		"use strict";
 
 		module.barcode = function(the_value, the_input) {
 
@@ -20,7 +21,7 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 
 			//update label text
 			span_label.text(input.label);
-			
+
 			//Localise
 			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
 				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
@@ -31,9 +32,11 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 
 				span_label.attr('data-primary-key', 'true');
 
-			} else {
+			}
+			else {
 
-				//reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
+				//reset the attribute to empty if not a primary key (JQM caches pages and we
+				// recycle views)
 				span_label.attr('data-primary-key', '');
 			}
 
@@ -46,13 +49,15 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 
 			scan_result.val(value);
 
-			//if in editing mode, do not allow changes either if the field is a primary key or it triggers a jump
+			//if in editing mode, do not allow changes either if the field is a primary key
+			// or it triggers a jump
 			if (window.localStorage.branch_edit_mode && input.is_primary_key === '1') {
 
 				//disable scan button
 				scanner.addClass('ui-disabled');
 				$('div#branch-input-barcode p.primary-key-not-editable').removeClass("not-shown");
-			} else {
+			}
+			else {
 				$('div#branch-input-barcode p.primary-key-not-editable').addClass("not-shown");
 			}
 
@@ -71,8 +76,12 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 				//add event handler to second scan button
 				scanner_confirm.on('vclick', function() {
 
+					//flag needed to handle case when user dismiss the barcode scanner
+					window.localStorage.is_dismissing_barcode = 1;
+
 					window.plugins.barcodeScanner.scan(function(result) {
-						//alert("We got a barcode\n" + "Result: " + result.text + "\n" + "Format: " + result.format + "\n" + "Cancelled: " +
+						//alert("We got a barcode\n" + "Result: " + result.text + "\n" + "Format: " +
+						// result.format + "\n" + "Cancelled: " +
 						// result.cancelled);
 
 						scan_result_confirm.val(result.text);
@@ -85,7 +94,8 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 
 				});
 
-			} else {
+			}
+			else {
 
 				//add not-shown class if missing
 				clone.addClass('not-shown');
@@ -95,8 +105,12 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 			//set handlers for scan button
 			scanner.on('vclick', function() {
 
+				//flag needed to handle case when user dismiss the barcode scanner
+				window.localStorage.is_dismissing_barcode = 1;
+
 				window.plugins.barcodeScanner.scan(function(result) {
-					//alert("We got a barcode\n" + "Result: " + result.text + "\n" + "Format: " + result.format + "\n" + "Cancelled: " +
+					//alert("We got a barcode\n" + "Result: " + result.text + "\n" + "Format: " +
+					// result.format + "\n" + "Cancelled: " +
 					// result.cancelled);
 
 					scan_result.val(result.text);

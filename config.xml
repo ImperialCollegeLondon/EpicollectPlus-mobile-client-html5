@@ -35,8 +35,6 @@
 		<preference name="BackupWebStorage" value="local"/>
 	</platform>
 	<platform name="android">
-		<!-- Copy Android customisations -->
-		<hook type="after_platform_add" src="hooks/copy-android-res.js" />
 		<!-- Automatically install plugin dependencies (this will also install them for iOS) -->
 		<hook type="after_platform_add" src="hooks/install-plugins.js" />
 	</platform>

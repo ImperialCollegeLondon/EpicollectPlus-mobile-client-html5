@@ -37,6 +37,9 @@ EC.Inputs = ( function(module) {"use strict";
 			self.setCachedInputValue(current_value, current_position, input.type, input.is_primary_key);
 
 			self.pushInputsTrail(input);
+			
+			//remove flag that helps to handle back button when user is just dismissing barcode scanner
+			window.localStorage.removeItem('is_dismissing_barcode');
 
 			self.gotoNextPage(e, current_value);
 
