@@ -252,6 +252,9 @@ EC.Entries = ( function() {
 
             //get hash from data-hef attribute
             window.localStorage.back_nav_url = $('div#entry-values div[data-role="header"] div[data-role="navbar"] ul li.inactive-tab i').attr("data-href");
+            
+            //remove cache entries to request list gain after entry deletion
+            window.localStorage.removeItem('cached_entries_list');
 
             //delete all the rows for this entry
             EC.Delete.deleteEntry(rows_to_delete, entry_key, children_forms);

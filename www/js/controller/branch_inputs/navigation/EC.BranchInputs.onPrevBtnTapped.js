@@ -32,6 +32,9 @@ EC.BranchInputs = ( function(module) {"use strict";
 				//cache current value in localStorage
 				self.setCachedInputValue(branch_current_value, branch_current_position, branch_input.type, branch_input.primary_key);
 			}
+			
+			//remove flag that helps to handle back button when user is just dismissing barcode scanner
+			window.localStorage.removeItem('is_dismissing_barcode');
 
 			self.gotoPrevPage(e);
 
