@@ -235,8 +235,8 @@ EC.InputTypes = ( function(module) {"use strict";
 
 				//record 1 video at a time
 				var options = {
-					limit : 1,
-					duration: 30//set duration to a maximum of 30 seconds
+					limit : 1
+					//duration: 30//set duration to a maximum of 30 seconds
 				};
 				// start video capture
 				navigator.device.capture.captureVideo(onCaptureVideoSuccess, onCaptureVideoError, options);
