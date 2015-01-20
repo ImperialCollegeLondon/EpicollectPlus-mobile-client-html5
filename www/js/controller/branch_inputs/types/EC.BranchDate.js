@@ -2,7 +2,8 @@
 /*global $, jQuery*/
 var EC = EC || {};
 EC.BranchInputTypes = EC.BranchInputTypes || {};
-EC.BranchInputTypes = ( function(module) {"use strict";
+EC.BranchInputTypes = ( function(module) {
+		"use strict";
 
 		module.date = function(the_value, the_input) {
 
@@ -18,7 +19,7 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 
 			//update label text
 			span_label.text(input.label + " - " + input.datetime_format);
-			
+
 			//Localise
 			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
 				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
@@ -29,9 +30,11 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 
 				span_label.attr('data-primary-key', 'true');
 
-			} else {
+			}
+			else {
 
-				//reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
+				//reset the attribute to empty if not a primary key (JQM caches pages and we
+				// recycle views)
 				span_label.attr('data-primary-key', '');
 			}
 
@@ -44,25 +47,31 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 			//iOS uses the HTML5 input type="date"
 			ios_datepicker = $('div#branch-input-date input.ios-date');
 
-			//hide immediate ios date input parent (JQM quirk, this is to hide the div element border wrapping the input after JQM enhanced the markup)
+			//hide immediate ios date input parent (JQM quirk, this is to hide the div
+			// element border wrapping the input after JQM enhanced the markup)
 			ios_datepicker.parent().addClass("no-border");
 
 			/* Set current date in custom data attribute.
-			 * Important: since Epicollect for some bizzarre reason does not store the timestamps, but a formatted date,
-			 * it is impossible to trigger the datapicker to the right data/time value after a saving, as the timestamp is lost
-			 * i.e. if I save save 25th march 1988 just as 25/3, I will never get the year back :/ and it will default to the current date
+			 * Important: since Epicollect for some bizzarre reason does not store the
+			 * timestamps, but a formatted date,
+			 * it is impossible to trigger the datapicker to the right data/time value after
+			 * a saving, as the timestamp is lost
+			 * i.e. if I save save 25th march 1988 just as 25/3, I will never get the year
+			 * back :/ and it will default to the current date
 			 * TODO: save date and time values with a timestamp attached
 			 */
 
 			datepicker.attr("data-raw-date", new Date());
 
 			/*show default date if input.value = input.datetime_format:
-			 *if the option to show the current date as default is selected in the web form builder,
+			 *if the option to show the current date as default is selected in the web form
+			 * builder,
 			 * the input value gets the value of datetime_format when parsing the xml
 			 */
 			if (value === input.datetime_format) {
 				datepicker.val(EC.Utils.parseDate(new Date(), input.datetime_format));
-			} else {
+			}
+			else {
 				datepicker.val(value);
 			}
 
@@ -72,7 +81,8 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 			if (window.device.platform === EC.Const.ANDROID) {
 
 				/* bind input to 'vclick' insted of focus, as we set the input as readonly.
-				 * this solved problem on android 2.3 where the keyboard was showing because the input is in focus when tapping "cancel"
+				 * this solved problem on android 2.3 where the keyboard was showing because the
+				 * input is in focus when tapping "cancel"
 				 * on the DatePicker popup
 				 */
 
@@ -88,12 +98,17 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 						allowOldDates : true
 					}, function(returned_date) {
 
-						var new_date = new Date(returned_date);
+						var new_date;
 
-						datepicker.val(EC.Utils.parseDate(new_date, input.datetime_format));
-						datepicker.attr("data-raw-date", new_date);
+						if (returned_date !== undefined) {
+							new_date = new Date(returned_date);
 
-						// This fixes the problem you mention at the bottom of this script with it not working a second/third time around, because it is in focus.
+							datepicker.val(EC.Utils.parseDate(new_date, input.datetime_format));
+							datepicker.attr("data-raw-date", new_date);
+						}
+
+						// This fixes the problem you mention at the bottom of this script with it not
+						// working a second/third time around, because it is in focus.
 						datepicker.blur();
 					});
 				});

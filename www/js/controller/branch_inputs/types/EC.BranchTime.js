@@ -3,7 +3,8 @@
 
 var EC = EC || {};
 EC.BranchInputTypes = EC.BranchInputTypes || {};
-EC.BranchInputTypes = ( function(module) {"use strict";
+EC.BranchInputTypes = ( function(module) {
+		"use strict";
 
 		module.time = function(the_value, the_input) {
 
@@ -18,7 +19,7 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 
 			//update label text
 			span_label.text(input.label + " - " + input.datetime_format);
-			
+
 			//Localise
 			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
 				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
@@ -29,9 +30,11 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 
 				span_label.attr('data-primary-key', 'true');
 
-			} else {
+			}
+			else {
 
-				//reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
+				//reset the attribute to empty if not a primary key (JQM caches pages and we
+				// recycle views)
 				span_label.attr('data-primary-key', '');
 			}
 
@@ -44,16 +47,19 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 			//iOS uses the HTML5 input type="time"
 			ios_timepicker = $('div#branch-input-time input.ios-time');
 
-			//hide immediate ios time input parent (JQM quirk, this is to hide the div element border wrapping the input after JQM enhanced the markup)
+			//hide immediate ios time input parent (JQM quirk, this is to hide the div
+			// element border wrapping the input after JQM enhanced the markup)
 			ios_timepicker.parent().addClass("no-border");
 
 			/*show default date if input.value = input.datetime_format:
-			 *if the option to show the current date as default is selected in the web form builder,
+			 *if the option to show the current date as default is selected in the web form
+			 * builder,
 			 * the input value gets the value of datetime_format when parsing the xml
 			 */
 			if (input.datetime_format === input.default_value) {
 				timepicker.val(EC.Utils.parseTime(new Date(), input.datetime_format));
-			} else {
+			}
+			else {
 				//show cached value
 				timepicker.val(value);
 			}
@@ -63,7 +69,8 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 			 ****************************************************************************************/
 			if (window.device.platform === EC.Const.ANDROID) {
 				/* bind input to 'vclick' insted of focus, as we set the input as readonly.
-				 * this solved problem on android 2.3 where the keyboard was showing because the input is in focus when tapping "cancel"
+				 * this solved problem on android 2.3 where the keyboard was showing because the
+				 * input is in focus when tapping "cancel"
 				 * on the DatePicker popup
 				 */
 				timepicker.off().on('focus', function(event) {
@@ -78,18 +85,25 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 						allowOldDates : true
 					}, function(returned_date) {
 
-						var new_date = new Date(returned_date);
+						var new_date;
 
-						timepicker.val(EC.Utils.parseTime(new_date, input.datetime_format));
+						if (returned_date !== undefined) {
 
-						// This fixes the problem you mention at the bottom of this script with it not working a second/third time around, because it is in focus.
+							new_date = new Date(returned_date);
+
+							timepicker.val(EC.Utils.parseTime(new_date, input.datetime_format));
+						}
+
+						// This fixes the problem you mention at the bottom of this script with it not
+						// working a second/third time around, because it is in focus.
 						timepicker.blur();
 					});
 				});
 			}
 
 			/*****************************************************************************************
-			 * iOS uses the official HTML5 input type="time", only hours and minutes are returned
+			 * iOS uses the official HTML5 input type="time", only hours and minutes are
+			 * returned
 			 ****************************************************************************************/
 			if (window.device.platform === EC.Const.IOS) {
 

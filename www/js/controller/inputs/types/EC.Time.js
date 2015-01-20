@@ -3,7 +3,8 @@
 
 var EC = EC || {};
 EC.InputTypes = EC.InputTypes || {};
-EC.InputTypes = ( function(module) {"use strict";
+EC.InputTypes = ( function(module) {
+		"use strict";
 
 		module.time = function(the_value, the_input) {
 
@@ -18,7 +19,7 @@ EC.InputTypes = ( function(module) {"use strict";
 
 			//update label text
 			span_label.text(input.label + " - " + input.datetime_format);
-			
+
 			//Localise
 			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
 				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
@@ -29,9 +30,11 @@ EC.InputTypes = ( function(module) {"use strict";
 
 				span_label.attr('data-primary-key', 'true');
 
-			} else {
+			}
+			else {
 
-				//reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
+				//reset the attribute to empty if not a primary key (JQM caches pages and we
+				// recycle views)
 				span_label.attr('data-primary-key', '');
 			}
 
@@ -44,16 +47,19 @@ EC.InputTypes = ( function(module) {"use strict";
 			//iOS uses the HTML5 input type="time"
 			ios_timepicker = $('div#input-time input.ios-time');
 
-			//hide immediate ios time input parent (JQM quirk, this is to hide the div element border wrapping the input after JQM enhanced the markup)
+			//hide immediate ios time input parent (JQM quirk, this is to hide the div
+			// element border wrapping the input after JQM enhanced the markup)
 			ios_timepicker.parent().addClass("no-border");
 
 			/*show current time if value = input.datetime_format:
-			 *if the option to show the current time as default is selected in the web form builder,
+			 *if the option to show the current time as default is selected in the web form
+			 * builder,
 			 * the input value gets the value of datetime_format when parsing the xml
 			 */
 			if (value === input.datetime_format) {
 				timepicker.val(EC.Utils.parseTime(new Date(), input.datetime_format));
-			} else {
+			}
+			else {
 				//show cached value
 				timepicker.val(value);
 			}
@@ -63,7 +69,8 @@ EC.InputTypes = ( function(module) {"use strict";
 			 ****************************************************************************************/
 			if (window.device.platform === EC.Const.ANDROID) {
 				/* bind input to 'vclick' insted of focus, as we set the input as readonly.
-				 * this solved problem on android 2.3 where the keyboard was showing because the input is in focus when tapping "cancel"
+				 * this solved problem on android 2.3 where the keyboard was showing because the
+				 * input is in focus when tapping "cancel"
 				 * on the DatePicker popup
 				 */
 				timepicker.off().on('vclick', function(e) {
@@ -71,7 +78,8 @@ EC.InputTypes = ( function(module) {"use strict";
 					var timepicker = $(this);
 					var selected_date = Date.parse(timepicker.val()) || new Date();
 
-					//use debouncing/throttling to avoid triggering multiple `focus` event http://goo.gl/NFdHDW
+					//use debouncing/throttling to avoid triggering multiple `focus` event
+					// http://goo.gl/NFdHDW
 					var now = new Date();
 					var lastFocus = timepicker.data("lastFocus");
 					if (lastFocus && (now - lastFocus) < 500) {
@@ -86,19 +94,26 @@ EC.InputTypes = ( function(module) {"use strict";
 						mode : 'time', // date or time or blank for both
 						allowOldDates : true
 					}, function(returned_date) {
+						
+						var new_date;
 
-						var new_date = new Date(returned_date);
+						if (returned_date !== undefined) {
 
-						timepicker.val(EC.Utils.parseTime(new_date, input.datetime_format));
+							new_date = new Date(returned_date);
 
-						// This fixes the problem you mention at the bottom of this script with it not working a second/third time around, because it is in focus.
+							timepicker.val(EC.Utils.parseTime(new_date, input.datetime_format));
+						}
+
+						// This fixes the problem you mention at the bottom of this script with it not
+						// working a second/third time around, because it is in focus.
 						timepicker.blur();
 					});
 				});
 			}
 
 			/*****************************************************************************************
-			 * iOS uses the official HTML5 input type="time", only hours and minutes are returned
+			 * iOS uses the official HTML5 input type="time", only hours and minutes are
+			 * returned
 			 ****************************************************************************************/
 			if (window.device.platform === EC.Const.IOS) {
 
