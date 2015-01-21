@@ -6,6 +6,8 @@ EC.InputTypes = EC.InputTypes || {};
 EC.InputTypes = ( function(module) {
 		"use strict";
 
+		var app_storage_dir;
+
 		module.photo = function(the_value, the_input) {
 
 			var obj;
@@ -49,7 +51,7 @@ EC.InputTypes = ( function(module) {
 
 				//if cached image url is empty, get stored image url
 				if (href === "") {
-					href = $('div#input-photo input#stored-image-uri').val();
+					href = app_storage_dir + $('div#input-photo input#stored-image-uri').val();
 				}
 
 				if (window.device) {
@@ -117,10 +119,11 @@ EC.InputTypes = ( function(module) {
 				 * happen
 				 * because the image URI is saved using the timestamp as filename
 				 * directly (good choice)
+				 *
+				 * Anyway, when editing and replacing the image with a new one the saved url does
+				 * not change, so we need to force a refresh on all platforms
 				 */
-				if (window.device.platform === EC.Const.IOS) {
-					source += "?" + parseInt(new Date().getTime() / 1000, 10);
-				}
+				source += "?" + parseInt(new Date().getTime() / 1000, 10);
 
 				image.src = source;
 
@@ -220,11 +223,13 @@ EC.InputTypes = ( function(module) {
 
 						case EC.Const.ANDROID:
 							image_full_path_uri = EC.Const.ANDROID_APP_PRIVATE_URI + EC.Const.PHOTO_DIR + window.localStorage.project_name + "/" + value.stored;
+							app_storage_dir = EC.Const.ANDROID_APP_PRIVATE_URI + EC.Const.PHOTO_DIR + window.localStorage.project_name + "/";
 							break;
 						case EC.Const.IOS:
 							//prepend "file://" to load images from iOS
 							// application directory
 							image_full_path_uri = "file://" + EC.Const.IOS_APP_PRIVATE_URI + EC.Const.PHOTO_DIR + window.localStorage.project_name + "/" + value.stored;
+							app_storage_dir = "file://" + EC.Const.IOS_APP_PRIVATE_URI + EC.Const.PHOTO_DIR + window.localStorage.project_name + "/";
 							break;
 
 					}

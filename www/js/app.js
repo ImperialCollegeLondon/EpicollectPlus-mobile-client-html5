@@ -241,7 +241,15 @@ function onBackButton() {
 		}
 		else {
 
-			EC.Routing.goBack(page_id);
+			if (page_id === EC.Const.PHOTO && $.swipebox.isOpen) {
+				// close swipebox on back button (Android)
+				$('a#swipebox-close').click();
+			}
+			else{
+				EC.Routing.goBack(page_id);
+			}
+
+			
 		}
 		//navigator.app.backHistory();
 	}

@@ -487,7 +487,7 @@ EC.Utils = ( function() {
 				switch(window.device.platform) {
 
 					case EC.Const.ANDROID:
-						window.diagnostic.isGpsEnabled(_onGpsChecked);
+						cordova.plugins.diagnostic.isLocationEnabled(_onGpsChecked);
 						break;
 
 					case EC.Const.IOS:

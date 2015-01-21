@@ -7,7 +7,8 @@
  */
 var EC = EC || {};
 EC.Delete = EC.Delete || {};
-EC.Delete = ( function(module) {"use strict";
+EC.Delete = ( function(module) {
+		"use strict";
 
 		var project_id;
 		var project_name;
@@ -18,8 +19,10 @@ EC.Delete = ( function(module) {"use strict";
 			//executePragmaStatement is available only on Android
 			if (window.device.platform === EC.Const.ANDROID) {
 				//enable PRAGMA to use foreign keys constraint: it is OFF by default
-				EC.db.executePragmaStatement("PRAGMA foreign_keys=ON;", function(res) {
-					console.log("PRAGMA res: " + JSON.stringify(res));
+				EC.db.executeSql("PRAGMA foreign_keys=ON;", [], function(res) {
+					EC.db.executeSql("PRAGMA foreign_keys;", [], function(res) {
+						console.log("PRAGMA res: " + JSON.stringify(res));
+					});
 				});
 			}
 
@@ -53,8 +56,9 @@ EC.Delete = ( function(module) {"use strict";
 			console.log(the_result);
 			deferred.reject();
 		};
-		
-		//Delete a project and related tables: database integrity will be kept with triggers (see EC.DBAdapter)
+
+		//Delete a project and related tables: database integrity will be kept with
+		// triggers (see EC.DBAdapter)
 		module.deleteProject = function(the_project_id, the_project_name) {
 
 			project_id = the_project_id;
