@@ -157,7 +157,7 @@ EC.File = ( function(module) {"use strict";
 						}
 
 						//get app private dir (Android) requested subfolder (destination: images, audios, videos)
-						window.resolveLocalFileSystemURL(EC.Const.ANDROID_APP_PRIVATE_URI + "/" + destination, onLFSSuccess, onLFSError);
+						window.resolveLocalFileSystemURL(EC.Const.ANDROID_APP_PRIVATE_URI + destination, onLFSSuccess, onLFSError);
 
 						function onLFSSuccess(the_parent_dir) {
 

@@ -88,7 +88,7 @@ EC.BranchInputTypes = ( function(module) {
 
 					}, function(error) {
 
-						EC.Utils.showAlert("Scanning failed", error);
+						EC.Notification.showAlert("Scanning failed", error);
 
 					});
 
@@ -116,7 +116,7 @@ EC.BranchInputTypes = ( function(module) {
 					scan_result.val(result.text);
 
 				}, function(error) {
-					EC.Utils.showAlert("Scanning failed", error);
+					EC.Notification.showAlert("Scanning failed", error);
 				});
 
 			});

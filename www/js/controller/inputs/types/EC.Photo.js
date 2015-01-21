@@ -290,7 +290,7 @@ EC.InputTypes = ( function(module) {
 			//Error callback
 			var onGPError = function(error) {
 
-				EC.Utils.showAlert("Error", "Failed because: " + error);
+				EC.Notification.showAlert("Error", "Failed because: " + error);
 
 			};
 

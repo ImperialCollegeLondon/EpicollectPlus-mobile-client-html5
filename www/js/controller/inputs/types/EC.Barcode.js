@@ -100,7 +100,7 @@ EC.InputTypes = ( function(module) {
 
 				}, function(error) {
 					console.log(error);
-					//EC.Utils.showAlert("Scanning failed", error);
+					//EC.Notification.showAlert("Scanning failed", error);
 				});
 
 			});

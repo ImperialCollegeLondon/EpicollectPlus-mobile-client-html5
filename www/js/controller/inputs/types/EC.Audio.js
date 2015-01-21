@@ -3,7 +3,8 @@
 
 var EC = EC || {};
 EC.InputTypes = EC.InputTypes || {};
-EC.InputTypes = ( function(module) {"use strict";
+EC.InputTypes = ( function(module) {
+		"use strict";
 
 		module.audio = function(the_value, the_input) {
 
@@ -34,7 +35,7 @@ EC.InputTypes = ( function(module) {"use strict";
 
 			//update label text
 			span_label.text(input.label);
-			
+
 			//Localise
 			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
 				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
@@ -45,7 +46,8 @@ EC.InputTypes = ( function(module) {"use strict";
 			stop_btn.off('vclick');
 			play_btn.off('vclick').on('vclick', playAudio);
 
-			//if an audio file is stored add it to hidden input field, to be shown if no cached value is set
+			//if an audio file is stored add it to hidden input field, to be shown if no
+			// cached value is set
 			if (window.localStorage.edit_mode && value.stored === undefined) {
 
 				stored_audio_uri.val(value);
@@ -63,15 +65,16 @@ EC.InputTypes = ( function(module) {"use strict";
 
 					play_btn.removeClass('ui-disabled');
 
-					//build full path to get audio file from private app folder (depending on platform)
+					//build full path to get audio file from private app folder (depending on
+					// platform)
 					switch(window.device.platform) {
 						case EC.Const.ANDROID:
 							audio_full_path_uri = EC.Const.ANDROID_APP_PRIVATE_URI + EC.Const.AUDIO_DIR + window.localStorage.project_name + "/" + value.stored;
 							break;
 						case EC.Const.IOS:
-						
-							audio_full_path_uri = EC.Const.IOS_APP_PRIVATE_URI + EC.Const.AUDIO_DIR + window.localStorage.project_name  + "/" + value.stored;
-							
+
+							audio_full_path_uri = EC.Const.IOS_APP_PRIVATE_URI + EC.Const.AUDIO_DIR + window.localStorage.project_name + "/" + value.stored;
+
 							break;
 					}
 
@@ -83,13 +86,14 @@ EC.InputTypes = ( function(module) {"use strict";
 
 					console.log("current_path: " + JSON.stringify(audio_full_path_uri));
 
-
-				} else {
+				}
+				else {
 
 					play_btn.addClass('ui-disabled');
 				}
 
-			} else {
+			}
+			else {
 
 				console.log("we have a cached value");
 
@@ -127,7 +131,8 @@ EC.InputTypes = ( function(module) {"use strict";
 
 			//request temporary folder from file system
 			window.requestFileSystem(LocalFileSystem.TEMPORARY, 0, function(the_file_system) {
-
+				
+				
 				console.log(JSON.stringify(the_file_system));
 				cached_path = the_file_system.root.nativeURL;
 				console.log('Fullpath: ' + cached_path);
@@ -154,21 +159,36 @@ EC.InputTypes = ( function(module) {"use strict";
 				switch(window.device.platform) {
 
 					case EC.Const.ANDROID:
-						//build filename timestamp + mp4 (Cordova 2.9 sources have been modified manually to record high quality audio)
+						//build filename timestamp + mp4 (Cordova 2.9 sources have been modified manually
+						// to record high quality audio)
 						filename = EC.Utils.getTimestamp() + ".mp4";
 						break;
 
 					case EC.Const.IOS:
-						//build filename timestamp + wav (iOS only records to files of type .wav and returns an error if the file name extension is not correct.)
+
+						/* We provide the full path to the tmp folder to record an audio file
+						 *
+						 *
+						 * iOS 7+ does not want 'file://' in the path to record an audio file
+						 *
+						 * if the path starts with 'file://', error thrown is
+						 * 'Failed to start recording using AvAudioRecorder'
+						 *
+						 */
+						cached_path = cached_path.slice(7);
+
+						//build filename timestamp + wav (iOS only records to files of type .wav and
+						// returns an error if the file name extension is not correct.)
 						filename = EC.Utils.getTimestamp() + ".wav";
 						break;
 
 				}
 
 				console.log('Recording...');
-				console.log('Full path: ' + cached_path + "/" + filename);
+				console.log('cached path: ' + cached_path);
+				console.log('Full path: ' + cached_path + filename);
 
-				mediaRec = new Media(cached_path + "/" + filename,
+				mediaRec = new Media(cached_path + filename,
 
 				// success callback
 				function onRecordingSuccess() {

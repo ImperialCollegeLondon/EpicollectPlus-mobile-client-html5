@@ -38,7 +38,7 @@ EC.Inputs = ( function(module) {"use strict";
 			if (!validation.is_valid) {
 
 				//warn user about the type of error
-				EC.Utils.showAlert("Error", validation.message);
+				EC.Notification.showAlert("Error", validation.message);
 
 				//re-enable button to allow user to try again
 				$(this).removeClass('ui-disabled');

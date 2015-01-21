@@ -46,6 +46,9 @@ window.handleOpenURL = function(url) {
 };
 
 function onDeviceReady() {
+
+	//set media dir paths based on platform
+	EC.Utils.setMediaDirPaths();
 	"use strict";
 
 	if (!EC.Utils.isChrome()) {
@@ -53,15 +56,18 @@ function onDeviceReady() {
 		//request iOS persistent file system
 		if (window.device.platform === EC.Const.IOS) {
 
-			//set iOS app root path at run time as app identifier can change
-			EC.Utils.setIOSRootPath();
+			//create media folders 'images', 'audios', 'videos'
+			$.when(EC.File.createMediaDirs()).then(function() {
 
-			//cache persistent storage path
-			EC.Utils.setIOSPersistentStoragePath();
+				//set iOS app root path at run time as app identifier can change
+				EC.Utils.setIOSRootPath();
+
+				//cache persistent storage path
+				EC.Utils.setIOSPersistentStoragePath();
+
+			});
+
 		}
-
-		//set media dir paths based on platform
-		EC.Utils.setMediaDirPaths();
 
 		if (window.device.platform === EC.Const.ANDROID) {
 			navigator.globalization.getLocaleName(function(locale) {
@@ -245,11 +251,10 @@ function onBackButton() {
 				// close swipebox on back button (Android)
 				$('a#swipebox-close').click();
 			}
-			else{
+			else {
 				EC.Routing.goBack(page_id);
 			}
 
-			
 		}
 		//navigator.app.backHistory();
 	}
