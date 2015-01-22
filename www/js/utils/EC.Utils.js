@@ -871,7 +871,9 @@ EC.Utils = ( function() {
 						console.log("kitkat regex: " + EC.Const.PRE_KITKAT_REGEX.test(window.device.version));
 						if(EC.Const.DEBUG === 1 && !(EC.Const.PRE_KITKAT_REGEX.test(window.device.version) || EC.Const.LOLLIPOP_REGEX.test(window.device.version) )) {
 
-							base_uri = "content://jsHybugger.org/file:///android_asset/www/";
+							//base_uri = "content://jsHybugger.org/file:///android_asset/www/";
+							//@debug off
+							base_uri = EC.Const.ANDROID_ASSETS_ABS_PATH;
 
 						}
 						else {
