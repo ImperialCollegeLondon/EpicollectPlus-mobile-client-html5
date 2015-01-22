@@ -131,11 +131,22 @@ EC.InputTypes = ( function(module) {
 
 			//request temporary folder from file system
 			window.requestFileSystem(LocalFileSystem.TEMPORARY, 0, function(the_file_system) {
-				
-				
+
 				console.log(JSON.stringify(the_file_system));
 				cached_path = the_file_system.root.nativeURL;
 				console.log('Fullpath: ' + cached_path);
+
+				if (window.device.platform === EC.Const.IOS) {
+					/* We need to provide the full path to the tmp folder to record an audio file
+					 *
+					 * iOS 7+ does not want 'file://' in the path to record an audio file
+					 *
+					 * if the path starts with 'file://', error thrown is
+					 * 'Failed to start recording using AvAudioRecorder'
+					 * so it is removed using slice(7);
+					 */
+					cached_path = cached_path.slice(7);
+				}
 
 			}, function(error) {
 				console.log(JSON.stringify(error));
@@ -165,17 +176,6 @@ EC.InputTypes = ( function(module) {
 						break;
 
 					case EC.Const.IOS:
-
-						/* We provide the full path to the tmp folder to record an audio file
-						 *
-						 *
-						 * iOS 7+ does not want 'file://' in the path to record an audio file
-						 *
-						 * if the path starts with 'file://', error thrown is
-						 * 'Failed to start recording using AvAudioRecorder'
-						 *
-						 */
-						cached_path = cached_path.slice(7);
 
 						//build filename timestamp + wav (iOS only records to files of type .wav and
 						// returns an error if the file name extension is not correct.)

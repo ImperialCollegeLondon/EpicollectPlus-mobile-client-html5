@@ -2,7 +2,8 @@
 /*global $, jQuery, LocalFileSystem*/
 var EC = EC || {};
 EC.File = EC.File || {};
-EC.File = ( function(module) {"use strict";
+EC.File = ( function(module) {
+		"use strict";
 
 		/*
 		 * Move files from temporary (cache) folder to app (private) folder
@@ -23,9 +24,11 @@ EC.File = ( function(module) {"use strict";
 		 *      stored: <file path on the filesystem for stored files>
 		 * }
 		 *
-		 * @return void, but it triggers a recursive call to itself after each file is moved successfully.
+		 * @return void, but it triggers a recursive call to itself after each file is
+		 * moved successfully.
 		 *
-		 * When all files are saved, it calls EC.Inputs.buildRows() to save all the input fields related to this form and media to the db
+		 * When all files are saved, it calls EC.Inputs.buildRows() to save all the input
+		 * fields related to this form and media to the db
 		 */
 		module.move = function(the_files, is_branch_flag) {
 
@@ -80,17 +83,20 @@ EC.File = ( function(module) {"use strict";
 					if (is_branch) {
 						//save rows for branch form
 						EC.BranchInputs.buildRows();
-					} else {
+					}
+					else {
 						//save rows for main form
 						EC.Inputs.buildRows();
 					}
 
-				} else {
+				}
+				else {
 
 					EC.File.move(files, is_branch);
 
 				}
-			} else {
+			}
+			else {
 
 				console.log("cached filepath: " + JSON.stringify(cached_filepath));
 
@@ -100,11 +106,9 @@ EC.File = ( function(module) {"use strict";
 
 				//request temporary folder from file system
 				window.requestFileSystem(LocalFileSystem.TEMPORARY, 0, gotFS, fail);
-				
+
 				console.log("stored filepath:" + stored_filepath);
 			}
-
-			
 
 			function gotFS(the_file_system) {
 
@@ -132,6 +136,31 @@ EC.File = ( function(module) {"use strict";
 								create : false
 							}, processEntry, onFileError);
 						}//if
+						else {
+							//no match? It can happen when no audio file was saved for the current entry, so
+							// save the entry data only
+							//save next file or trigger callback to save the row
+							if (files.length === 0) {
+
+								console.log('no more files to save, build rows');
+
+								//all files saved, build and save the rows
+								if (is_branch) {
+									//save rows for branch form
+									EC.BranchInputs.buildRows();
+								}
+								else {
+									//save rows for main form
+									EC.Inputs.buildRows();
+								}
+
+							}
+							else {
+								//save next file
+								console.log('move another file');
+								EC.File.move(files, is_branch);
+							}
+						}
 
 					}//for
 
@@ -150,13 +179,15 @@ EC.File = ( function(module) {"use strict";
 							//build file name in the format <form_name>_<ref>_<uuid>_filename
 							stored_filename = form_name + "_" + ref + "_" + uuid + "_" + filename;
 
-						} else {
+						}
+						else {
 
 							parts = stored_filepath.split("/");
 							stored_filename = parts[parts.length - 1];
 						}
 
-						//get app private dir (Android) requested subfolder (destination: images, audios, videos)
+						//get app private dir (Android) requested subfolder (destination: images, audios,
+						// videos)
 						window.resolveLocalFileSystemURL(EC.Const.ANDROID_APP_PRIVATE_URI + destination, onLFSSuccess, onLFSError);
 
 						function onLFSSuccess(the_parent_dir) {
@@ -192,12 +223,14 @@ EC.File = ( function(module) {"use strict";
 										if (is_branch) {
 											//save rows for branch form
 											EC.BranchInputs.buildRows();
-										} else {
+										}
+										else {
 											//save rows for main form
 											EC.Inputs.buildRows();
 										}
 
-									} else {
+									}
+									else {
 										//save next file
 										console.log('move another file');
 										EC.File.move(files, is_branch);

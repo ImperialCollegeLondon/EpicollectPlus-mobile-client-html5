@@ -2,7 +2,8 @@
 /*global $, jQuery, LocalFileSystem*/
 var EC = EC || {};
 EC.File = EC.File || {};
-EC.File = ( function(module) {"use strict";
+EC.File = ( function(module) {
+		"use strict";
 
 		/* IOS
 		 *
@@ -24,9 +25,11 @@ EC.File = ( function(module) {"use strict";
 		 *      stored: <file path on the filesystem for stored files>
 		 * }
 		 *
-		 * @return void, but it triggers a recursive call to itself after each file is moved successfully.
+		 * @return void, but it triggers a recursive call to itself after each file is
+		 * moved successfully.
 		 *
-		 * When all files are saved, it calls EC.Inputs.buildRows() to save all the input fields related to this form and media to the db
+		 * When all files are saved, it calls EC.Inputs.buildRows() to save all the input
+		 * fields related to this form and media to the db
 		 */
 
 		var filenameToTimestamp;
@@ -64,7 +67,8 @@ EC.File = ( function(module) {"use strict";
 			//get details for current file
 			var file = files.shift();
 
-			//keep track of timestamp as Cordova iOS returns a weird filename which is always the same per "session"
+			//keep track of timestamp as Cordova iOS returns a weird filename which is always
+			// the same per "session"
 			if (!filenameToTimestamp) {
 				filenameToTimestamp = [];
 			}
@@ -91,17 +95,20 @@ EC.File = ( function(module) {"use strict";
 					if (is_branch) {
 						//save rows for branch form
 						EC.BranchInputs.buildRows();
-					} else {
+					}
+					else {
 						//save rows for main form
 						EC.Inputs.buildRows();
 					}
 
-				} else {
+				}
+				else {
 
 					EC.File.move(files, is_branch);
 
 				}
-			} else {
+			}
+			else {
 
 				console.log("cached filepath: " + JSON.stringify(cached_filepath));
 
@@ -134,8 +141,8 @@ EC.File = ( function(module) {"use strict";
 					//loop all the files in the temporary directory to find the one we want to move
 					for ( i = 0; i < iLength; i++) {
 
-						console.log('dir_entries[i].name  ' + dir_entries[i].name);
-						console.log('filename  ' + filename);
+						console.log("dir_entries[i].name" + dir_entries[i].name);
+						console.log("filename" + filename);
 
 						//if the current file name matches the file name we want to save, move the file
 						if (dir_entries[i].name === filename) {
@@ -143,12 +150,38 @@ EC.File = ( function(module) {"use strict";
 							fs.root.getFile(dir_entries[i].name, {
 								create : false
 							}, processEntry, onFileError);
-						}//if
+						}
+						else {
+							//no match? It can happen when no audio file was saved for the current entry, so
+							// save the entry data only
+							//save next file or trigger callback to save the row
+							if (files.length === 0) {
+
+								console.log('no more files to save, build rows');
+
+								//all files saved, build and save the rows
+								if (is_branch) {
+									//save rows for branch form
+									EC.BranchInputs.buildRows();
+								}
+								else {
+									//save rows for main form
+									EC.Inputs.buildRows();
+								}
+
+							}
+							else {
+								//save next file
+								console.log('move another file');
+								EC.File.move(files, is_branch);
+							}
+						}
 
 					}//for
 
 					//process the file
 					function processEntry(the_entry) {
+						console.log("processEntry called");
 
 						var file = the_entry;
 						var project_name = window.localStorage.project_name;
@@ -156,7 +189,8 @@ EC.File = ( function(module) {"use strict";
 						var uuid = EC.Utils.getPhoneUUID();
 						var stored_filename;
 
-						//For photos, generate a timestamp as a file name (Cordova iOS always generates the same names when capturing photos)
+						//For photos, generate a timestamp as a file name (Cordova iOS always generates
+						// the same names when capturing photos)
 						var timestamp = parseInt(new Date().getTime() / 1000, 10);
 
 						//Create a new file or override existing one
@@ -165,10 +199,13 @@ EC.File = ( function(module) {"use strict";
 							//build file name in the format <form_name>_<ref>_<uuid>_filename
 							stored_filename = form_name + "_" + ref + "_" + uuid + "_" + timestamp + "." + extension;
 
-						} else {
+						}
+						else {
 
 							parts = stored_filepath.split("/");
 							stored_filename = parts[parts.length - 1];
+
+							console.log("stored_filename" + stored_filename);
 						}
 
 						//persistent storage on iOS is the "Documents" folder in the app sandbox
@@ -176,10 +213,15 @@ EC.File = ( function(module) {"use strict";
 
 						function onIOSRFSSuccess(the_fileSystem) {
 
+							console.log("onIOSRFSSuccess called");
+
 							var entry = the_fileSystem.root;
 							var project_dir = window.localStorage.project_name;
 
-							//create a directory for this project if it does not exist (destination is the media folder: images, audios, videos)
+							console.log("destination + project_dir " + destination + project_dir);
+
+							//create a directory for this project if it does not exist (destination is the
+							// media folder: images, audios, videos)
 							entry.getDirectory(destination + project_dir, {
 								create : true,
 								exclusive : false
@@ -210,7 +252,8 @@ EC.File = ( function(module) {"use strict";
 											//save rows for branch form
 											EC.BranchInputs.buildRows(filenameToTimestamp.slice(0));
 
-										} else {
+										}
+										else {
 											//save rows for main form
 											EC.Inputs.buildRows(filenameToTimestamp.slice(0));
 
@@ -218,7 +261,8 @@ EC.File = ( function(module) {"use strict";
 
 										filenameToTimestamp = null;
 
-									} else {
+									}
+									else {
 										//save next file
 										console.log('move another file');
 										EC.File.move(files, is_branch);
