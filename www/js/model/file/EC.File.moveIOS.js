@@ -152,6 +152,10 @@ EC.File = ( function(module) {
 							}, processEntry, onFileError);
 						}
 						else {
+							
+							
+							//TODO check this! It was causing problems on Android
+							/********************************************************************************/
 							//no match? It can happen when no audio file was saved for the current entry, so
 							// save the entry data only
 							//save next file or trigger callback to save the row
@@ -176,6 +180,7 @@ EC.File = ( function(module) {
 								EC.File.move(files, is_branch);
 							}
 						}
+						/**********************************************************************************/
 
 					}//for
 

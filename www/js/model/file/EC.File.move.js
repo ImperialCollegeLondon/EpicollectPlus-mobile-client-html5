@@ -72,8 +72,6 @@ EC.File = ( function(module) {
 			var ref = file.ref;
 			var destination = _getMediaDir(file.type);
 
-			console.log();
-
 			if (cached_filepath === "" || cached_filepath === undefined) {
 
 				//we do not have a cached file to move, skip to next file (if any)
@@ -137,30 +135,33 @@ EC.File = ( function(module) {
 							}, processEntry, onFileError);
 						}//if
 						else {
+							
+							
+							console.log("Here entry does not get saved");
 							//no match? It can happen when no audio file was saved for the current entry, so
 							// save the entry data only
 							//save next file or trigger callback to save the row
-							if (files.length === 0) {
-
-								console.log('no more files to save, build rows');
-
-								//all files saved, build and save the rows
-								if (is_branch) {
-									//save rows for branch form
-									EC.BranchInputs.buildRows();
-								}
-								else {
-									//save rows for main form
-									EC.Inputs.buildRows();
-								}
-
-							}
-							else {
-								//save next file
-								console.log('move another file');
-								EC.File.move(files, is_branch);
-							}
-						}
+							// if (files.length === 0) {
+// 
+								// console.log('no more files to save, build rows');
+// 
+								// //all files saved, build and save the rows
+								// if (is_branch) {
+									// //save rows for branch form
+									// EC.BranchInputs.buildRows();
+								// }
+								// else {
+									// //save rows for main form
+									// EC.Inputs.buildRows();
+								// }
+// 
+							// }
+							// else {
+								// //save next file
+								// console.log('move another file');
+								// EC.File.move(files, is_branch);
+							// }
+						// }
 
 					}//for
 
