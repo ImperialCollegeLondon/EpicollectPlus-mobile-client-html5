@@ -2,7 +2,8 @@
 /*global $, jQuery, LocalFileSystem*/
 var EC = EC || {};
 EC.InputTypes = EC.InputTypes || {};
-EC.InputTypes = ( function(module) {"use strict";
+EC.InputTypes = ( function(module) {
+		"use strict";
 
 		module.video = function(the_value, the_input) {
 
@@ -37,13 +38,14 @@ EC.InputTypes = ( function(module) {"use strict";
 
 			//update label text
 			span_label.text(input.label);
-			
+
 			//Localise
 			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
 				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
 			}
 
-			//if a value is stored, on the first load add it to hidden input field,  to be shown if no cached value is set
+			//if a value is stored, on the first load add it to hidden input field,  to be
+			// shown if no cached value is set
 			if (window.localStorage.edit_mode) {
 
 				if (value.stored === undefined) {
@@ -52,7 +54,8 @@ EC.InputTypes = ( function(module) {"use strict";
 						cached : "",
 						stored : value
 					};
-				} else {
+				}
+				else {
 
 					store_video_uri.val(value.stored);
 				}
@@ -79,9 +82,12 @@ EC.InputTypes = ( function(module) {"use strict";
 							video_full_path_uri = EC.Const.ANDROID_APP_PRIVATE_URI + EC.Const.VIDEO_DIR + window.localStorage.project_name + "/" + value.stored;
 
 							/** Copy video to cache folder to make it playable (rename it using timestamp).
-							 *	Due to permission issues, on Android files are not accessible by other application
-							 *  Since Android support for <video> is pretty weak, we need to use an external video player app top play the video
-							 *  (Whatever app capable of playing the video is installed on the device will be triggered via an intent)
+							 *	Due to permission issues, on Android files are not accessible by other
+							 * application
+							 *  Since Android support for <video> is pretty weak, we need to use an external
+							 * video player app top play the video
+							 *  (Whatever app capable of playing the video is installed on the device will be
+							 * triggered via an intent)
 							 */
 
 							EC.Notification.showProgressDialog();
@@ -96,32 +102,34 @@ EC.InputTypes = ( function(module) {"use strict";
 
 							});
 							break;
-							
+
 						case EC.Const.IOS:
 							//build full path (file is stored in persisten storage (Documents folder))
-							video_full_path_uri = EC.Const.IOS_APP_PRIVATE_URI  + EC.Const.VIDEO_DIR + window.localStorage.project_name + "/" + value.stored;
-							
+							video_full_path_uri = EC.Const.IOS_APP_PRIVATE_URI + EC.Const.VIDEO_DIR + window.localStorage.project_name + "/" + value.stored;
+
 							//add source to HTML5 video tag, 'file://' needs to be aded for file access
 							//TODO: on first load, the preview image for the video, bug?
 							ios_video_player.attr("src", 'file://' + video_full_path_uri);
-							
-							//do this to show video preview thumbnail after changing the src (it does not wotk without it, but tested only on iOS7)
-							ios_video_player.load();
-							
-							
-							
-							
+
+							/*this is causing the video to open automatically on iOS7,
+							 * it is here because the video preview does not work on iOS 8 without it
+							 */
+							if (parseFloat(window.device.version) >= 8) {
+								ios_video_player.load();
+							}
+
 							//show video player wrapper
 							ios_video_player_wrapper.removeClass("not-shown");
 							break;
 					}
 				}
-				else{
+				else {
 					play_video_btn.addClass('ui-disabled');
 					ios_video_player_wrapper.addClass("not-shown");
 				}
 
-			} else {
+			}
+			else {
 
 				switch(window.device.platform) {
 
@@ -152,8 +160,7 @@ EC.InputTypes = ( function(module) {"use strict";
 			var onCaptureVideoSuccess = function(the_media_object) {
 
 				var cache_video_uri = $('div#input-video input#cached-video-uri');
-				
-				
+
 				console.log(cache_video_uri.val());
 
 				console.log(JSON.stringify(the_media_object[0]));
@@ -171,8 +178,8 @@ EC.InputTypes = ( function(module) {"use strict";
 
 						//request temporary folder from file system
 						window.requestFileSystem(LocalFileSystem.TEMPORARY, 0, function(the_file_system) {
-                            
-                            //imp! since Cordova 3.5+ 'fullPath' became nativeURL
+
+							//imp! since Cordova 3.5+ 'fullPath' became nativeURL
 							var temp_cache_path = the_file_system.root.nativeURL;
 
 							var video_full_path = temp_cache_path + "/" + the_cached_video_path;
