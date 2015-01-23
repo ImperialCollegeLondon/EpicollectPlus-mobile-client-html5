@@ -151,38 +151,7 @@ EC.File = ( function(module) {
 								create : false
 							}, processEntry, onFileError);
 						}
-						else {
-							
-							
-							//TODO check this! It was causing problems on Android
-							/********************************************************************************/
-							//no match? It can happen when no audio file was saved for the current entry, so
-							// save the entry data only
-							//save next file or trigger callback to save the row
-							if (files.length === 0) {
-
-								console.log('no more files to save, build rows');
-
-								//all files saved, build and save the rows
-								if (is_branch) {
-									//save rows for branch form
-									EC.BranchInputs.buildRows();
-								}
-								else {
-									//save rows for main form
-									EC.Inputs.buildRows();
-								}
-
-							}
-							else {
-								//save next file
-								console.log('move another file');
-								EC.File.move(files, is_branch);
-							}
-						}
-						/**********************************************************************************/
-
-					}//for
+					}
 
 					//process the file
 					function processEntry(the_entry) {

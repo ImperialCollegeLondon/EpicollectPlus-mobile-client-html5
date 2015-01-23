@@ -3,7 +3,8 @@
 
 var EC = EC || {};
 EC.Inputs = EC.Inputs || {};
-EC.Inputs = ( function(module) {"use strict";
+EC.Inputs = ( function(module) {
+		"use strict";
 
 		module.storeData = function(the_ctx) {
 
@@ -38,6 +39,17 @@ EC.Inputs = ( function(module) {"use strict";
 						});
 					}
 				}
+
+				/*
+				* Now we got all the file paths, so clear DOM from any references
+				* otherwise on editing input some cache/stored file paths could be there and that causes errors upon saving
+				* as the EC.File.move() mehod will look for non-existent files
+				*/
+
+				//audio
+				$('div#audio div#input-audio input#cached-audio-uri').val('');
+				$('div#audio div#input-audio input#stored-audio-uri').val('');
+
 				return files;
 			};
 
@@ -50,7 +62,8 @@ EC.Inputs = ( function(module) {"use strict";
 
 				self.buildRows();
 
-			} else {
+			}
+			else {
 
 				//save media files, when all are saved trigger buildRows();
 				console.log(JSON.stringify(media_files));
@@ -61,13 +74,15 @@ EC.Inputs = ( function(module) {"use strict";
 		};
 
 		/** @method onStoreValues When the user tap the button to save data,
-		 *  check first we have a primary key to save, then take care of skipped (by a jump) values
+		 *  check first we have a primary key to save, then take care of skipped (by a
+		 * jump) values
 		 */
 		module.onStoreValues = function() {
 
 			var self = this;
 
-			//check if the primary key field has a value (there are cases where jumps skip the primary key field, so warn the user form cannot be saved)
+			//check if the primary key field has a value (there are cases where jumps skip
+			// the primary key field, so warn the user form cannot be saved)
 			if (self.isEmptyPrimaryKey()) {
 				//warn user
 				EC.Notification.hideProgressDialog();

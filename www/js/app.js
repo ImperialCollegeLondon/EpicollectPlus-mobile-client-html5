@@ -47,11 +47,13 @@ window.handleOpenURL = function(url) {
 
 function onDeviceReady() {
 
-	//set media dir paths based on platform
-	EC.Utils.setMediaDirPaths();
+	
 	"use strict";
 
 	if (!EC.Utils.isChrome()) {
+		
+		//set media dir paths based on platform
+	EC.Utils.setMediaDirPaths();
 
 		//request iOS persistent file system
 		if (window.device.platform === EC.Const.IOS) {

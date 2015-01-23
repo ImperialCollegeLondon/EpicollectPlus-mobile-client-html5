@@ -196,7 +196,7 @@ EC.InputTypes = ( function(module) {
 					play_btn.removeClass('ui-disabled');
 					audio_feedback.text('Audio available');
 					console.log("recordAudio():Audio Success");
-					current_path = cached_path + "/" + filename;
+					current_path = cached_path + filename;
 					cached_audio_uri.val(current_path);
 					console.log("current_path: " + current_path);
 
