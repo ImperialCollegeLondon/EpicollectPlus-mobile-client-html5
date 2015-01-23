@@ -28,6 +28,7 @@ EC.Select = ( function(module) {"use strict";
 			if (file) {
 				deferred.resolve(file);
 			} else {
+				console.log("reject video upload");
 				deferred.reject();
 			}
 

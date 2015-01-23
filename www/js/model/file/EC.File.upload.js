@@ -76,6 +76,10 @@ EC.File = ( function(module) {
 				options.mimeType = "";
 				options.fileKey = "name";
 				options.fileName = filename;
+				
+				if(window.device.platform === EC.Const.IOS){
+					//options.chunkedMode = false;
+				}
 
 				//build file full path
 				file_URI = app_private_dir + media_dir + project_name + "/" + filename;
@@ -122,10 +126,9 @@ EC.File = ( function(module) {
 
 		var _onFileUploadSuccess = function(response) {
 
-			//this will crash on ios as we might have some "null" in the request
-			if (window.device.platform === EC.Const.ANDROID) {
-				console.log(JSON.stringify(response));
-			}
+			console.log(JSON.stringify(response));
+			
+			EC.Utils.sleep(5000);
 
 			//update flag for this file row to indicate it has been synced to the
 			// server
@@ -135,6 +138,8 @@ EC.File = ( function(module) {
 				EC.Upload.uploadNextFile(media_type);
 
 			});
+			
+		
 
 		};
 

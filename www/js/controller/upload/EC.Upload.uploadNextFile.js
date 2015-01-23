@@ -91,6 +91,7 @@ EC.Upload = ( function(module) {"use strict";
 					}, function() {
 
 						//no more video files to post
+						console.log("no more video files");
 
 						//TODO: check branches for videos
 
