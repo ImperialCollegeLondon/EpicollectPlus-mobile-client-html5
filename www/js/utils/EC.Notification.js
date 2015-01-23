@@ -142,8 +142,6 @@ EC.Notification = ( function() {
 
                     case EC.Const.IOS:
 
-                        //manually bind plugin (old architecture < 3.0)
-                        window.ActivityIndicator = cordova.require("org.apache.cordova.plugin.ActivityIndicator.ActivityIndicator");
                         window.ActivityIndicator.show(message);
                         break;
 

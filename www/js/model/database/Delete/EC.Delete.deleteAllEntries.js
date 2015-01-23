@@ -45,7 +45,11 @@ EC.Delete = ( function(module) {"use strict";
 			switch(action) {
 
 				case EC.Const.RESTORE:
-					deferred.resolve(forms);
+				//delete media files (if any) 
+					$.when(EC.File.deleteAllMedia(project_name, false, [EC.Const.PHOTO_DIR, EC.Const.AUDIO_DIR, EC.Const.VIDEO_DIR])).then(function() {
+						deferred.resolve(forms);
+					});
+					
 					break;
 				case EC.Const.DELETE:
 
@@ -56,7 +60,10 @@ EC.Delete = ( function(module) {"use strict";
 					}
 					window.localStorage.forms = JSON.stringify(forms);
 
-					deferred.resolve();
+					//delete media files (if any) 
+					$.when(EC.File.deleteAllMedia(project_name, false, [EC.Const.PHOTO_DIR, EC.Const.AUDIO_DIR, EC.Const.VIDEO_DIR])).then(function() {
+						deferred.resolve();
+					});
 
 					break;
 			}

@@ -187,9 +187,11 @@ EC.InputTypes = ( function(module) {
 							ios_video_player.attr("src", video_full_path);
 
 							cache_video_uri.val(the_cached_video_path);
+							EC.Notification.hideProgressDialog();
 
 						}, function(error) {
 							console.log(JSON.stringify(error));
+							EC.Notification.hideProgressDialog();
 						});
 					}
 
@@ -201,10 +203,11 @@ EC.InputTypes = ( function(module) {
 						cache_video_uri.val(the_cached_video_path);
 						play_video_btn.attr('data-video-path', the_cached_video_path);
 						play_video_btn.removeClass('ui-disabled');
+						EC.Notification.hideProgressDialog();
 
 					}
 
-					EC.Notification.hideProgressDialog();
+					
 
 				});
 

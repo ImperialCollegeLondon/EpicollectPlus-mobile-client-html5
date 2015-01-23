@@ -31,12 +31,15 @@ EC.Inputs = ( function(module) {
 
 					if (input.type === EC.Const.PHOTO || input.type === EC.Const.VIDEO || input.type === EC.Const.AUDIO) {
 
-						files.push({
-							type : input.type,
-							cached : value.cached,
-							stored : value.stored,
-							ref : input.ref
-						});
+						// If cache path is empty, we do not have a file to save for that input
+						if (value.cached !== "") {
+							files.push({
+								type : input.type,
+								cached : value.cached,
+								stored : value.stored,
+								ref : input.ref
+							});
+						}
 					}
 				}
 
