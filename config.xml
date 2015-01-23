@@ -8,7 +8,7 @@
 	<platform name="ios">
 		<!-- Fix status bar on ios 7+ -->
 		<preference name="StatusBarOverlaysWebView" value="false" />
-		<preference name="StatusBarStyle" value="default" />
+		<preference name="StatusBarStyle" value="lightcontent" />
 		<!-- iPhone 6 Plus  -->
 		<icon src="res/ios/icon-60@3x.png" width="180" height="180" />
 		<!-- iOS 7.0+ -->

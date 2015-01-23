@@ -80,7 +80,7 @@ EC.InputTypes = ( function(module) {
 
 					cordova.plugins.barcodeScanner.scan(function(result) {
 					}, function(error) {
-						alert("Scanning failed: " + error);
+						console.log(error);
 					});
 				});
 			}
@@ -96,7 +96,13 @@ EC.InputTypes = ( function(module) {
 				window.localStorage.is_dismissing_barcode = 1;
 
 				cordova.plugins.barcodeScanner.scan(function(result) {
-					scan_result.val(result.text);
+					
+					console.log(result);
+					
+					//do not override value if the scan action is cancelled by the user
+					if (!result.cancelled) {
+						scan_result.val(result.text);
+					}
 
 				}, function(error) {
 					console.log(error);

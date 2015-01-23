@@ -41,15 +41,17 @@ EC.Inputs = ( function(module) {
 				}
 
 				/*
-				* Now we got all the file paths, so clear DOM from any references
-				* otherwise on editing input some cache/stored file paths could be there and that causes errors upon saving
-				* as the EC.File.move() mehod will look for non-existent files
-				*/
+				 * Now we got all the file paths, so clear DOM from any references
+				 * otherwise on editing input some cache/stored file paths could be there and
+				 * that causes errors upon saving
+				 * as the EC.File.move() mehod will look for non-existent files
+				 */
 
-				//audio
-				$('div#audio div#input-audio input#cached-audio-uri').val('');
-				$('div#audio div#input-audio input#stored-audio-uri').val('');
-
+				if (files.length > 0) {
+					//audio
+					$('div#audio div#input-audio input#cached-audio-uri').val('');
+					$('div#audio div#input-audio input#stored-audio-uri').val('');
+				}
 				return files;
 			};
 
