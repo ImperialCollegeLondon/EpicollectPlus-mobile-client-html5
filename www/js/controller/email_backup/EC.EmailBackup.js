@@ -9,7 +9,8 @@
  */
 var EC = EC || {};
 EC.EmailBackup = EC.EmailBackup || {};
-EC.EmailBackup = ( function() {"use strict";
+EC.EmailBackup = ( function() {
+		"use strict";
 
 		var project_name;
 		var project_id;
@@ -28,20 +29,14 @@ EC.EmailBackup = ( function() {"use strict";
 
 			function gotFS(the_fileSystem) {
 
-				console.log(JSON.stringify(the_fileSystem));
-
-				backup_path = the_fileSystem.root.fullPath + "/" + filename;
-
-				//strip file:// to make it work with EmailComposer for Android only
-				if (window.device.platform === EC.Const.ANDROID) {
-					backup_path = backup_path.replace("file://", "");
-				}
-
-				if (window.device.platform === EC.Const.IOS) {
-
-				}
+				backup_path = the_fileSystem.root.nativeURL + filename;
 
 				console.log("Backup path: " + backup_path);
+				
+				//remove file:// from path for iOS
+				if(window.device.platform === EC.Const.IOS){
+					backup_path = backup_path.slice(7);
+				}
 
 			}
 
@@ -59,7 +54,6 @@ EC.EmailBackup = ( function() {"use strict";
 			var subject;
 			var body;
 			var back_btn_href;
-			
 
 			project_name = window.localStorage.project_name;
 			project_id = window.localStorage.project_id;
@@ -69,7 +63,8 @@ EC.EmailBackup = ( function() {"use strict";
 				//go back to previuos page in history
 				if (window.localStorage.current_view_url) {
 					EC.Routing.changePage(window.localStorage.current_view_url);
-				} else {
+				}
+				else {
 					EC.Routing.changePage(EC.Const.INDEX_VIEW);
 				}
 			});
@@ -103,45 +98,59 @@ EC.EmailBackup = ( function() {"use strict";
 				//validate email address
 				if (mailto === "" || !EC.Utils.isValidEmail(mailto)) {
 
-					EC.Notification.showAlert("Error", EC.Localise.getTranslation("invalid_email"));
+					EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("invalid_email"));
 					return;
 				}
 
 				//call back is never called on Android
 				if (window.device.platform === EC.Const.ANDROID) {
-					window.plugins.emailComposer.showEmailComposerWithCallback(null, //
-					subject, body, //
-					[mailto], //
-					[
-					], [], true, //
-					[backup_path]);
-					//
-				}
 
-				if (window.device.platform === EC.Const.IOS) {
-					//@this is not working...
-					// window.plugins.emailComposer.showEmailComposer(//
-					// subject, body, //
-					// [mailto], //
-					// [
-					// ], [], true, //
-					// ["var/mobile/Applications/591C2833-BA40-4CCB-BDF0-DEF3F5421E4D/Documents/Schools.txt"], [project_name]);
-
-					//@this is working now after my hacks
-					window.plugin.open({
+					console.log(backup_path);
+					window.plugin.email.open({
 						to : [mailto], // email addresses for TO field
 						cc : [], // email addresses for CC field
 						bcc : [], // email addresses for BCC field
-						attachments : ["var/mobile/Applications/591C2833-BA40-4CCB-BDF0-DEF3F5421E4D/Documents/Schools.txt"], // paths to the files you want to attach or base64 encoded data streams
+						attachments : [backup_path], // paths to the files you want to attach or base64
+						// encoded data streams
 						subject : subject, // subject of the email
 						body : body, // email body (could be HTML code, in this case set isHtml to true)
 						isHtml : true// indicates if the body is HTML or plain text
 					}, function() {
 						console.log('email view dismissed');
 					}, this);
+					//
+				}
 
-					//notify user mail is being sent
-					//EC.Notification.showToast(EC.Localise.getTranslation("sending_message"), "long");
+				if (window.device.platform === EC.Const.IOS) {
+					
+					//check if a mail client is setup on the device
+					window.plugin.email.isServiceAvailable(function(is_available) {
+						
+						//no mail client set up yet? Warn user
+						if(!is_available){
+							EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("invalid_email_client"));
+							return;
+						}
+						
+						//open mail UI
+						window.plugin.email.open({
+						to : [mailto], // email addresses for TO field
+						cc : [], // email addresses for CC field
+						bcc : [], // email addresses for BCC field
+						attachments : [backup_path],//
+						subject : subject, // subject of the email
+						body : body, // email body (could be HTML code, in this case set isHtml to true)
+						isHtml : true// indicates if the body is HTML or plain text
+					}, function() {
+						console.log('email view dismissed');
+					}, this);
+						
+						
+						
+					});
+
+					
+
 				}
 
 			});
