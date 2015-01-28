@@ -1,8 +1,8 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="uk.ac.imperial.epicollect5-64bit" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-	<name>Epicollect5-64bit</name>
+<widget id="uk.ac.imperial.epicollect5" version="2.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+	<name>Epicollect5</name>
 	<description>Data Collection Tool</description>
-	<author email="m.menegazzo@imperial.ac.uk" href="http://cordova.io">Epicollect Team</author>
+	<author email="m.menegazzo@imperial.ac.uk" href="https://github.com/ImperialCollegeLondon/epicollect5-64bit">Epicollect Team</author>
 	<content src="index.html?project=" />
 	<access origin="*" />
 	<!-- Fix status bar on ios 7+ -->
