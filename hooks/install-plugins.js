@@ -37,6 +37,8 @@ var pluginlist = [
 "https://github.com/mablack/cordova-diagnostic-plugin.git",
 //native date picker for android
 "https://github.com/VitaliiBlagodir/cordova-plugin-datepicker",
+//email plugin 
+"de.appplant.cordova.plugin.email-composer@0.8.1",
 //identifier for vendor iOS
 "https://github.com/jcesarmobile/IDFVPlugin.git"];
 // no need to configure below

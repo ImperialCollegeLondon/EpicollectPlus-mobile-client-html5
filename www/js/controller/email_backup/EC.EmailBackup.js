@@ -32,9 +32,9 @@ EC.EmailBackup = ( function() {
 				backup_path = the_fileSystem.root.nativeURL + filename;
 
 				console.log("Backup path: " + backup_path);
-				
+
 				//remove file:// from path for iOS
-				if(window.device.platform === EC.Const.IOS){
+				if (window.device.platform === EC.Const.IOS) {
 					backup_path = backup_path.slice(7);
 				}
 
@@ -102,56 +102,29 @@ EC.EmailBackup = ( function() {
 					return;
 				}
 
-				//call back is never called on Android
-				if (window.device.platform === EC.Const.ANDROID) {
+				//check if a mail client is setup on the device
+				window.plugin.email.isServiceAvailable(function(is_available) {
 
-					console.log(backup_path);
+					//no mail client set up yet? Warn user
+					if (!is_available) {
+						EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("invalid_email_client"));
+						return;
+					}
+
+					//open mail UI
 					window.plugin.email.open({
 						to : [mailto], // email addresses for TO field
 						cc : [], // email addresses for CC field
 						bcc : [], // email addresses for BCC field
-						attachments : [backup_path], // paths to the files you want to attach or base64
-						// encoded data streams
+						attachments : [backup_path], //
 						subject : subject, // subject of the email
 						body : body, // email body (could be HTML code, in this case set isHtml to true)
 						isHtml : true// indicates if the body is HTML or plain text
 					}, function() {
 						console.log('email view dismissed');
 					}, this);
-					//
-				}
 
-				if (window.device.platform === EC.Const.IOS) {
-					
-					//check if a mail client is setup on the device
-					window.plugin.email.isServiceAvailable(function(is_available) {
-						
-						//no mail client set up yet? Warn user
-						if(!is_available){
-							EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("invalid_email_client"));
-							return;
-						}
-						
-						//open mail UI
-						window.plugin.email.open({
-						to : [mailto], // email addresses for TO field
-						cc : [], // email addresses for CC field
-						bcc : [], // email addresses for BCC field
-						attachments : [backup_path],//
-						subject : subject, // subject of the email
-						body : body, // email body (could be HTML code, in this case set isHtml to true)
-						isHtml : true// indicates if the body is HTML or plain text
-					}, function() {
-						console.log('email view dismissed');
-					}, this);
-						
-						
-						
-					});
-
-					
-
-				}
+				});
 
 			});
 
