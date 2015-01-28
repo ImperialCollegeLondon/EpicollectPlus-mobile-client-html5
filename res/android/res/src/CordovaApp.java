@@ -22,18 +22,42 @@ package uk.ac.imperial.epicollect5_64bit;
 import java.io.File;
 
 import org.apache.cordova.CordovaActivity;
-import org.apache.cordova.CordovaChromeClient;
-import org.apache.cordova.CordovaWebView;
-import org.apache.cordova.CordovaWebViewClient;
-import org.jshybugger.DebugServiceClient;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 
 public class CordovaApp extends CordovaActivity {
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		
+String project = "";
+		
+		Log.d("Version", String.valueOf(android.os.Build.VERSION.SDK_INT));
+		Log.d("app dir", this.getApplicationInfo().dataDir);
+		
+		Intent intent = getIntent();
 
+		Uri uri = intent.getData();
+		
+		String extra = intent.getStringExtra("project");
+
+		if (uri != null) {
+
+			project = uri.getQueryParameter("project");
+
+			Log.d("app passed project", String.valueOf(project));
+		}
+		
+		//get project name when app is triggered via a Chrome intent
+		if (extra != null) {
+			project = extra;
+		}
+		
+		/* Media folders to store media files are created at run time via native code
+		 */
 		// create images dir
 		File images_dir = new File(getFilesDir(), "images");
 		images_dir.mkdir();
@@ -45,22 +69,18 @@ public class CordovaApp extends CordovaActivity {
 		// create videos dir
 		File videos_dir = new File(getFilesDir(), "videos");
 		videos_dir.mkdir();
+		
+		
+		Log.d("launchUrl", String.valueOf(launchUrl));
 
 		super.init();
 
-		// load HTML page via jsHybugger content provider
-		//super.loadUrl(DebugServiceClient.getDebugUrl(launchUrl));
-
 		// Set by <content src="index.html" /> in config.xml
-		loadUrl(launchUrl);
+		Log.d("launchUrl", String.valueOf(launchUrl));
+		
+		//override Cordova default launch URL to append project URL for deeplinking
+		loadUrl(launchUrl + project);
 	}
 
-//	/**
-//	 * Attach webView to debugging service.
-//	 */
-//	@Override
-//	public void init(CordovaWebView webView, CordovaWebViewClient webViewClient, CordovaChromeClient webChromeClient) {
-//		super.init(webView, webViewClient, webChromeClient);
-//		DebugServiceClient.attachWebView(webView, this);
-//	}
+
 }
