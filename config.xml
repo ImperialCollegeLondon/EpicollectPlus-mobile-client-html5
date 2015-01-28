@@ -2,8 +2,8 @@
 <widget id="uk.ac.imperial.epicollect5-64bit" version="0.0.1" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
 	<name>Epicollect5-64bit</name>
 	<description>Data Collection Tool</description>
-	<author email="dev@cordova.apache.org" href="http://cordova.io">Apache Cordova Team</author>
-	<content src="index.html" />
+	<author email="m.menegazzo@imperial.ac.uk" href="http://cordova.io">Epicollect Team</author>
+	<content src="index.html?project=" />
 	<access origin="*" />
 	<!-- Fix status bar on ios 7+ -->
 	<preference name="StatusBarOverlaysWebView" value="false" />
