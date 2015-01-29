@@ -4,11 +4,25 @@ var EC = EC || {};
 EC.Init = EC.Init || {};
 
 /**
- * Init application triggering onDeviceReady when both jQuery Mobile and Cordova are ready
- * 
+ * Init application triggering onDeviceReady when both jQuery Mobile and Cordova
+ * are ready
+ *
  * Also set the debig mode (EC.Const.DEBUG is set manually)
  */
-EC.Init = function() {"use strict";
+EC.Init = function() {
+	"use strict";
+
+	//fix JSON.parse bug for old Android V8 Javascript
+	JSON.originalParse = JSON.parse;
+	JSON.parse = function(text) {
+		if (text) {
+			return JSON.originalParse(text);
+		}
+		else {
+			// no longer crashing on null value but just returning null
+			return [];
+		}
+	};
 
 	//disable console.log if nor debugging
 	if (EC.Const.DEBUG === 0) {
@@ -18,7 +32,8 @@ EC.Init = function() {"use strict";
 	}
 
 	//wait for both JQM pageinit and PG onDeviceReady before doing anything
-	var jqmReady = $.Deferred(), pgReady = $.Deferred();
+	var jqmReady = $.Deferred(),
+	    pgReady = $.Deferred();
 
 	// jqm page is ready
 	$(document).bind("pageinit", jqmReady.resolve);

@@ -78,6 +78,9 @@ EC.Project = ( function() {
 						// Commit project to database
 						$.when(EC.Structure.commitAll()).then(function() {
 							deferred.resolve();
+							
+							
+							
 						});
 					}, function() {
 						//request failed
@@ -196,6 +199,9 @@ EC.Project = ( function() {
 						EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("project_already_loaded"));
 						EC.Notification.hideProgressDialog();
 						self.renderList(projects);
+						
+						//remove project from localStorage (iOS only)
+						window.localStorage.ios_project_form_url = "";
 					});
 
 				}

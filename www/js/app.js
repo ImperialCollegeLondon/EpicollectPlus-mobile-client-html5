@@ -1,5 +1,6 @@
 /*jslint vars: true, nomen: true devel: true, plusplus: true*/
-/*global $, jQuery, cordova, device, FastClick, LocalFileSystem, ActivityIndicator */
+/*global $, jQuery, cordova, device, FastClick, LocalFileSystem,
+ * ActivityIndicator */
 
 /*
  * Define global namespace EC (Epicollect)
@@ -52,12 +53,16 @@ function onDeviceReady() {
 
 		console.log("OS version: " + window.device.version);
 
-		//add better JSON parsing script for Android 2.*.* (crashing on json
-		// null/undefined values)
-		//we support only from 2.3+
-		if (window.device.version.charAt(0) === "2") {
-			console.log("Android Gingerbread 2.3");
-		}
+		// //add better JSON parsing script for Android 2.*.* (crashing on json
+		// // null/undefined values)
+		// //we support only from 2.3+
+		// if (window.device.version.charAt(0) === "2") {
+			// console.log("Android Gingerbread 2.3");
+			// // window.JSON = null;
+			// // $.getScript('js/core/json2.js', function() {
+				// // console.log("json script loaded");
+			// // });
+		// }
 
 		//set media dir paths based on platform
 		EC.Utils.setMediaDirPaths();
