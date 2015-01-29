@@ -35,11 +35,12 @@ if (EC.Utils.isChrome()) {
 window.localStorage.ios_project_form_url = "";
 window.handleOpenURL = function(url) {
 	"use strict";
-
+	
 	var project_name;
 
 	if (url) {
-		project_name = url.replace("epicollect5://project=", "");
+		project_name = url.replace("epicollect5://project?", "");
+		project_name = "http://" + project_name;
 		window.localStorage.ios_project_form_url = project_name;
 
 	}
@@ -47,13 +48,12 @@ window.handleOpenURL = function(url) {
 
 function onDeviceReady() {
 
-	
 	"use strict";
 
 	if (!EC.Utils.isChrome()) {
-		
+
 		//set media dir paths based on platform
-	EC.Utils.setMediaDirPaths();
+		EC.Utils.setMediaDirPaths();
 
 		//request iOS persistent file system
 		if (window.device.platform === EC.Const.IOS) {

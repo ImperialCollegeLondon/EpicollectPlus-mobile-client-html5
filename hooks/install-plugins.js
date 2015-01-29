@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+//#!/usr/bin/env node
 //this hook installs all your plugins
 // add your plugins to this list--either the identifier, the filesystem location
 // or the URL
@@ -14,7 +14,8 @@ var pluginlist = [
 "org.apache.cordova.file-transfer",//
  "org.apache.cordova.globalization", //
 // Fork of media pugin see README
-"org.apache.cordova.splashscreen", "https://github.com/ImperialCollegeLondon/cordova-plugin-media.git",
+"org.apache.cordova.splashscreen", //
+"https://github.com/ImperialCollegeLondon/cordova-plugin-media.git",
 //fork of dialogs plugin see README
 "https://github.com/ImperialCollegeLondon/cordova-plugin-dialogs.git",
 // Official SQLite plugin
@@ -29,10 +30,10 @@ var pluginlist = [
 "com.phonegap.plugins.barcodescanner",
 //App Version
 "https://github.com/whiteoctober/cordova-plugin-app-version.git", //
-//status bar in ios7
-"org.apache.cordova.statusbar",
+//status bar in ios7 -> currently causing problems, so I modified the MainViewController directly
+//"org.apache.cordova.statusbar",
 //video player plugin android
-"cordova plugin add https://github.com/macdonst/VideoPlayer",
+"https://github.com/macdonst/VideoPlayer",
 //diagnostic plugin
 "https://github.com/mablack/cordova-diagnostic-plugin.git",
 //native date picker for android
