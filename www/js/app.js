@@ -1,6 +1,5 @@
 /*jslint vars: true, nomen: true devel: true, plusplus: true*/
-/*global $, jQuery, cordova, device, FastClick, LocalFileSystem,
- * ActivityIndicator*/
+/*global $, jQuery, cordova, device, FastClick, LocalFileSystem, ActivityIndicator */
 
 /*
  * Define global namespace EC (Epicollect)
@@ -35,7 +34,7 @@ if (EC.Utils.isChrome()) {
 window.localStorage.ios_project_form_url = "";
 window.handleOpenURL = function(url) {
 	"use strict";
-	
+
 	var project_name;
 
 	if (url) {
@@ -47,10 +46,18 @@ window.handleOpenURL = function(url) {
 };
 
 function onDeviceReady() {
-
 	"use strict";
 
 	if (!EC.Utils.isChrome()) {
+
+		console.log("OS version: " + window.device.version);
+
+		//add better JSON parsing script for Android 2.*.* (crashing on json
+		// null/undefined values)
+		//we support only from 2.3+
+		if (window.device.version.charAt(0) === "2") {
+			console.log("Android Gingerbread 2.3");
+		}
 
 		//set media dir paths based on platform
 		EC.Utils.setMediaDirPaths();
