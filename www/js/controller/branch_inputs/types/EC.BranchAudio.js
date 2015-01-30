@@ -115,8 +115,21 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 			window.requestFileSystem(LocalFileSystem.TEMPORARY, 0, function(the_file_system) {
 
 				console.log(JSON.stringify(the_file_system));
-				cached_path = the_file_system.root.fullPath;
-				console.log('Fullpath: ' + cached_path);
+				cached_path = the_file_system.root.nativeURL;
+				console.log('nativeURL: ' + cached_path);
+				
+				if (window.device.platform === EC.Const.IOS) {
+					/* We need to provide the full path to the tmp folder to record an audio file
+					 *
+					 * iOS 7+ does not want 'file://' in the path to record an audio file
+					 *
+					 * if the path starts with 'file://', error thrown is
+					 * 'Failed to start recording using AvAudioRecorder'
+					 * so it is removed using slice(7);
+					 */
+					cached_path = cached_path.slice(7);
+				}
+				
 			}, function(error) {
 				console.log(JSON.stringify(error));
 			});
@@ -152,9 +165,9 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 				}
 				
 				console.log('Recording...');
-				console.log('Full path: ' + cached_path + "/" + filename);
+				console.log('Full path: ' + cached_path  + filename);
 
-				mediaRec = new Media(cached_path + "/" + filename,
+				mediaRec = new Media(cached_path  + filename,
 
 				// success callback
 				function onRecordingSuccess() {

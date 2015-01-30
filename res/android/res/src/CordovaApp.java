@@ -70,9 +70,6 @@ String project = "";
 		File videos_dir = new File(getFilesDir(), "videos");
 		videos_dir.mkdir();
 		
-		
-		Log.d("launchUrl", String.valueOf(launchUrl));
-
 		super.init();
 
 		// Set by <content src="index.html" /> in config.xml

@@ -204,10 +204,7 @@ EC.InputTypes = ( function(module) {
 						play_video_btn.attr('data-video-path', the_cached_video_path);
 						play_video_btn.removeClass('ui-disabled');
 						EC.Notification.hideProgressDialog();
-
 					}
-
-					
 
 				});
 

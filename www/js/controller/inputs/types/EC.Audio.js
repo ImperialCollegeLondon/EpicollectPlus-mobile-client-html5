@@ -134,7 +134,7 @@ EC.InputTypes = ( function(module) {
 
 				console.log(JSON.stringify(the_file_system));
 				cached_path = the_file_system.root.nativeURL;
-				console.log('Fullpath: ' + cached_path);
+				console.log('nativeURL: ' + cached_path);
 
 				if (window.device.platform === EC.Const.IOS) {
 					/* We need to provide the full path to the tmp folder to record an audio file

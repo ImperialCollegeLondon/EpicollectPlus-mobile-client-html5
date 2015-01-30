@@ -2,10 +2,13 @@
 /*global $, jQuery, Camera*/
 var EC = EC || {};
 EC.BranchInputTypes = EC.BranchInputTypes || {};
-EC.BranchInputTypes = ( function(module) {"use strict";
+EC.BranchInputTypes = ( function(module) {
+		"use strict";
+		
+		var app_storage_dir;
 
 		module.photo = function(the_value, the_input) {
-			
+
 			var obj;
 			var span_label = $('div#branch-photo span.label');
 			var value = the_value;
@@ -27,11 +30,75 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 
 			var context_landscape = canvas_landscape.getContext("2d");
 			context_landscape.clearRect(0, 0, canvas_landscape.width, canvas_landscape.height);
-			
+
 			//Localise
 			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
 				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
 			}
+
+			// //on iOS, close image popup on orientation change
+			if (EC.Const.IOS) {
+				//TODO
+			}
+
+			$('div#canvas-wrapper').off().on('vclick', function(e) {
+
+				var href = $('div#branch-input-photo input#cached-image-uri').val();
+
+				console.log(href);
+
+				//if cached image url is empty, get stored image url
+				if (href === "") {
+					href = app_storage_dir + $('div#branch-input-photo input#stored-image-uri').val();
+				}
+
+				if (window.device) {
+					switch(window.device.platform) {
+
+						//on Android we show the image as a opo up using swipebox
+						case EC.Const.ANDROID:
+							e.preventDefault();
+							$.swipebox([{
+								href : href
+							}]);
+							break;
+
+						//on iOS we show a built in JQM popup, as swipebox has
+						// got issues
+						case EC.Const.IOS:
+							$("#photo-popup img").attr("src", href);
+
+							/*
+							 * let's use a timeout otherwise the popup is not
+							 * centered on the first tap, because the
+							 * image is not loaded. Not the prettiest solution,
+							 * but since the image is loaded locally
+							 * and always the same size, I can assume 100 ms will
+							 * work everytime on iPhones
+							 *
+							 * see here
+							 * http://stackoverflow.com/questions/21304763/jquery-mobile-popup-not-centered-on-first-click
+							 *
+							 */
+
+							window.setTimeout(function() {
+								$("#photo-popup").popup("open");
+							}, 100);
+
+							$(window).on("orientationchange", function(event) {
+								console.log("called orientationchange");
+
+								//close popup, as it is not scaled/positioned
+								// properly
+								$("#photo-popup").popup("close");
+							});
+
+							break;
+					}
+
+				}
+
+			});
 
 			//Render thumbnail on <canvas>
 			var _renderThumb = function(the_image_uri) {
@@ -67,7 +134,8 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 						canvas_landscape_dom.addClass('not-shown');
 						canvas_portrait_dom.removeClass('not-shown');
 
-					} else {
+					}
+					else {
 
 						//landscape
 						canvas = canvas_landscape;
@@ -107,7 +175,8 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 			//update label text
 			span_label.text(input.label);
 
-			//if a value is stored when editing, on the first load add it to hidden input field,  to be shown if no cached value is set
+			//if a value is stored when editing, on the first load add it to hidden input
+			// field,  to be shown if no cached value is set
 			if (window.localStorage.branch_edit_mode) {
 
 				if (value.stored === undefined) {
@@ -116,7 +185,8 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 						cached : "",
 						stored : value
 					};
-				} else {
+				}
+				else {
 
 					store_image_uri.val(value.stored);
 				}
@@ -141,9 +211,13 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 
 						case EC.Const.ANDROID:
 							image_full_path_uri = EC.Const.ANDROID_APP_PRIVATE_URI + EC.Const.PHOTO_DIR + window.localStorage.project_name + "/" + value.stored;
+														app_storage_dir = EC.Const.ANDROID_APP_PRIVATE_URI + EC.Const.PHOTO_DIR + window.localStorage.project_name + "/";
+
 							break;
 						case EC.Const.IOS:
 							image_full_path_uri = EC.Const.IOS_APP_PRIVATE_URI + EC.Const.PHOTO_DIR + window.localStorage.project_name + "/" + value.stored;
+														app_storage_dir = "file://" + EC.Const.IOS_APP_PRIVATE_URI + EC.Const.PHOTO_DIR + window.localStorage.project_name + "/";
+
 							break;
 
 					}
@@ -154,7 +228,8 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 
 				}
 
-			} else {
+			}
+			else {
 
 				//render the cached image
 				_renderThumb(value.cached);
@@ -200,11 +275,8 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 
 			//Error callback
 			var onGPError = function(error) {
-
-				EC.Notification.showAlert("Error", "Failed because: " + error);
-
+				console.log("Error", "Failed because: " + error);
 			};
-
 		};
 
 		return module;

@@ -261,7 +261,7 @@ function onBackButton() {
 		}
 		else {
 
-			if (page_id === EC.Const.PHOTO && $.swipebox.isOpen) {
+			if ((page_id === EC.Const.PHOTO || page_id === EC.Const.BRANCH_PREFIX + EC.Const.PHOTO) && $.swipebox.isOpen) {
 				// close swipebox on back button (Android)
 				$('a#swipebox-close').click();
 			}
