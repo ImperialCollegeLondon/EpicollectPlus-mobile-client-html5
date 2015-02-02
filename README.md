@@ -21,3 +21,4 @@ Epicollect5  Mobile Client refactored to support 64bit architectures
 12. There is a bug on Cordova 3.7 iOS where `handleOpenURL()` is not called if the app is not active, solution wa to downgrade to 3.6.3
 13. Cordova statusbar plugin is causing problems so it does not get installed, modify `MainViewController.m` directly instead
 14. Custom URL schemes need to be added manually to Android manifest and iOS plist files
+15. Currently using 3.6.4 on Android, where jsHybugger does not work. It would work on 3.7.0 but Eclipse does not compile the project (missing .jar). To debug Android <4.4, clone repo, update to 3.7 and debug there. Make the changes to the main repo manually.

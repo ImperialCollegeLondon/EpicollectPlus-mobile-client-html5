@@ -71,6 +71,10 @@ EC.BranchInputs = ( function() {"use strict";
 				window.localStorage.branch_form_has_jumps = (the_has_jumps_flag) ? 1 : 0;
 
 			},
+			
+			getInputs : function() {
+				return this.branch_inputs;
+			},
 
 			getFormDetails : function(the_input, the_value, the_project_id) {
 				EC.Select.getBranchFormDetails(the_input, the_value, the_project_id);

@@ -103,23 +103,6 @@ EC.InputTypes = ( function(module) {
 
 			}
 
-			//******************************************************
-			//TODO: The following is probably redundant but today I am tired
-			//it is working now and I will leave it as it is until I feel like it
-
-			//If a cache value is set, add it to hidden field.
-			// if (value.cached === "") {
-			//
-			// if (value.stored !== "") {
-			// cached_audio_uri.val(current_path);
-			// } else {
-			// cached_audio_uri.val("");
-			// }
-			// } else {
-			// cached_audio_uri.val(value.cached);
-			// }
-			//********************************************************
-
 			console.log('cache_audio_uri: ' + cached_audio_uri.val());
 
 			//add store audio uri cached_path (if any)

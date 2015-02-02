@@ -255,7 +255,7 @@ function onBackButton() {
 	else {
 
 		//check if user pressed back button while doing a barcode scan
-		if (page_id === EC.Const.BARCODE && window.localStorage.is_dismissing_barcode) {
+		if ((page_id === EC.Const.BARCODE || page_id === EC.Const.BRANCH_PREFIX + EC.Const.BARCODE ) && window.localStorage.is_dismissing_barcode) {
 			window.localStorage.removeItem('is_dismissing_barcode');
 			return;
 		}

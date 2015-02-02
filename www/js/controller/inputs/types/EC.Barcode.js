@@ -16,8 +16,8 @@ EC.InputTypes = ( function(module) {
 			var input = the_input;
 			var scanner = $('div#barcode div#scanner');
 			var scanner_confirm = $('div#barcode div#scanner-confirm');
-			var scan_result = $('div#barcode input#scan-result');
-			var scan_result_confirm = $('div#barcode input#scan-result-confirm');
+			var scan_result = $('div#barcode input.scan-result');
+			var scan_result_confirm = $('div#barcode input.scan-result-confirm');
 
 			//update label text
 			span_label.text(input.label);
@@ -73,12 +73,18 @@ EC.InputTypes = ( function(module) {
 				}
 
 				//add event handler to second scan button
-				scanner_confirm.on('vclick', function() {
+				scanner_confirm.off().on('vclick', function() {
 
 					//flag needed to handle case when user dismiss the barcode scanner
 					window.localStorage.is_dismissing_barcode = 1;
 
 					cordova.plugins.barcodeScanner.scan(function(result) {
+
+						//do not override value if the scan action is cancelled by the user
+						if (!result.cancelled) {
+							scan_result_confirm.val(result.text);
+						}
+
 					}, function(error) {
 						console.log(error);
 					});
@@ -96,9 +102,9 @@ EC.InputTypes = ( function(module) {
 				window.localStorage.is_dismissing_barcode = 1;
 
 				cordova.plugins.barcodeScanner.scan(function(result) {
-					
+
 					console.log(result);
-					
+
 					//do not override value if the scan action is cancelled by the user
 					if (!result.cancelled) {
 						scan_result.val(result.text);

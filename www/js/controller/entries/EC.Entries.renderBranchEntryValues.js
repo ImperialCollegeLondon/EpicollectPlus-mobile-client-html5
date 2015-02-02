@@ -244,9 +244,9 @@ EC.Entries = ( function(module) {
                         case EC.Const.PHOTO:
 
                             if (values[i].value !== "") {
-                                HTML += '<span class="h-entry-value-label">' + EC.Const.PHOTO_AVAILABLE_LABEL + '</span>';
+                                HTML += '<span class="h-entry-value-label">' + EC.Localise.getTranslation(EC.Const.PHOTO_AVAILABLE_LABEL) + '</span>';
                             } else {
-                                HTML += '<span class="h-entry-value-label">' + EC.Const.PHOTO_NOT_AVAILABLE_LABEL + '</span>';
+                                HTML += '<span class="h-entry-value-label">' + EC.Localise.getTranslation(EC.Const.PHOTO_NOT_AVAILABLE_LABEL) + '</span>';
                             }
 
                             break;
@@ -254,9 +254,9 @@ EC.Entries = ( function(module) {
                         case EC.Const.AUDIO:
 
                             if (values[i].value !== "") {
-                                HTML += '<span class="h-entry-value-label">' + EC.Const.AUDIO_AVAILABLE_LABEL + '</span>';
+                                HTML += '<span class="h-entry-value-label">' + EC.Localise.getTranslation(EC.Const.AUDIO_AVAILABLE_LABEL) + '</span>';
                             } else {
-                                HTML += '<span class="h-entry-value-label">' + EC.Const.AUDIO_NOT_AVAILABLE_LABEL + '</span>';
+                                HTML += '<span class="h-entry-value-label">' + EC.Localise.getTranslation(EC.Const.AUDIO_NOT_AVAILABLE_LABEL) + '</span>';
                             }
 
                             break;
@@ -264,9 +264,9 @@ EC.Entries = ( function(module) {
                         case EC.Const.VIDEO:
 
                             if (values[i].value !== "") {
-                                HTML += '<span class="h-entry-value-label">' + EC.Const.VIDEO_AVAILABLE_LABEL + '</span>';
+                                HTML += '<span class="h-entry-value-label">' + EC.Localise.getTranslation(EC.Const.VIDEO_AVAILABLE_LABEL) + '</span>';
                             } else {
-                                HTML += '<span class="h-entry-value-label">' + EC.Const.VIDEO_NOT_AVAILABLE_LABEL + '</span>';
+                                HTML += '<span class="h-entry-value-label">' + EC.Localise.getTranslation(EC.Const.VIDEO_NOT_AVAILABLE_LABEL) + '</span>';
                             }
 
                             break;
@@ -313,7 +313,6 @@ EC.Entries = ( function(module) {
             //Set "editing mode" flag for branches
             window.localStorage.branch_edit_mode = 1;
 
-            //EC.Utils.sleep(1000);
             EC.Notification.hideProgressDialog();
 
         };

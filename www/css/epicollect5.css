@@ -361,10 +361,12 @@ div.ui-select .ui-focus {
 	box-shadow: 0 !important;
 }
 /* Barcode scanner*/
-input#scan-result, input#scan-result-confirm {
+input.scan-result, input.scan-result-confirm {
 	font-weight: bold;
-	color: #333333;
-	opacity: .8 !important;
+	color: #333333!important;
+	opacity: 1!important;
+	-webkit-text-fill-color:#333333!important;
+	-webkit-opacity: 1;
 }
 /*Action bar right buttons*/
 div.ui-btn-right {

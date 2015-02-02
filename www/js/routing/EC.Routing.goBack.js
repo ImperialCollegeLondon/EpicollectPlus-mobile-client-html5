@@ -3,7 +3,8 @@
 
 var EC = EC || {};
 EC.Routing = EC.Routing || {};
-EC.Routing.goBack = function(the_page_id) {"use strict";
+EC.Routing.goBack = function(the_page_id) {
+	"use strict";
 
 	var page_id = the_page_id;
 	var back_btn = null;
@@ -20,7 +21,7 @@ EC.Routing.goBack = function(the_page_id) {"use strict";
 	"location", //
 	"photo", //
 	"radio", //
-	"save-confirm", // 
+	"save-confirm", //
 	"save-feedback", //
 	"select", //
 	"text", //
@@ -69,7 +70,8 @@ EC.Routing.goBack = function(the_page_id) {"use strict";
 	];
 	//
 
-	//if the page is an input view, back button will perform the same action as the top left back button on screen
+	//if the page is an input view, back button will perform the same action as the
+	// top left back button on screen
 	if (EC.Utils.inArray(input_views_ids, page_id)) {
 
 		//force a click to on screen back button
@@ -78,7 +80,8 @@ EC.Routing.goBack = function(the_page_id) {"use strict";
 
 	}
 
-	//if the page if a branch input view, back button will perform the same action as the top left back button on screen
+	//if the page if a branch input view, back button will perform the same action as
+	// the top left back button on screen
 	if (EC.Utils.inArray(branch_input_views_ids, page_id)) {
 
 		//force a click to on screen back button
@@ -87,17 +90,28 @@ EC.Routing.goBack = function(the_page_id) {"use strict";
 
 	}
 
-	//if the page is one of the hierarchy dynamic navigation pages, the back button will perform the same action as the left tab button on screen
+	//if the page is one of the hierarchy dynamic navigation pages, the back button
+	// will perform the same action as the left tab button on screen
 	if (EC.Utils.inArray(hierarchy_views_ids, page_id)) {
 
 		//force a click to on screen back button
-		inactive_tab = $('div#' + page_id +' div[data-role="header"] div[data-role="navbar"] ul li.inactive-tab');
+		inactive_tab = $('div#' + page_id + ' div[data-role="header"] div[data-role="navbar"] ul li.inactive-tab');
 		inactive_tab.trigger("vclick");
 
 	}
 
-	
-	//if the page if a action view, back button will perform the same action as the top left back button on screen
+	/* if the page is one of the branch dynamic navigation pages, the back button
+	 * will perform the same action as the left tab button on screen i.e back 1 step
+	 *
+	 */
+	if (EC.Utils.inArray(branch_views_ids, page_id)) {
+		//force a click to on screen back button
+		inactive_tab = $('div#' + page_id + ' div[data-role="header"] div[data-role="navbar"] ul li.inactive-tab');
+		inactive_tab.trigger("vclick");
+	}
+
+	//if the page if a action view, back button will perform the same action as the
+	// top left back button on screen
 	if (EC.Utils.inArray(action_views_ids, page_id)) {
 
 		//force a click to on screen back button

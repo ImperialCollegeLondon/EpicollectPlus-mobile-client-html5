@@ -2,7 +2,8 @@
 /*global $, jQuery, cordova, device*/
 var EC = EC || {};
 EC.BranchInputs = EC.BranchInputs || {};
-EC.BranchInputs = ( function(module) {"use strict";
+EC.BranchInputs = ( function(module) {
+		"use strict";
 
 		module.storeData = function(the_ctx) {
 
@@ -28,16 +29,32 @@ EC.BranchInputs = ( function(module) {"use strict";
 					value = EC.BranchInputs.getCachedInputValue(branch_input.position).value;
 
 					if (branch_input.type === EC.Const.PHOTO || branch_input.type === EC.Const.VIDEO || branch_input.type === EC.Const.AUDIO) {
-
-						files.push({
-							type : branch_input.type,
-							cached : value.cached,
-							stored : value.stored,
-							ref : branch_input.ref
-						});
+						// If cache path is empty, we do not have a file to save for that input so skip
+						// it
+						if (value.cached !== "") {
+							files.push({
+								type : branch_input.type,
+								cached : value.cached,
+								stored : value.stored,
+								ref : branch_input.ref
+							});
+						}
 					}
 
 				}//for
+
+				/*
+				 * Now we got all the file paths, so clear DOM from any references
+				 * otherwise on editing input some cache/stored file paths could be there and
+				 * that causes errors upon saving
+				 * as the EC.File.move() mehod will look for non-existent files
+				 */
+
+				if (files.length > 0) {
+					//audio
+					$('div#branch-audio div#branch-input-audio input#cached-audio-uri').val('');
+					$('div#branch-audio div#branch-input-audio input#stored-audio-uri').val('');
+				}
 
 				return files;
 			};
@@ -51,25 +68,29 @@ EC.BranchInputs = ( function(module) {"use strict";
 
 				self.buildRows();
 
-			} else {
+			}
+			else {
 
 				//save media files, when all are saved trigger buildRows();
 				console.log(JSON.stringify(branch_media_files));
 
-				//move branch media files, pass the is_branch flag as true to trigger BRanchINputs,buildRows AFTER files are moved
+				//move branch media files, pass the is_branch flag as true to trigger
+				// BRanchINputs,buildRows AFTER files are moved
 				EC.File.move(branch_media_files, true);
 			}
 
 		};
 
 		/** @method onStoreValues When the user tap the button to save data,
-		 *  check first we have a primary key to save, then take care of skipped (by a jump) values
+		 *  check first we have a primary key to save, then take care of skipped (by a
+		 * jump) values
 		 */
 		module.onStoreValues = function() {
 
 			var self = this;
 
-			//check if the primary key field has a value (there are cases where jumps skip the primary key field, so warn the user form cannot be saved)
+			//check if the primary key field has a value (there are cases where jumps skip
+			// the primary key field, so warn the user form cannot be saved)
 			if (self.isEmptyPrimaryKey()) {
 				//warn user
 				EC.Notification.hideProgressDialog();
