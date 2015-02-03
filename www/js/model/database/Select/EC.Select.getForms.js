@@ -2,14 +2,17 @@
 /*global $, jQuery*/
 var EC = EC || {};
 EC.Select = EC.Select || {};
-EC.Select = ( function(module) {"use strict";
+EC.Select = ( function(module) {
+		"use strict";
 
-		var forms = [];
+		var forms;
 		var project_id;
-		var total_synced_rows = 0;
-		var total_entries_rows = 0;
-		var total_media_files = 0;
-		var total_all_synced_rows = 0;
+		var has_branches;
+		var total_synced_rows;
+		var total_entries_rows;
+		var total_media_files;
+		var total_branch_media_files;
+		var total_all_synced_rows;
 		var button_states = {};
 		var deferred;
 
@@ -21,6 +24,8 @@ EC.Select = ( function(module) {"use strict";
 			total_entries_rows = 0;
 			total_media_files = 0;
 			total_all_synced_rows = 0;
+			total_branch_media_files = 0;
+			has_branches = EC.Utils.projectHasBranches();
 			EC.db.transaction(_getDataInfoTX, EC.Select.txErrorCB, _getDataInfoSuccessCB);
 
 		};
@@ -62,17 +67,51 @@ EC.Select = ( function(module) {"use strict";
 
 		var _getDataInfoSuccessCB = function() {
 
-			console.log("Data info collected");
+			var i;
+			var iLength;
+			var branch_form_with_media_ids = [];
 
+			console.log("Data info collected");
+			
 			button_states.unsync_all_data = (total_synced_rows > 0) ? 1 : 0;
 			button_states.delete_all_entries = (total_entries_rows > 0) ? 1 : 0;
 			button_states.delete_media_files = (total_media_files > 0) ? 1 : 0;
 			button_states.delete_synced_entries = (total_all_synced_rows > 0) ? 1 : 0;
 
-			deferred.resolve(forms.slice(0), button_states);
+			//any branches? check for media files then
+			if (has_branches) {
 
-			//clear forms array
-			forms.length = 0;
+				//get all branch forms
+				$.when(EC.Select.getBranchForms(project_id)).then(function(the_branch_forms) {
+
+					//look up for branch forms with media
+					iLength = the_branch_forms.length;
+					for ( i = 0; i < iLength; i++) {
+						if (parseInt(the_branch_forms[i].has_media, 10) === 1) {
+							branch_form_with_media_ids.push(the_branch_forms[i]._id);
+						}
+					}
+
+					//look up if there is at least 1 branch media file
+					if (branch_form_with_media_ids.length > 0) {
+
+						$.when(EC.Select.hasBranchMediaFiles(branch_form_with_media_ids)).then(function(is_media_found) {
+							button_states.delete_media_files = (is_media_found) ? 1 : 0;
+							deferred.resolve(forms.slice(0), button_states);
+						});
+
+					}
+					else {
+						deferred.resolve(forms.slice(0), button_states);
+					}
+
+				});
+
+			}
+			else {
+				deferred.resolve(forms.slice(0), button_states);
+			}
+
 		};
 
 		var _getFormsTX = function(tx) {
@@ -99,6 +138,7 @@ EC.Select = ( function(module) {"use strict";
 		module.getForms = function(the_project_id) {
 
 			project_id = the_project_id;
+			forms = [];
 			deferred = new $.Deferred();
 
 			EC.db.transaction(_getFormsTX, EC.Select.txErrorCB, _getFormsSuccessCB);
