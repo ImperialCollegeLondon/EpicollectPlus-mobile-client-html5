@@ -128,7 +128,7 @@ EC.BranchInputs = ( function(module) {"use strict";
 					break;
 
 				case EC.Const.BARCODE:
-					current_value = $('div#branch-input-barcode input#scan-result').val();
+					current_value = $('div#branch-input-barcode input.scan-result').val();
 					values.push(current_value);
 					//console.log("barcode current value is: " + current_value);
 					got_value = values[0];

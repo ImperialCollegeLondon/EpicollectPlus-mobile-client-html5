@@ -364,9 +364,7 @@ div.ui-select .ui-focus {
 input.scan-result, input.scan-result-confirm {
 	font-weight: bold;
 	color: #333333!important;
-	opacity: 1!important;
-	-webkit-text-fill-color:#333333!important;
-	-webkit-opacity: 1;
+	opacity: 0.8!important;
 }
 /*Action bar right buttons*/
 div.ui-btn-right {
