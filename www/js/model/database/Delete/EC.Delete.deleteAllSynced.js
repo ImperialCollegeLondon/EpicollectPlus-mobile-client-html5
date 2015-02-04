@@ -7,7 +7,8 @@
  */
 var EC = EC || {};
 EC.Delete = EC.Delete || {};
-EC.Delete = ( function(module) {"use strict";
+EC.Delete = ( function(module) {
+		"use strict";
 
 		var project_name;
 		var project_id;
@@ -28,7 +29,6 @@ EC.Delete = ( function(module) {"use strict";
 			var delete_query = "";
 			var branch_select_files_query;
 			var branch_delete_query;
-			
 
 			counter = 0;
 			rows_deleted.length = 0;
@@ -44,16 +44,19 @@ EC.Delete = ( function(module) {"use strict";
 
 				if (forms[i].has_media === 1) {
 
-					//this form has some media to delete so we need to delete only the rows which are BOTH data and media synced
+					//this form has some media to delete so we need to delete only the rows which are
+					// BOTH data and media synced
 					select_files_query = "SELECT value from ec_data WHERE form_id=? AND is_data_synced=? AND is_media_synced=? AND (type=? OR type=? OR type=?)";
 
 					//get all file names before deleting
 					tx.executeSql(select_files_query, [forms[i]._id, 1, 1, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO], _selectFilesSQLSuccessCB, EC.Delete.txErrorCB);
 					tx.executeSql(delete_query, [forms[i]._id, 1], _deleteAllSyncedSQLSuccessCB, EC.Delete.txErrorCB);
 
-				} else {
+				}
+				else {
 
-					//no media for this form, go ahead and delete entries which are "data" synced only
+					//no media for this form, go ahead and delete entries which are "data" synced
+					// only
 					tx.executeSql(delete_query, [forms[i]._id, 1], _deleteAllSyncedSQLSuccessCB, EC.Delete.txErrorCB);
 				}
 
@@ -61,7 +64,8 @@ EC.Delete = ( function(module) {"use strict";
 
 			if (has_branches) {
 
-				//some branches with media to delete, same approach: cache the file names then delete
+				//some branches with media to delete, same approach: cache the file names then
+				// delete
 				branch_select_files_query = "SELECT value from ec_branch_data WHERE form_id IN (SELECT _id FROM branch_forms WHERE project_id=? AND has_media=?) AND is_data_synced=? AND is_media_synced=? AND (type=? OR type=? OR type=?)";
 				branch_delete_query = "DELETE FROM ec_branch_data WHERE form_id IN (SELECT _id FROM branch_forms WHERE project_id=?) AND is_data_synced=?";
 
@@ -110,8 +114,20 @@ EC.Delete = ( function(module) {"use strict";
 
 		};
 
+		var _deleteAllBranchesSyncedSQLSuccessCB = function(the_tx, the_result) {
+
+			//TODO: check this, but I think we do not need to count how many branches have
+			// been deleted as they are linked to its hierarchy entry that gets deleted
+			// anyway
+			console.log("_deleteAllBranchesSyncedSQLSuccessCB");
+			console.log(the_result);
+			console.log(the_tx);
+
+		};
+
 		/**
-		 * After successful rows deletion, resolve the deferred AFTER the total of entries is updated AND all the files (if any) are deleted
+		 * After successful rows deletion, resolve the deferred AFTER the total of
+		 * hierarchy entries is updated AND all the files (if any) are deleted
 		 */
 		var _deleteAllSyncedTXSuccessCB = function() {
 
@@ -130,7 +146,8 @@ EC.Delete = ( function(module) {"use strict";
 				$.when(EC.File.remove(project_name, files)).then(function() {
 					file_deleted_defr.resolve();
 				});
-			} else {
+			}
+			else {
 				file_deleted_defr.resolve();
 			}
 
