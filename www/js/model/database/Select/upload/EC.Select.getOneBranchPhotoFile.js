@@ -10,7 +10,7 @@ EC.Select = ( function(module) {"use strict";
 
 		var _getOneBranchPhotoFileTX = function(tx) {
 
-			var query = "SELECT _id, value, type FROM ec_branch_data WHERE form_id IN (SELECT _id FROM ec_branch_forms WHERE project_id=? AND has_media=?) AND type=? AND is_data_synced=? AND is_media_synced=? AND value<>? LIMIT 1";
+			var query = "SELECT * FROM ec_branch_data WHERE form_id IN (SELECT _id FROM ec_branch_forms WHERE project_id=? AND has_media=?) AND type=? AND is_data_synced=? AND is_media_synced=? AND value<>? LIMIT 1";
 
 			tx.executeSql(query, [project_id, 1, EC.Const.PHOTO, 1, 0, ""], getOneBranchPhotoFileSQLSuccess, EC.Select.txErrorCB);
 
@@ -27,6 +27,7 @@ EC.Select = ( function(module) {"use strict";
 		var _getOneBranchPhotoFileSuccessCB = function() {
 
 			if (image) {
+				console.log(image);
 				deferred.resolve(image);
 			} else {
 				deferred.reject();
@@ -37,6 +38,7 @@ EC.Select = ( function(module) {"use strict";
 		module.getOneBranchPhotoFile = function(the_project_id) {
 
 			project_id = the_project_id;
+			image = null;
 			deferred = new $.Deferred();
 
 			EC.db.transaction(_getOneBranchPhotoFileTX, EC.Select.txErrorCB, _getOneBranchPhotoFileSuccessCB);

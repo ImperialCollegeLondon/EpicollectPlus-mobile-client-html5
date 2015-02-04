@@ -7,7 +7,8 @@
  */
 var EC = EC || {};
 EC.Upload = EC.Upload || {};
-EC.Upload = ( function(module) {"use strict";
+EC.Upload = ( function(module) {
+		"use strict";
 
 		var upload_images_btn;
 		var upload_audios_btn;
@@ -17,7 +18,7 @@ EC.Upload = ( function(module) {"use strict";
 
 			var self = this;
 			var media_dir;
-			var project_id = parseInt(window.localStorage.project_id,10);
+			var project_id = parseInt(window.localStorage.project_id, 10);
 
 			//upload another file of same type (if any)
 			switch(the_media_type) {
@@ -26,26 +27,36 @@ EC.Upload = ( function(module) {"use strict";
 
 					//get next image (if any)
 					$.when(EC.Select.getOneHierarchyMediaFile(project_id, EC.Const.PHOTO).then(function(the_image) {
-						
+
 						//post image
 						media_dir = EC.Const.PHOTO_DIR;
+						EC.Upload.is_branch_image = false;
 						EC.File.uploadFile(the_image, media_dir);
 
 					}, function() {
 
-						//no more images to post
+						/* no more hierarchy images to post
+						 * check branches for images
+						 */
+						$.when(EC.Select.getOneBranchPhotoFile(project_id)).then(function(the_branch_image) {
 
-						//TODO: check branches for images
+							//post image
+							media_dir = EC.Const.PHOTO_DIR;
+							EC.Upload.is_branch_image = true;
+							EC.File.uploadFile(the_branch_image, media_dir);
 
-						//disable upload images button, as no more images to upload
-						upload_images_btn = $('div#upload div#upload-options div#upload-images-btn');
-						upload_images_btn.addClass("ui-disabled");
+						}, function() {
 
-						//notify user all data were uploaded successfully
-						EC.Notification.hideProgressDialog();
+							//disable upload images button, as no more images to upload
+							upload_images_btn = $('div#upload div#upload-options div#upload-images-btn');
+							upload_images_btn.addClass("ui-disabled");
 
-						//show feedback message to user
-						EC.Notification.showToast(EC.Localise.getTranslation("all_images_uploaded"), "short");
+							//notify user all data were uploaded successfully
+							EC.Notification.hideProgressDialog();
+
+							//show feedback message to user
+							EC.Notification.showToast(EC.Localise.getTranslation("all_images_uploaded"), "short");
+						});
 
 					}));
 
@@ -58,23 +69,33 @@ EC.Upload = ( function(module) {"use strict";
 
 						//post audio file
 						media_dir = EC.Const.AUDIO_DIR;
+						EC.Upload.is_branch_audio = false;
 						EC.File.uploadFile(the_audio, media_dir);
 
 					}, function() {
 
-						//no more audio files to post
+						/* No more audio files to post
+						 * check branches for audios
+						 */
+						$.when(EC.Select.getOneBranchAudioFile(project_id)).then(function(the_branch_image) {
 
-						//TODO: check branches for audios
+							//post image
+							media_dir = EC.Const.AUDIO_DIR;
+							EC.Upload.is_branch_audio = true;
+							EC.File.uploadFile(the_branch_image, media_dir);
 
-						//disable upload audios button, as no more audio files to upload
-						upload_audios_btn = $('div#upload div#upload-options div#upload-audios-btn');
-						upload_audios_btn.addClass("ui-disabled");
+						}, function() {
 
-						//notify user all data were uploaded successfully
-						EC.Notification.hideProgressDialog();
+							//disable upload audios button, as no more audio files to upload
+							upload_audios_btn = $('div#upload div#upload-options div#upload-audios-btn');
+							upload_audios_btn.addClass("ui-disabled");
 
-						//show feedback message to user
-						EC.Notification.showToast(EC.Localise.getTranslation("all_audios_uploaded"), "short");
+							//notify user all data were uploaded successfully
+							EC.Notification.hideProgressDialog();
+
+							//show feedback message to user
+							EC.Notification.showToast(EC.Localise.getTranslation("all_audios_uploaded"), "short");
+						});
 
 					}));
 					break;
@@ -83,28 +104,35 @@ EC.Upload = ( function(module) {"use strict";
 
 					//get next image (if any)
 					$.when(EC.Select.getOneHierarchyMediaFile(project_id, EC.Const.VIDEO).then(function(the_video) {
-						
+
 						//post video
 						media_dir = EC.Const.VIDEO_DIR;
 						EC.File.uploadFile(the_video, media_dir);
 
 					}, function() {
 
-						//no more video files to post
-						console.log("no more video files");
+						/* No more video files to post
+						 * check branches for audios
+						 */
+						$.when(EC.Select.getOneBranchAudioFile(project_id)).then(function(the_branch_image) {
 
-						//TODO: check branches for videos
+							//post image
+							media_dir = EC.Const.VIDEO_DIR;
+							EC.Upload.is_branch_video = true;
+							EC.File.uploadFile(the_branch_image, media_dir);
 
-						//disable upload audios button, as no more audio files to upload
-						upload_videos_btn = $('div#upload div#upload-options div#upload-videos-btn');
-						upload_videos_btn.addClass("ui-disabled");
+						}, function() {
 
-						//notify user all data were uploaded successfully
-						EC.Notification.hideProgressDialog();
+							//disable upload audios button, as no more audio files to upload
+							upload_videos_btn = $('div#upload div#upload-options div#upload-videos-btn');
+							upload_videos_btn.addClass("ui-disabled");
 
-						//show feedback message to user
-						EC.Notification.showToast(EC.Localise.getTranslation("all_videos_uploaded"), "short");
+							//notify user all data were uploaded successfully
+							EC.Notification.hideProgressDialog();
 
+							//show feedback message to user
+							EC.Notification.showToast(EC.Localise.getTranslation("all_videos_uploaded"), "short");
+						});
 					}));
 					break;
 

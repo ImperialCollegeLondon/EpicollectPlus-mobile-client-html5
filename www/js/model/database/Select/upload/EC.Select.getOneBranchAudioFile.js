@@ -34,11 +34,14 @@ EC.Select = ( function(module) {"use strict";
 			}
 
 		};
-
+		
+		/* Get an audio file to upload, data needs to be synced and media unsynced
+		 */
 		module.getOneBranchAudioFile = function(the_project_id) {
 
 			project_id = the_project_id;
 			deferred = new $.Deferred();
+			audio =null;
 
 			EC.db.transaction(_getOneBranchAudioFileTX, EC.Select.txErrorCB, _getOneBranchAudioFileSuccessCB);
 

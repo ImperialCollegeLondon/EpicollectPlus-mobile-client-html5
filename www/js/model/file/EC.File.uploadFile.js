@@ -13,6 +13,7 @@ EC.File = ( function(module) {
 		var media_type = "";
 		var _id = "";
 		var self;
+		var is_branch_file;
 
 		module.uploadFile = function(the_file_row, the_media_dir) {
 
@@ -41,6 +42,12 @@ EC.File = ( function(module) {
 
 						console.log("Upload URL for thumbnail: " + upload_URL);
 						media_type = EC.Const.PHOTO;
+
+						//branch or hierarchy?
+						if (EC.Upload.is_branch_image) {
+							is_branch_file = true;
+						}
+
 						break;
 
 					case EC.Const.AUDIO_DIR:
@@ -49,6 +56,10 @@ EC.File = ( function(module) {
 						media_type = EC.Const.AUDIO;
 
 						console.log("Upload URL for audio: " + upload_URL);
+						//branch or hierarchy?
+						if (EC.Upload.is_branch_audio) {
+							is_branch_file = true;
+						}
 						break;
 
 					case EC.Const.VIDEO_DIR:
@@ -57,6 +68,9 @@ EC.File = ( function(module) {
 						media_type = EC.Const.VIDEO;
 
 						console.log("Upload URL for video: " + upload_URL);
+						if (EC.Upload.is_branch_video) {
+							is_branch_file = true;
+						}
 						break;
 				}
 
@@ -76,8 +90,8 @@ EC.File = ( function(module) {
 				options.mimeType = "";
 				options.fileKey = "name";
 				options.fileName = filename;
-				
-				if(window.device.platform === EC.Const.IOS){
+
+				if (window.device.platform === EC.Const.IOS) {
 					//options.chunkedMode = false;
 				}
 
@@ -107,6 +121,7 @@ EC.File = ( function(module) {
 
 			self = this;
 			upload_URL = EC.Upload.getUploadURL();
+			is_branch_file = false;
 
 			//set upload URL for this project if not in localStorage yet
 			if (!EC.Utils.isChrome() && !upload_URL) {
@@ -127,19 +142,15 @@ EC.File = ( function(module) {
 		var _onFileUploadSuccess = function(response) {
 
 			console.log(JSON.stringify(response));
-			
-			EC.Utils.sleep(5000);
 
 			//update flag for this file row to indicate it has been synced to the
 			// server
-			$.when(EC.Update.flagOneFileAsSynceded(_id)).then(function() {
+			$.when(EC.Update.flagOneFileAsSynceded(_id, is_branch_file)).then(function() {
 
 				//upload another file (if any) of the same media type
 				EC.Upload.uploadNextFile(media_type);
 
 			});
-			
-		
 
 		};
 

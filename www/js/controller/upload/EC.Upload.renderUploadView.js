@@ -233,6 +233,11 @@ EC.Upload = ( function(module) {"use strict";
 				}
 
 			}
+			
+			//let's start looking at hierarchy branches first, then branches
+			EC.Upload.is_branch_image = false;
+			EC.Upload.is_branch_audio = false;
+			EC.Upload.is_branch_video = false;
 
 			//get first hierarchy entry not yet synced. The approach is to upload and sync a single entry (cluster of rows) at a time
 			$.when(EC.Select.getOneHierarchyEntry(self.current_form, true).then(_onOneHierarchyEntryFound, _onOneHierarchyEntryNotFound));
@@ -264,7 +269,7 @@ EC.Upload = ( function(module) {"use strict";
 
 							image = the_image;
 
-							EC.Upload.is_branch_entry = true;
+							EC.Upload.is_branch_image = true;
 
 							//enable upload image button
 							upload_images_btn.removeClass("ui-disabled");
@@ -274,6 +279,8 @@ EC.Upload = ( function(module) {"use strict";
 					}
 
 				} else {
+					
+					EC.Upload.is_branch_image = false;
 					//enable upload image button
 					upload_images_btn.removeClass("ui-disabled");
 				}
@@ -288,7 +295,7 @@ EC.Upload = ( function(module) {"use strict";
 
 							audio = the_audio;
 
-							EC.Upload.is_branch_entry = true;
+							EC.Upload.is_branch_audio = true;
 
 							//enable upload audio button
 							upload_audios_btn.removeClass("ui-disabled");
@@ -298,6 +305,8 @@ EC.Upload = ( function(module) {"use strict";
 					}
 
 				} else {
+					
+					EC.Upload.is_branch_audio = false;
 					//enable upload audio button
 					upload_audios_btn.removeClass("ui-disabled");
 				}
@@ -312,7 +321,7 @@ EC.Upload = ( function(module) {"use strict";
 
 							video = the_video;
 
-							EC.Upload.is_branch_entry = true;
+							EC.Upload.is_branch_video = true;
 
 							//enable upload audio button
 							upload_videos_btn.removeClass("ui-disabled");
@@ -321,6 +330,8 @@ EC.Upload = ( function(module) {"use strict";
 					}
 
 				} else {
+					
+					EC.Upload.is_branch_video = false;
 					//enable upload video button
 					upload_videos_btn.removeClass("ui-disabled");
 				}

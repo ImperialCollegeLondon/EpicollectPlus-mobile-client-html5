@@ -2,7 +2,8 @@
 /*global $, jQuery*/
 var EC = EC || {};
 EC.Select = EC.Select || {};
-EC.Select = ( function(module) {"use strict";
+EC.Select = ( function(module) {
+		"use strict";
 
 		var project_id;
 		var deferred;
@@ -29,16 +30,20 @@ EC.Select = ( function(module) {"use strict";
 
 			if (video) {
 				deferred.resolve(video);
-			} else {
+			}
+			else {
 				deferred.reject();
 			}
 
 		};
-
+		
+		/* Get a video file to upload, data needs to be synced and media unsynced
+		 */
 		module.getOneBranchVideoFile = function(the_project_id, the_type) {
 
 			project_id = the_project_id;
 			deferred = new $.Deferred();
+			video = null;
 
 			EC.db.transaction(_getOneBranchVideoFileTX, EC.Select.txErrorCB, _getOneBranchVideoFileSuccessCB);
 
