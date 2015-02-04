@@ -210,7 +210,7 @@ EC.BranchInputTypes = ( function(module) {
 
 			//Error callback
 			var onCaptureVideoError = function(error) {
-				EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("failed_because") + error.message);
+				console.log(error.message);
 			};
 
 			//play button handler
