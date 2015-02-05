@@ -24,8 +24,11 @@ EC.Delete = ( function(module) {
 		var deferred;
 		var project_name;
 
-		//select and count the rows we are going to delete to be able to update the
-		// counter later
+		/* select and count the rows we are going to delete to be able to update the
+		* entries counters later, the one we use to show the entries total per each form on the form list page
+		* This is mainly done for performance reason, as querying COUNT per each form each time the form list view is called was a bit heavy
+		* Doing this way we have a column "entries_total" per each form and we keep that value updated accordingly
+		*/
 		var _deleteEntryTX = function(tx) {
 
 			var delete_query;
@@ -35,8 +38,6 @@ EC.Delete = ( function(module) {
 			var select_branch_files_query;
 			var i;
 			var iLength = rows_to_delete.length;
-
-			self.query_error_message = "EC.Select.deleteEntry _deleteEntryTX";
 
 			//select COUNT(*) and rows we are going to delete: we do this to update the entry
 			// counter after deletion
@@ -51,7 +52,7 @@ EC.Delete = ( function(module) {
 				select_hierarchy_files_query = 'SELECT value from ec_data WHERE form_id=? AND (type=? OR type=? OR type=?) AND value <>?';
 
 				//get all file names before deleting
-				tx.executeSql(select_hierarchy_files_query, [current_form._id, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO, ""], _selectHierarchyFilesSQLSuccessCB, _errorCB);
+				tx.executeSql(select_hierarchy_files_query, [current_form._id, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO, ""], _selectHierarchyFilesSQLSuccessCB, EC.Delete.errorCB);
 
 			}
 
@@ -62,12 +63,12 @@ EC.Delete = ( function(module) {
 				select_branch_files_query = 'SELECT value from ec_branch_data WHERE hierarchy_entry_key_value=? AND (type=? OR type=? OR type=?) AND value <>?';
 				delete_branches_query = "DELETE FROM ec_branch_data WHERE hierarchy_entry_key_value=?";
 
-				tx.executeSql(select_branch_files_query, [entry_key, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO, ""], _selectBranchFilesSQLSuccessCB, _errorCB);
-				tx.executeSql(delete_branches_query, [entry_key], _deleteBranchEntrySQLSuccessCB, _errorCB);
+				tx.executeSql(select_branch_files_query, [entry_key, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO, ""], _selectBranchFilesSQLSuccessCB, EC.Delete.errorCB);
+				tx.executeSql(delete_branches_query, [entry_key], _deleteBranchEntrySQLSuccessCB, EC.Delete.errorCB);
 			}
 
-			tx.executeSql(select_query, [entry_key], _selectEntriesSQLSuccessCB, _errorCB);
-			tx.executeSql(delete_query, [entry_key], _deleteEntrySQLSuccessCB, _errorCB);
+			tx.executeSql(select_query, [entry_key], _selectEntriesSQLSuccessCB, EC.Delete.errorCB);
+			tx.executeSql(delete_query, [entry_key], _deleteEntrySQLSuccessCB, EC.Delete.errorCB);
 
 		};
 
@@ -116,7 +117,7 @@ EC.Delete = ( function(module) {
 				form_id : entries[0].form_id,
 				amount : entries.length
 			});
-
+			
 			console.log(entries);
 		};
 
@@ -140,6 +141,9 @@ EC.Delete = ( function(module) {
 			var i;
 			var iLength = counters.length;
 			var current_count = counters.shift();
+			
+			console.log("counters *************");
+			console.log(counters);
 
 			EC.Update.updateHierarchyEntriesCounter(null, current_count.form_id, current_count.amount, EC.Const.DELETE_SINGLE_ENTRY, counters);
 
@@ -148,27 +152,27 @@ EC.Delete = ( function(module) {
 		var _deleteEntrySuccessCB = function() {
 
 			rows_to_delete.length = 0;
-			var files =[];
+			var files = [];
 
 			//delete children recursively if any
 			if (children_forms.length > 0) {
 
 				current_child_form = children_forms.shift();
 
-				EC.db.transaction(_deleteChildrenEntriesTX, _errorCB, _deleteChildrenEntriesSuccessCB);
+				EC.db.transaction(_deleteChildrenEntriesTX, EC.Delete.errorCB, _deleteChildrenEntriesSuccessCB);
 
 			}
 			else {
 
 				//delete all the files (hierarchy and branches)
-				
+
 				files = hierarchy_files.concat(branch_files);
-				
+
 				if (files.length > 0) {
 					$.when(EC.File.remove(project_name, files)).then(function() {
-						
+
 						console.log(project_name + " media deleted");
-						
+
 					});
 				}
 
@@ -210,8 +214,8 @@ EC.Delete = ( function(module) {
 				//delete all rows matching parent
 				delete_query = "DELETE FROM ec_data WHERE parent=?";
 
-				tx.executeSql(select_query, [parent], _selectChildrenEntriesSQLSuccessCB, _errorCB);
-				tx.executeSql(delete_query, [parent], _deleteChildrenEntriesSQLSuccessCB, _errorCB);
+				tx.executeSql(select_query, [parent], _selectChildrenEntriesSQLSuccessCB, EC.Delete.errorCB);
+				tx.executeSql(delete_query, [parent], _deleteChildrenEntriesSQLSuccessCB, EC.Delete.errorCB);
 
 			}//for each children
 
@@ -224,7 +228,7 @@ EC.Delete = ( function(module) {
 
 				current_child_form = children_forms.shift();
 
-				EC.db.transaction(_deleteChildrenEntriesTX, _errorCB, _deleteChildrenEntriesSuccessCB);
+				EC.db.transaction(_deleteChildrenEntriesTX, EC.Delete.errorCB, _deleteChildrenEntriesSuccessCB);
 
 			}
 			else {
@@ -259,7 +263,7 @@ EC.Delete = ( function(module) {
 
 			//delete all branches linked to the children entry keys (if any)
 			if (has_branches) {
-				EC.db.transaction(_deleteBranchEntryTX, _errorCB, _deleteBranchEntrySuccessCB);
+				EC.db.transaction(_deleteBranchEntryTX, EC.Delete.errorCB, _deleteBranchEntrySuccessCB);
 			}
 
 		};
@@ -273,7 +277,7 @@ EC.Delete = ( function(module) {
 			self.query_error_message = "EC.Select.deleteEntry _deleteBranchEntryTX";
 
 			for ( i = 0; i < iLength; i++) {
-				tx.executeSql(delete_branches_query, [entries[i].entry_key], _deleteBranchEntrySQLSuccessCB, _errorCB);
+				tx.executeSql(delete_branches_query, [entries[i].entry_key], _deleteBranchEntrySQLSuccessCB, EC.Delete.errorCB);
 			}
 
 		};
@@ -283,14 +287,6 @@ EC.Delete = ( function(module) {
 		};
 
 		var _deleteChildrenEntriesSQLSuccessCB = function(the_tx, the_result) {
-		};
-
-		var _errorCB = function(the_tx, the_error) {
-
-			console.log(EC.Const.TRANSACTION_ERROR);
-			console.log(the_tx);
-			console.log(the_error);
-
 		};
 
 		/**
@@ -304,7 +300,7 @@ EC.Delete = ( function(module) {
 		 * @param {Object} the_children_forms The children forms structure as an array of
 		 * objects
 		 */
-		module.deleteEntry = function(the_project_name,the_rows, the_entry_key, the_current_form_id, the_children_forms) {
+		module.deleteEntry = function(the_project_name, the_rows, the_entry_key, the_current_form_id, the_children_forms) {
 
 			self = this;
 			deferred = new $.Deferred();
@@ -319,7 +315,7 @@ EC.Delete = ( function(module) {
 			counters.length = 0;
 			entries.length = 0;
 
-			EC.db.transaction(_deleteEntryTX, _errorCB, _deleteEntrySuccessCB);
+			EC.db.transaction(_deleteEntryTX, EC.Delete.errorCB, _deleteEntrySuccessCB);
 
 			return deferred.promise();
 

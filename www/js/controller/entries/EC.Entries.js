@@ -296,7 +296,14 @@ EC.Entries = ( function() {
 		};
 
 		var deleteEntryFeedback = function(is_positive) {
-
+			
+			if (is_positive) {
+				EC.Notification.showToast(EC.Localise.getTranslation("entry_deleted"), "short");
+				EC.Routing.changePage(window.localStorage.back_nav_url);
+			}
+			else {
+				EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("generic"));
+			}
 		};
 
 		var addEntry = function() {
@@ -327,8 +334,8 @@ EC.Entries = ( function() {
 			deleteAllMedia : deleteAllMedia,
 			deleteAllSynced : deleteAllSynced,
 			allEntriesDeletedFeedback : allEntriesDeletedFeedback,
-			allMediaDeletedFeedback : allMediaDeletedFeedback
-
+			allMediaDeletedFeedback : allMediaDeletedFeedback,
+			deleteEntryFeedback : deleteEntryFeedback
 		};
 
 	}());

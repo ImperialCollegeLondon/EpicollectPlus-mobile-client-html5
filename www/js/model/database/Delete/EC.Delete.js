@@ -11,10 +11,9 @@ EC.Delete = ( function() {
 		"use strict";
 
 		//callback for a transaction error
-		var errorCB = function(the_tx, the_error) {
+		var errorCB = function(the_error) {
 			console.log(EC.Const.TRANSACTION_ERROR);
-			console.log(JSON.stringify(the_error));
-			console.log(JSON.stringify(the_tx));
+			console.log("%c" + the_error.message, "color: red");
 		};
 
 		return {
