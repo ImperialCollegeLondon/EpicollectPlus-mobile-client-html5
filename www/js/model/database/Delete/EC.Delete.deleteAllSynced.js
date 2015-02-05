@@ -46,7 +46,7 @@ EC.Delete = ( function(module) {
 
 					//this form has some media to delete so we need to delete only the rows which are
 					// BOTH data and media synced
-					select_files_query = "SELECT value from ec_data WHERE form_id=? AND is_data_synced=? AND is_media_synced=? AND (type=? OR type=? OR type=?)";
+					select_files_query = "SELECT value,type from ec_data WHERE form_id=? AND is_data_synced=? AND is_media_synced=? AND (type=? OR type=? OR type=?)";
 
 					//get all file names before deleting
 					tx.executeSql(select_files_query, [forms[i]._id, 1, 1, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO], _selectFilesSQLSuccessCB, EC.Delete.txErrorCB);
@@ -66,7 +66,7 @@ EC.Delete = ( function(module) {
 
 				//some branches with media to delete, same approach: cache the file names then
 				// delete
-				branch_select_files_query = "SELECT value from ec_branch_data WHERE form_id IN (SELECT _id FROM branch_forms WHERE project_id=? AND has_media=?) AND is_data_synced=? AND is_media_synced=? AND (type=? OR type=? OR type=?)";
+				branch_select_files_query = "SELECT value,type from ec_branch_data WHERE form_id IN (SELECT _id FROM branch_forms WHERE project_id=? AND has_media=?) AND is_data_synced=? AND is_media_synced=? AND (type=? OR type=? OR type=?)";
 				branch_delete_query = "DELETE FROM ec_branch_data WHERE form_id IN (SELECT _id FROM branch_forms WHERE project_id=?) AND is_data_synced=?";
 
 				tx.executeSql(branch_select_files_query, [project_id, 1, 1, 1, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO], _selectBranchFilesSQLSuccessCB, EC.Delete.txErrorCB);
@@ -82,7 +82,7 @@ EC.Delete = ( function(module) {
 			var iLength = the_result.rows.length;
 
 			for ( i = 0; i < iLength; i++) {
-				files.push(the_result.rows.item(i).value);
+				files.push(the_result.rows.item(i));
 			}
 
 			console.log("files:" + JSON.stringify(files));
@@ -95,7 +95,7 @@ EC.Delete = ( function(module) {
 			var iLength = the_result.rows.length;
 
 			for ( i = 0; i < iLength; i++) {
-				branch_files.push(the_result.rows.item(i).value);
+				branch_files.push(the_result.rows.item(i));
 			}
 
 			console.log("files:" + JSON.stringify(branch_files));
