@@ -14,7 +14,8 @@ var EC = EC || {};
  *
  */
 EC.File = EC.File || {};
-EC.File = ( function(module) {"use strict";
+EC.File = ( function(module) {
+		"use strict";
 
 		var project_name;
 		var files = [];
@@ -24,10 +25,10 @@ EC.File = ( function(module) {"use strict";
 
 		module.remove = function(the_project_name, the_files) {
 
-			var parts;
-			var dir;
-			var ext;
 			var filename;
+			var type;
+			var file;
+			var dir;
 
 			self = this;
 			deferred = new $.Deferred();
@@ -36,21 +37,23 @@ EC.File = ( function(module) {"use strict";
 			project_name = the_project_name;
 			files = the_files;
 
-			//get a sinlge file
-			filename = files.shift();
+			//get a single file
+			file = files.shift();
+			filename = file.value;
+			type = file.type;
 
-			//get directory from file extension
-			parts = filename.split(".");
-			ext = parts[parts.length - 1];
+			switch(type) {
 
-			switch(ext) {
-
-				case "jpg":
+				case EC.Const.PHOTO:
 					dir = EC.Const.PHOTO_DIR;
 					break;
 
-				case "mp4":
+				case EC.Const.AUDIO:
 					dir = EC.Const.AUDIO_DIR;
+					break;
+
+				case EC.Const.VIDEO:
+					dir = EC.Const.VIDEO_DIR;
 					break;
 
 			}
@@ -101,7 +104,8 @@ EC.File = ( function(module) {"use strict";
 
 				//recursive call to remove next file
 				self.remove(project_name, files);
-			} else {
+			}
+			else {
 
 				//All files removed
 				EC.Notification.showToast(EC.Localise.getTranslation("all_media_deleted"), "short");
