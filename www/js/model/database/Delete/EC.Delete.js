@@ -9,6 +9,9 @@ var EC = EC || {};
 EC.Delete = EC.Delete || {};
 EC.Delete = ( function() {
 		"use strict";
+		
+		var deletion_counters =[];
+		var deletion_entries =[];
 
 		//callback for a transaction error
 		var errorCB = function(the_error) {
@@ -17,6 +20,8 @@ EC.Delete = ( function() {
 		};
 
 		return {
-			errorCB : errorCB
+			errorCB : errorCB,
+			deletion_counters: deletion_counters,
+			deletion_entries: deletion_entries
 		};
 	}());

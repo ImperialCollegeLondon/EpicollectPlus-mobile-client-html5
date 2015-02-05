@@ -15,8 +15,8 @@ EC.Delete = ( function(module) {
 		var current_form;
 		var children_forms = [];
 		var current_child_form;
-		var entries = [];
-		var counters = [];
+		
+
 		var hierarchy_files = [];
 		var branch_files = [];
 		var has_branches;
@@ -25,10 +25,13 @@ EC.Delete = ( function(module) {
 		var project_name;
 
 		/* select and count the rows we are going to delete to be able to update the
-		* entries counters later, the one we use to show the entries total per each form on the form list page
-		* This is mainly done for performance reason, as querying COUNT per each form each time the form list view is called was a bit heavy
-		* Doing this way we have a column "entries_total" per each form and we keep that value updated accordingly
-		*/
+		 * entries counters later, the one we use to show the entries total per each form
+		 * on the form list page
+		 * This is mainly done for performance reason, as querying COUNT per each form
+		 * each time the form list view is called was a bit heavy
+		 * Doing this way we have a column "entries_total" per each form and we keep that
+		 * value updated accordingly
+		 */
 		var _deleteEntryTX = function(tx) {
 
 			var delete_query;
@@ -109,16 +112,16 @@ EC.Delete = ( function(module) {
 
 			//cache entries
 			for ( i = 0; i < iLength; i++) {
-				entries.push(the_result.rows.item(i));
+				self.deletion_entries.push(the_result.rows.item(i));
 			}
 
 			//update counters
-			counters.push({
-				form_id : entries[0].form_id,
-				amount : entries.length
+			self.deletion_counters.push({
+				form_id : self.deletion_entries[0].form_id,
+				amount : self.deletion_entries.length
 			});
-			
-			console.log(entries);
+
+			console.log(self.deletion_entries);
 		};
 
 		var _countEntriesSQLSuccessCB = function(the_tx, the_result) {
@@ -127,7 +130,7 @@ EC.Delete = ( function(module) {
 			var iLength = the_result.rows.length;
 
 			for ( i = 0; i < iLength; i++) {
-				entries.push(the_result.rows.item(i));
+				self.deletion_entries.push(the_result.rows.item(i));
 			}
 
 		};
@@ -139,13 +142,13 @@ EC.Delete = ( function(module) {
 		var _updateEntriesCount = function() {
 
 			var i;
-			var iLength = counters.length;
-			var current_count = counters.shift();
-			
-			console.log("counters *************");
-			console.log(counters);
+			var iLength = self.deletion_counters.length;
+			var current_count = self.deletion_counters.shift();
 
-			EC.Update.updateHierarchyEntriesCounter(null, current_count.form_id, current_count.amount, EC.Const.DELETE_SINGLE_ENTRY, counters);
+			console.log("self.deletion_counters *************");
+			console.log(self.deletion_counters);
+
+			EC.Update.updateHierarchyEntriesCounter(null, current_count.form_id, current_count.amount, EC.Const.DELETE_SINGLE_ENTRY, self.deletion_counters);
 
 		};
 
@@ -186,7 +189,7 @@ EC.Delete = ( function(module) {
 		var _deleteChildrenEntriesTX = function(tx) {
 
 			var i;
-			var iLength = entries.length;
+			var iLength = self.deletion_entries.length;
 			var parent;
 			var select_query;
 			var delete_query;
@@ -195,15 +198,15 @@ EC.Delete = ( function(module) {
 
 			for ( i = 0; i < iLength; i++) {
 
-				if (entries[i].parent === "") {
+				if (self.deletion_entries[i].parent === "") {
 
-					parent = entries[i].entry_key;
+					parent = self.deletion_entries[i].entry_key;
 
 					//select entries first
 				}
 				else {
 
-					parent = entries[i].parent + EC.Const.ENTRY_ROOT_PATH_SEPARATOR + entries[i].entry_key;
+					parent = self.deletion_entries[i].parent + EC.Const.ENTRY_ROOT_PATH_SEPARATOR + self.deletion_entries[i].entry_key;
 
 				}
 
@@ -246,20 +249,20 @@ EC.Delete = ( function(module) {
 			var iLength = the_result.rows.length;
 
 			//reset entries
-			entries.length = 0;
+			self.deletion_entries.length = 0;
 
 			for ( i = 0; i < iLength; i++) {
-				entries.push(the_result.rows.item(i));
+				self.deletion_entries.push(the_result.rows.item(i));
 			}
 
 			if (iLength > 0) {
-				counters.push({
-					form_id : entries[0].form_id,
-					amount : entries.length
+				self.deletion_counters.push({
+					form_id : self.deletion_entries[0].form_id,
+					amount : self.deletion_entries.length
 				});
 			}
 
-			console.log(entries);
+			console.log(self.deletion_entries);
 
 			//delete all branches linked to the children entry keys (if any)
 			if (has_branches) {
@@ -272,12 +275,12 @@ EC.Delete = ( function(module) {
 		var _deleteBranchEntryTX = function(tx) {
 
 			var i;
-			var iLength = entries.length;
+			var iLength = self.deletion_entries.length;
 			var delete_branches_query = "DELETE FROM ec_branch_data WHERE hierarchy_entry_key_value=?";
 			self.query_error_message = "EC.Select.deleteEntry _deleteBranchEntryTX";
 
 			for ( i = 0; i < iLength; i++) {
-				tx.executeSql(delete_branches_query, [entries[i].entry_key], _deleteBranchEntrySQLSuccessCB, EC.Delete.errorCB);
+				tx.executeSql(delete_branches_query, [self.deletion_entries[i].entry_key], _deleteBranchEntrySQLSuccessCB, EC.Delete.errorCB);
 			}
 
 		};
@@ -312,8 +315,8 @@ EC.Delete = ( function(module) {
 			project_name = the_project_name;
 			hierarchy_files = [];
 			branch_files = [];
-			counters.length = 0;
-			entries.length = 0;
+			self.deletion_counters = [];
+			self.deletion_entries = [];
 
 			EC.db.transaction(_deleteEntryTX, EC.Delete.errorCB, _deleteEntrySuccessCB);
 
