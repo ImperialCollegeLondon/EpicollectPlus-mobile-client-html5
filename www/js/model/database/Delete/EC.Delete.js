@@ -12,6 +12,8 @@ EC.Delete = ( function() {
 		
 		var deletion_counters =[];
 		var deletion_entries =[];
+		var deletion_hierarchy_files =[];
+		var deletion_branch_files =[];
 
 		//callback for a transaction error
 		var errorCB = function(the_error) {
@@ -22,6 +24,7 @@ EC.Delete = ( function() {
 		return {
 			errorCB : errorCB,
 			deletion_counters: deletion_counters,
-			deletion_entries: deletion_entries
+			deletion_entries: deletion_entries,
+			deletion_hierarchy_files: deletion_hierarchy_files
 		};
 	}());

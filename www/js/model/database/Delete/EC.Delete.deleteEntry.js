@@ -10,12 +10,10 @@ EC.Delete = EC.Delete || {};
 EC.Delete = ( function(module) {
 		"use strict";
 
-		var rows_to_delete;
 		var entry_key;
 		var current_form;
 		var children_forms = [];
 		var current_child_form;
-		
 
 		var hierarchy_files = [];
 		var branch_files = [];
@@ -32,48 +30,6 @@ EC.Delete = ( function(module) {
 		 * Doing this way we have a column "entries_total" per each form and we keep that
 		 * value updated accordingly
 		 */
-		var _deleteEntryTX = function(tx) {
-
-			var delete_query;
-			var delete_branches_query;
-			var select_query;
-			var select_hierarchy_files_query;
-			var select_branch_files_query;
-			var i;
-			var iLength = rows_to_delete.length;
-
-			//select COUNT(*) and rows we are going to delete: we do this to update the entry
-			// counter after deletion
-			select_query = "SELECT form_id, parent, entry_key, COUNT(*) as count FROM ec_data WHERE entry_key=? GROUP BY form_id";
-
-			//delete all rows matching entry_key
-			delete_query = "DELETE FROM ec_data WHERE entry_key=?";
-
-			if (current_form.has_media === 1) {
-
-				//this entry has some media to delete so we need to delete
-				select_hierarchy_files_query = 'SELECT value from ec_data WHERE form_id=? AND (type=? OR type=? OR type=?) AND value <>?';
-
-				//get all file names before deleting
-				tx.executeSql(select_hierarchy_files_query, [current_form._id, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO, ""], _selectHierarchyFilesSQLSuccessCB, EC.Delete.errorCB);
-
-			}
-
-			//delete all branches linked to this entry key (if any)
-			if (has_branches) {
-
-				//are there media files for the branches?
-				select_branch_files_query = 'SELECT value from ec_branch_data WHERE hierarchy_entry_key_value=? AND (type=? OR type=? OR type=?) AND value <>?';
-				delete_branches_query = "DELETE FROM ec_branch_data WHERE hierarchy_entry_key_value=?";
-
-				tx.executeSql(select_branch_files_query, [entry_key, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO, ""], _selectBranchFilesSQLSuccessCB, EC.Delete.errorCB);
-				tx.executeSql(delete_branches_query, [entry_key], _deleteBranchEntrySQLSuccessCB, EC.Delete.errorCB);
-			}
-
-			tx.executeSql(select_query, [entry_key], _selectEntriesSQLSuccessCB, EC.Delete.errorCB);
-			tx.executeSql(delete_query, [entry_key], _deleteEntrySQLSuccessCB, EC.Delete.errorCB);
-
-		};
 
 		var _selectBranchFilesSQLSuccessCB = function(the_tx, the_result) {
 
@@ -105,25 +61,6 @@ EC.Delete = ( function(module) {
 		var _deleteBranchEntrySQLSuccessCB = function(the_tx, the_result) {
 		};
 
-		var _selectEntriesSQLSuccessCB = function(the_tx, the_result) {
-
-			var i;
-			var iLength = the_result.rows.length;
-
-			//cache entries
-			for ( i = 0; i < iLength; i++) {
-				self.deletion_entries.push(the_result.rows.item(i));
-			}
-
-			//update counters
-			self.deletion_counters.push({
-				form_id : self.deletion_entries[0].form_id,
-				amount : self.deletion_entries.length
-			});
-
-			console.log(self.deletion_entries);
-		};
-
 		var _countEntriesSQLSuccessCB = function(the_tx, the_result) {
 
 			var i;
@@ -141,48 +78,12 @@ EC.Delete = ( function(module) {
 
 		var _updateEntriesCount = function() {
 
-			var i;
-			var iLength = self.deletion_counters.length;
 			var current_count = self.deletion_counters.shift();
 
 			console.log("self.deletion_counters *************");
 			console.log(self.deletion_counters);
 
 			EC.Update.updateHierarchyEntriesCounter(null, current_count.form_id, current_count.amount, EC.Const.DELETE_SINGLE_ENTRY, self.deletion_counters);
-
-		};
-
-		var _deleteEntrySuccessCB = function() {
-
-			rows_to_delete.length = 0;
-			var files = [];
-
-			//delete children recursively if any
-			if (children_forms.length > 0) {
-
-				current_child_form = children_forms.shift();
-
-				EC.db.transaction(_deleteChildrenEntriesTX, EC.Delete.errorCB, _deleteChildrenEntriesSuccessCB);
-
-			}
-			else {
-
-				//delete all the files (hierarchy and branches)
-
-				files = hierarchy_files.concat(branch_files);
-
-				if (files.length > 0) {
-					$.when(EC.File.remove(project_name, files)).then(function() {
-
-						console.log(project_name + " media deleted");
-
-					});
-				}
-
-				//update counters
-				_updateEntriesCount();
-
-			}
 
 		};
 
@@ -193,8 +94,8 @@ EC.Delete = ( function(module) {
 			var parent;
 			var select_query;
 			var delete_query;
-
-			self.query_error_message = "EC.Select.deleteEntry _deleteChildrenEntriesTX";
+			
+			debugger;
 
 			for ( i = 0; i < iLength; i++) {
 
@@ -307,18 +208,97 @@ EC.Delete = ( function(module) {
 
 			self = this;
 			deferred = new $.Deferred();
-			rows_to_delete = the_rows;
 			entry_key = the_entry_key;
 			children_forms = the_children_forms;
 			has_branches = EC.Utils.projectHasBranches();
 			current_form = EC.Utils.getFormByID(the_current_form_id);
 			project_name = the_project_name;
-			hierarchy_files = [];
-			branch_files = [];
+			self.deletion_hierarchy_files = [];
+			self.deletion_branch_files = [];
 			self.deletion_counters = [];
 			self.deletion_entries = [];
 
-			EC.db.transaction(_deleteEntryTX, EC.Delete.errorCB, _deleteEntrySuccessCB);
+			/*
+			 * select COUNT(*) and rows we are going to delete: we do this to update the
+			 * entry counter after deletion
+			 */
+			$.when(EC.Select.countEntriesForDeletion(entry_key)).then(function(the_entries, the_counters) {
+
+				self.deletion_entries = the_entries;
+				self.deletion_counters = the_counters;
+
+				//Does this entry has any media attached to delete?
+				if (current_form.has_media === 1) {
+
+					//select all the hierarchy media files to be deleted
+					$.when(EC.Select.getHierarchyFiles(current_form)).then(function(the_files) {
+
+						//cache files to be deleted
+						self.deletion_hierarchy_files = the_files;
+
+						//any branches?
+						if (current_form.has_branches === 1) {
+
+							//get all the branch files (if any)
+							$.when(EC.Select.getBranchFiles(entry_key)).then(function(the_files) {
+
+								self.deletion_branch_files = the_files;
+
+								//delete all branch entries linked to this hierarchy entry
+								$.when(EC.Delete.removeLinkedBranchEntries(entry_key)).then(function() {
+
+									//delete the hierarchy entry
+									$.when(EC.Delete.removeHierarchyEntryData(entry_key)).then(function() {
+
+										var files = [];
+										var current_count = self.deletion_counters.shift();
+
+										//hierarchy entry deleted, update entries counter (form table)
+										$.when(EC.Update.updateHierarchyEntriesCounter(//
+										null, //
+										current_count.form_id, //
+										current_count.amount, //
+										EC.Const.DELETE_SINGLE_ENTRY, //
+										self.deletion_counters//
+										)).then(function() {
+
+											//entries counter updated
+											//deferred.resolve(true);
+
+											//TODO delete all the media files -> wait, check for children and children files
+
+											//TODO delete hierarchy files, branches and branch files if any
+
+											//delete children recursively if any
+											if (children_forms.length > 0) {
+
+												current_child_form = children_forms.shift();
+
+												console.log("delete children");
+
+												EC.db.transaction(_deleteChildrenEntriesTX, self.errorCB, _deleteChildrenEntriesSuccessCB);
+
+											}
+
+										});
+
+									});
+
+								});
+
+							});
+
+						}
+
+					});
+
+				}
+				else {
+
+					//no media, any branches?
+				}
+
+			});
 
 			return deferred.promise();
 

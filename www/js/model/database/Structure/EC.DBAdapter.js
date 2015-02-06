@@ -9,17 +9,20 @@
  */
 var EC = EC || {};
 EC.DBAdapter = EC.DBAdapter || {};
-EC.DBAdapter = ( function() {"use strict";
+EC.DBAdapter = ( function() {
+		"use strict";
 
 		//Initialise private database object if it is not already
 		//var EC.db =  window.openDatabase("epicollect", "1.0", "Epicollect", 2000000);
 
 		//native
-		//var EC.db =  db || window.sqlitePlugin.openDatabase("epicollect", "1.0", "Epicollect", 2000000);
+		//var EC.db =  db || window.sqlitePlugin.openDatabase("epicollect", "1.0",
+		// "Epicollect", 2000000);
 
 		/*
 		 *  Query to create the database tables
-		 *  foreign keys apparently do not work on Web SQL, so it is better to use triggers or manually do all the delete/update on cascade
+		 *  foreign keys apparently do not work on Web SQL, so it is better to use
+		 * triggers or manually do all the delete/update on cascade
 		 *
 		 */
 
@@ -54,12 +57,14 @@ EC.DBAdapter = ( function() {"use strict";
 		'"has_branches" INTEGER DEFAULT 0, ', //
 		'"is_genkey_hidden" INTEGER DEFAULT 0, ', //
 		'"entries" INTEGER DEFAULT 0, ', //
-		'FOREIGN KEY ("project_id") REFERENCES ec_projects ("_id") ON DELETE CASCADE ON ', //
+		'FOREIGN KEY ("project_id") REFERENCES ec_projects ("_id") ON DELETE CASCADE ON ',
+		// //
 		'UPDATE CASCADE);'].join('');
 		//
 
 		//Query to create ec_branch_forms table
-		var cq_ec_branch_forms = ['', 'CREATE TABLE IF NOT EXISTS "ec_branch_forms" (', //
+		var cq_ec_branch_forms = ['', 'CREATE TABLE IF NOT EXISTS "ec_branch_forms" (',
+		// //
 		' "_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,', //
 		'"project_id" INTEGER NOT NULL, ', //
 		'"name" TEXT, ', //
@@ -69,7 +74,8 @@ EC.DBAdapter = ( function() {"use strict";
 		'"has_media" INTEGER DEFAULT 0, ', //
 		'"is_genkey_hidden" INTEGER DEFAULT 0, ', //
 		'"entries" INTEGER DEFAULT 0, ', //
-		'FOREIGN KEY ("project_id") REFERENCES ec_projects ("_id") ON DELETE CASCADE ON ', //
+		'FOREIGN KEY ("project_id") REFERENCES ec_projects ("_id") ON DELETE CASCADE ON ',
+		// //
 		'UPDATE CASCADE);'].join('');
 		//
 
@@ -128,7 +134,8 @@ EC.DBAdapter = ( function() {"use strict";
 		'"jumps" TEXT,', //
 		'"has_advanced_jump" INTEGER, ', //
 		'"datetime_format" TEXT,', //
-		'FOREIGN KEY ("form_id") REFERENCES ec_branch_forms(_id) ON DELETE CASCADE ON ', //
+		'FOREIGN KEY ("form_id") REFERENCES ec_branch_forms(_id) ON DELETE CASCADE ON ',
+		// //
 		'UPDATE CASCADE', //
 		');'//
 		].join('');
@@ -155,7 +162,8 @@ EC.DBAdapter = ( function() {"use strict";
 		'"ref" TEXT NOT NULL ,', //
 		'"label" TEXT NOT NULL ,', //
 		'"value" TEXT NOT NULL , ', //
-		'FOREIGN KEY ("input_id") REFERENCES ec_branch_inputs("_id") ON DELETE CASCADE ON ', //
+		'FOREIGN KEY ("input_id") REFERENCES ec_branch_inputs("_id") ON DELETE CASCADE ON ',
+		// //
 		'UPDATE CASCADE', //
 		');'//
 		].join('');
@@ -200,17 +208,21 @@ EC.DBAdapter = ( function() {"use strict";
 		'"type" TEXT, ', //
 		'"is_data_synced" INTEGER DEFAULT 0, ', //
 		'"is_media_synced" INTEGER DEFAULT 0, ', //
-		'"is_remote" INTEGER DEFAULT 0, ', //if the entry has been downloaded remotely or created
-		'"is_cached" INTEGER DEFAULT 0, ', // if the etry is cached (branch form saved but not its main form)
+		'"is_remote" INTEGER DEFAULT 0, ', //if the entry has been downloaded remotely or
+		// created
+		'"is_cached" INTEGER DEFAULT 0, ', // if the etry is cached (branch form saved
+		// but not its main form)
 		'"is_stored" INTEGER DEFAULT 0, ', // if the entry and its main form is saved
 		'"created_on" INTEGER, ', //
-		'FOREIGN KEY ("input_id") REFERENCES ec_branch_inputs("_id") ON DELETE CASCADE ON ', //
+		'FOREIGN KEY ("input_id") REFERENCES ec_branch_inputs("_id") ON DELETE CASCADE ON ',
+		// //
 		'UPDATE CASCADE', //
 		');'//
 		].join('');
 
 		/**
-		 * *********************** TRIGGERS *******************************************************
+		 * *********************** TRIGGERS
+		 * *******************************************************
 		 */
 
 		var tq_delete_forms = [//
@@ -269,10 +281,11 @@ EC.DBAdapter = ( function() {"use strict";
 		'ON ec_branch_inputs ', //
 		'FOR EACH ROW ', //
 		'BEGIN ', //
-		'DELETE FROM ec_branch_input_options WHERE ec_branch_input_options.input_id = old._id; ', //
+		'DELETE FROM ec_branch_input_options WHERE ec_branch_input_options.input_id = old._id; ',
+		// //
 		'END'//
 		].join('');
-		
+
 		var tq_delete_ec_data = [//
 		'CREATE TRIGGER delete_ec_data ', //
 		'BEFORE DELETE ', //
@@ -282,7 +295,7 @@ EC.DBAdapter = ( function() {"use strict";
 		'DELETE FROM ec_data WHERE ec_data.input_id = old._id; ', //
 		'END'//
 		].join('');
-		
+
 		var tq_delete_ec_branch_data = [//
 		'CREATE TRIGGER delete_ec_branch_data ', //
 		'BEFORE DELETE ', //
@@ -292,7 +305,6 @@ EC.DBAdapter = ( function() {"use strict";
 		'DELETE FROM ec_branch_data WHERE ec_branch_data.input_id = old._id; ', //
 		'END'//
 		].join('');
-		
 
 		/**
 		 *********************** DROP TRIGGERS
@@ -309,14 +321,15 @@ EC.DBAdapter = ( function() {"use strict";
 		//Create database if not exist
 		var _initDB = function(tx) {
 
-			//tx.executeSql("PRAGMA foreign_keys = ON;"); //apparently PRAGMA is disabled is some browsers
+			//tx.executeSql("PRAGMA foreign_keys = ON;"); //apparently PRAGMA is disabled is
+			// some browsers
 
 			//create tables
 			tx.executeSql(cq_ec_projects);
 			tx.executeSql(cq_ec_forms);
 			tx.executeSql(cq_ec_branch_forms);
 			tx.executeSql(cq_ec_inputs);
-			tx.executeSql(cq_ec_branch_inputs); 
+			tx.executeSql(cq_ec_branch_inputs);
 			tx.executeSql(cq_ec_input_options);
 			tx.executeSql(cq_ec_branch_input_options);
 			tx.executeSql(cq_ec_data);
@@ -344,9 +357,10 @@ EC.DBAdapter = ( function() {"use strict";
 
 		};
 
-		//error callback if any errors occured during a transaction
-		var _errorCB = function(the_error) {
-			console.log(the_error);
+		//Global callback for a transaction error
+		var errorCB = function(the_error) {
+			console.log(EC.Const.TRANSACTION_ERROR);
+			console.log("%c" + the_error.message, "color: red");
 		};
 
 		//success callback when database transaction successful
@@ -360,14 +374,15 @@ EC.DBAdapter = ( function() {"use strict";
 
 			deferred = new $.Deferred();
 			//open or create a webSQL database (on webkit)
-			EC.db.transaction(_initDB, _errorCB, _initSuccessCB);
+			EC.db.transaction(_initDB, errorCB, _initSuccessCB);
 
 			return deferred.promise();
 
 		};
 
 		return {
-			init : init
+			init : init,
+			errorCB : errorCB
 		};
 
 	}());

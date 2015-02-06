@@ -8,6 +8,8 @@ EC.Select = ( function(module) {
 		var self;
 		var deferred;
 		var entry_key;
+		var entries;
+		var counters;
 
 		var _countEntriesForDeletionSQLSuccessCB = function(the_tx, the_result) {
 
@@ -16,16 +18,16 @@ EC.Select = ( function(module) {
 
 			//cache entries
 			for ( i = 0; i < iLength; i++) {
-				EC.Delete.deletion_entries.push(the_result.rows.item(i));
+				entries.push(the_result.rows.item(i));
 			}
 
 			//update counters
-			EC.Delete.deletion_counters.push({
-				form_id : EC.Delete.deletion_entries[0].form_id,
-				amount : EC.Delete.deletion_entries.length
+			counters.push({
+				form_id : entries[0].form_id,
+				amount : entries.length
 			});
 
-			console.log(EC.Delete.deletion_entries);
+			console.log(entries);
 
 		};
 
@@ -39,6 +41,8 @@ EC.Select = ( function(module) {
 		};
 
 		var _countEntriesForDeletionSuccessCB = function() {
+			
+			deferred.resolve(entries, counters);
 		};
 
 		module.countEntriesForDeletion = function(the_entry_key) {
@@ -46,6 +50,8 @@ EC.Select = ( function(module) {
 			self = this;
 			deferred = new $.Deferred();
 			entry_key = the_entry_key;
+			entries =[];
+			counters = [];
 
 			EC.db.transaction(_countEntriesForDeletionTX, EC.Delete.errorCB, _countEntriesForDeletionSuccessCB);
 

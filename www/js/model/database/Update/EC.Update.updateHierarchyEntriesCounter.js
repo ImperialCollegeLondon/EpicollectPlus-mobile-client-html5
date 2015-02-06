@@ -2,7 +2,8 @@
 /*global $, jQuery*/
 var EC = EC || {};
 EC.Update = EC.Update || {};
-EC.Update = ( function(module) {"use strict";
+EC.Update = ( function(module) {
+		"use strict";
 
 		var form_id;
 		var main_form_entry_key;
@@ -14,15 +15,20 @@ EC.Update = ( function(module) {"use strict";
 		var deferred;
 
 		/*
-		 * @method updateHierarchyEntriesCounter Update the total of entries for a hierarchy form, after entering/deleting entries
-		 * @param {the_entry_key} the value of the primary key for the form (entry) just entered
+		 * @method updateHierarchyEntriesCounter Update the total of entries for a
+		 * hierarchy form, after entering/deleting entries
+		 * @param {the_entry_key} the value of the primary key for the form (entry) just
+		 * entered
 		 * @param {the_form_id} the _id of the form in the database
-		 * @param {the_amount} the quantity of entries added (1 when adding a single form, or the total of entries when downloading remote entries)
-		 * @param {the_action} the type of action performed before calling updateHierarchyEntriesCounter:
+		 * @param {the_amount} the quantity of entries added (1 when adding a single
+		 * form, or the total of entries when downloading remote entries)
+		 * @param {the_action} the type of action performed before calling
+		 * updateHierarchyEntriesCounter:
 		 * -INSERT
 		 * -RESTORE
 		 * -DELETE_SINGLE_ENTRY
-		 * @param {the_forms_data_left} all the child forms based on the current form (hierarchy structure)
+		 * @param {the_forms_data_left} all the child forms based on the current form
+		 * (hierarchy structure)
 		 */
 
 		module.updateHierarchyEntriesCounter = function(the_entry_key, the_form_id, the_amount, the_action, the_forms_data_left) {
@@ -109,7 +115,8 @@ EC.Update = ( function(module) {"use strict";
 					//if we have nested forms, enter the next form data recursively
 					if (forms_data_left.length > 0) {
 						deferred.reject(forms_data_left);
-					} else {
+					}
+					else {
 						//restore successful
 						//update forms in localStorage
 						window.localStorage.forms = JSON.stringify(forms_data_restored);
@@ -122,7 +129,8 @@ EC.Update = ( function(module) {"use strict";
 					break;
 				case EC.Const.INSERT:
 
-					//main form entry rows saved. If there are any branch set their rows "is_stored" flag to 1
+					//main form entry rows saved. If there are any branch set their rows "is_stored"
+					// flag to 1
 					try {
 						cached_branch_entry_keys = JSON.parse(window.localStorage.cached_branch_entry_keys);
 
@@ -145,7 +153,8 @@ EC.Update = ( function(module) {"use strict";
 								deferred.resolve(main_form_entry_key);
 							});
 
-						} else {
+						}
+						else {
 
 							//no branches
 							deferred.resolve(main_form_entry_key);
@@ -153,7 +162,8 @@ EC.Update = ( function(module) {"use strict";
 						}
 					} catch(error) {
 
-						//no branches to save, show positive feedback to user after insertion of new entry
+						//no branches to save, show positive feedback to user after insertion of new
+						// entry
 						deferred.resolve(main_form_entry_key);
 
 					}
@@ -176,9 +186,11 @@ EC.Update = ( function(module) {"use strict";
 
 						EC.Update.updateHierarchyEntriesCounter(null, current_count.form_id, current_count.amount, EC.Const.DELETE_SINGLE_ENTRY, forms_data_left);
 
-					} else {
+					}
+					else {
 
-						EC.Entries.deleteEntryFeedback(true);
+						deferred.resolve();
+
 						//reset total of entries
 						amount = 0;
 					}
