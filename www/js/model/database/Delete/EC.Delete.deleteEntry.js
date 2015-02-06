@@ -148,6 +148,8 @@ EC.Delete = ( function(module) {
 
 			var i;
 			var iLength = the_result.rows.length;
+			
+			debugger;
 
 			//reset entries
 			self.deletion_entries.length = 0;
