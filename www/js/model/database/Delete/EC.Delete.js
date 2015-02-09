@@ -9,11 +9,12 @@ var EC = EC || {};
 EC.Delete = EC.Delete || {};
 EC.Delete = ( function() {
 		"use strict";
-		
-		var deletion_counters =[];
-		var deletion_entries =[];
-		var deletion_hierarchy_files =[];
-		var deletion_branch_files =[];
+
+		var deletion_counters = [];
+		var deletion_entries = [];
+		var deletion_hierarchy_files = [];
+		var deletion_branch_files = [];
+		var children_forms = [];
 
 		//callback for a transaction error
 		var errorCB = function(the_error) {
@@ -23,8 +24,9 @@ EC.Delete = ( function() {
 
 		return {
 			errorCB : errorCB,
-			deletion_counters: deletion_counters,
-			deletion_entries: deletion_entries,
-			deletion_hierarchy_files: deletion_hierarchy_files
+			deletion_counters : deletion_counters,
+			deletion_entries : deletion_entries,
+			deletion_hierarchy_files : deletion_hierarchy_files,
+			children_forms : children_forms
 		};
 	}());

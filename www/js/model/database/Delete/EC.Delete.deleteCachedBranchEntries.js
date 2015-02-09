@@ -13,7 +13,7 @@ EC.Delete = ( function(module) {"use strict";
 
 			var delete_query = "DELETE FROM ec_branch_data WHERE is_cached=? AND is_stored=?";
 
-			tx.executeSql(delete_query, [1, 0], _deleteCachedBranchEntriesSQLSuccessCB, EC.Delete.txErrorCB);
+			tx.executeSql(delete_query, [1, 0], _deleteCachedBranchEntriesSQLSuccessCB, EC.Delete.errorCB);
 
 		};
 
@@ -32,7 +32,7 @@ EC.Delete = ( function(module) {"use strict";
 
 		module.deleteCachedBranchEntries = function() {
 
-			EC.db.transaction(_deleteCachedBranchEntriesTX, EC.Delete.txErrorCB, _deleteCachedBranchEntriesSuccessCB);
+			EC.db.transaction(_deleteCachedBranchEntriesTX, EC.Delete.errorCB, _deleteCachedBranchEntriesSuccessCB);
 
 		};
 

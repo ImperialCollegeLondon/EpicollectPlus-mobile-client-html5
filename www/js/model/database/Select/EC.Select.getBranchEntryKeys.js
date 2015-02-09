@@ -15,7 +15,7 @@ EC.Select = ( function(module) {"use strict";
 			//get all entry key for the specified form
 			var query = 'SELECT DISTINCT entry_key FROM ec_data WHERE form_id IN (SELECT _id FROM ec_branch_forms WHERE name=? AND project_id=?)';
 
-			tx.executeSql(query, [branch_form_name, project_id], _getEntryKeysSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [branch_form_name, project_id], _getEntryKeysSQLSuccess, EC.Select.errorCB);
 
 		};
 
@@ -43,7 +43,7 @@ EC.Select = ( function(module) {"use strict";
 			project_id = the_project_id;
 			entry_keys.length = 0;
 
-			EC.db.transaction(_getEntryKeys, EC.Select.txErrorCB, _getEntryKeysSuccessCB);
+			EC.db.transaction(_getEntryKeys, EC.Select.errorCB, _getEntryKeysSuccessCB);
 			
 			return deferred.promise();
 

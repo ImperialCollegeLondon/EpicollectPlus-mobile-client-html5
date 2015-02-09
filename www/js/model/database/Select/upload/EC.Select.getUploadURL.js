@@ -12,7 +12,7 @@ EC.Select = ( function(module) {"use strict";
 
 			var query = "SELECT uploadToServer FROM ec_projects WHERE _id=?";
 
-			tx.executeSql(query, [project_id], getProjectURLSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [project_id], getProjectURLSQLSuccess, EC.Select.errorCB);
 
 		};
 
@@ -35,7 +35,7 @@ EC.Select = ( function(module) {"use strict";
 			project_id = the_project_id;
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_getProjectURLTX, EC.Select.txErrorCB, _getProjectURLSuccessCB);
+			EC.db.transaction(_getProjectURLTX, EC.Select.errorCB, _getProjectURLSuccessCB);
 
 			// return promise when upload url is found
 			return deferred.promise();

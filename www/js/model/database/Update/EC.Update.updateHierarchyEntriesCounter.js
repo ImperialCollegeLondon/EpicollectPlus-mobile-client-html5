@@ -28,20 +28,28 @@ EC.Update = ( function(module) {
 		 * -RESTORE
 		 * -DELETE_SINGLE_ENTRY
 		 * @param {the_forms_data_left} all the child forms based on the current form
-		 * (hierarchy structure)
+		 * (hierarchy structure) with details about what to update
 		 */
 
 		module.updateHierarchyEntriesCounter = function(the_entry_key, the_form_id, the_amount, the_action, the_forms_data_left) {
 
+			deferred = new $.Deferred();
+
+			_doUpdate(the_entry_key, the_form_id, the_amount, the_action, the_forms_data_left);
+
+			return deferred.promise();
+
+		};
+
+		function _doUpdate(the_entry_key, the_form_id, the_amount, the_action, the_forms_data_left) {
+
 			var old_forms;
 			var current_form;
 
-			deferred = new $.Deferred();
-			amount = 0;
-			amount = the_amount;
 			main_form_entry_key = the_entry_key;
 			form_id = the_form_id;
 			action = the_action;
+			amount = the_amount;
 			forms_data_left = the_forms_data_left;
 
 			//update forms in localStorage if we are entering a new entry
@@ -80,11 +88,9 @@ EC.Update = ( function(module) {
 				console.log("localstorage forms maybe need to be updated here");
 			}
 
-			EC.db.transaction(_updateHierarchyEntriesCounterTX, EC.Update.txErrorCB, _onCounterUpdateSuccessCB);
+			EC.db.transaction(_updateHierarchyEntriesCounterTX, EC.Update.errorCB, _onCounterUpdateSuccessCB);
 
-			return deferred.promise();
-
-		};
+		}
 
 		var _updateHierarchyEntriesCounterTX = function(tx) {
 
@@ -92,7 +98,7 @@ EC.Update = ( function(module) {
 
 			console.log(query);
 
-			tx.executeSql(query, [form_id], _onupdateHierarchyEntriesCounterSQLCB, EC.Update.txErrorCB);
+			tx.executeSql(query, [form_id], _onupdateHierarchyEntriesCounterSQLCB, EC.Update.errorCB);
 
 		};
 
@@ -184,7 +190,7 @@ EC.Update = ( function(module) {
 
 						var current_count = forms_data_left.shift();
 
-						EC.Update.updateHierarchyEntriesCounter(null, current_count.form_id, current_count.amount, EC.Const.DELETE_SINGLE_ENTRY, forms_data_left);
+						_doUpdate(null, current_count.form_id, current_count.amount, EC.Const.DELETE_SINGLE_ENTRY, forms_data_left);
 
 					}
 					else {

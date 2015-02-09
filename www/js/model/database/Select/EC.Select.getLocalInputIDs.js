@@ -13,7 +13,7 @@ EC.Select = ( function(module) {"use strict";
 			forms = the_forms;
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_getInputsIDsTX, EC.Select.txErrorCB, _getInputsIDsSuccessCB);
+			EC.db.transaction(_getInputsIDsTX, EC.Select.errorCB, _getInputsIDsSuccessCB);
 
 			return deferred.promise();
 
@@ -26,7 +26,7 @@ EC.Select = ( function(module) {"use strict";
 			var query = 'SELECT _id, ref FROM ec_inputs WHERE form_id=?';
 
 			for ( i = 0; i < iLength; i++) {
-				tx.executeSql(query, [forms[i]._id], _getInputsIDsSQLSuccess, EC.Select.txErrorCB);
+				tx.executeSql(query, [forms[i]._id], _getInputsIDsSQLSuccess, EC.Select.errorCB);
 			}
 
 		};

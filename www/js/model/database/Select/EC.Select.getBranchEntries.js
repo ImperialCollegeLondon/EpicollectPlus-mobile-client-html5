@@ -42,7 +42,7 @@ EC.Select = ( function(module) {"use strict";
 			 * if no inputs are set as title, default to the value of the primary key
 			 */
 
-			EC.db.transaction(_getEntriesTitlesTX, EC.Select.txErrorCB, _getEntriesTitlesSuccessCB);
+			EC.db.transaction(_getEntriesTitlesTX, EC.Select.errorCB, _getEntriesTitlesSuccessCB);
 
 			/*
 			 * Using each entry, count how many child entry there are per each entry
@@ -62,7 +62,7 @@ EC.Select = ( function(module) {"use strict";
 			for ( i = 0; i < iLenght; i++) {
 
 				query = 'SELECT _id, value, entry_key FROM ec_branch_data WHERE form_id IN (SELECT _id FROM ec_branch_forms WHERE name=? AND project_id=?) AND is_title=? AND entry_key=? AND hierarchy_entry_key_value=?';
-				tx.executeSql(query, [branch_form_name, project_id, 1, entries[i].entry_key, entries[i].hierarchy_entry_key_value], _getEntriesTitlesSQLSuccess, EC.Select.txErrorCB);
+				tx.executeSql(query, [branch_form_name, project_id, 1, entries[i].entry_key, entries[i].hierarchy_entry_key_value], _getEntriesTitlesSQLSuccess, EC.Select.errorCB);
 
 			}//for
 
@@ -139,7 +139,7 @@ EC.Select = ( function(module) {"use strict";
 			query += 'ORDER BY entry_key ';
 			query += 'LIMIT ' + window.localStorage.QUERY_LIMIT + " OFFSET " + offset;
 
-			tx.executeSql(query, [branch_form_name, project_id, hierarchy_key_value], _getBranchEntriesSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [branch_form_name, project_id, hierarchy_key_value], _getBranchEntriesSQLSuccess, EC.Select.errorCB);
 			self.query_error_message = "EC.Select.getBranchEntries _getBranchEntriesTX";
 
 		};
@@ -169,7 +169,7 @@ EC.Select = ( function(module) {"use strict";
 			for ( i = 0; i < iLenght; i++) {
 
 				query = 'SELECT _id, value, entry_key FROM ec_data WHERE form_id IN (SELECT _id FROM ec_branch_forms WHERE name=? AND project_id=?) AND is_title=? AND entry_key=? AND hierarchy_entry_key_value=?';
-				tx.executeSql(query, [branch_form_name, project_id, 1, entries[i].entry_key, entries[i].hierarchy_entry_key_value], _getBranchEntriesTitlesSQLSuccess, EC.Select.txErrorCB);
+				tx.executeSql(query, [branch_form_name, project_id, 1, entries[i].entry_key, entries[i].hierarchy_entry_key_value], _getBranchEntriesTitlesSQLSuccess, EC.Select.errorCB);
 
 			}//for
 
@@ -197,7 +197,7 @@ EC.Select = ( function(module) {"use strict";
 			offset = the_offset;
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_getBranchEntriesTX, EC.Select.txErrorCB, _getBranchEntriesSuccessCB);
+			EC.db.transaction(_getBranchEntriesTX, EC.Select.errorCB, _getBranchEntriesSuccessCB);
 
 			// return promise
 			return deferred.promise();

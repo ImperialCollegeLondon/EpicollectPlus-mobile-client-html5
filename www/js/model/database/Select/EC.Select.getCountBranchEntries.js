@@ -24,7 +24,7 @@ EC.Select = ( function(module) {"use strict";
 
 			query = 'SELECT COUNT(DISTINCT entry_key) as count FROM ec_branch_data WHERE form_id IN (SELECT _id FROM ec_branch_forms WHERE name=? AND project_id=?) AND hierarchy_entry_key_value=?';
 
-			tx.executeSql(query, [branch_form_name, project_id, hierarchy_key_value], _getBranchEntriesSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [branch_form_name, project_id, hierarchy_key_value], _getBranchEntriesSQLSuccess, EC.Select.errorCB);
 
 		};
 
@@ -53,7 +53,7 @@ EC.Select = ( function(module) {"use strict";
 			project_id = the_project_id;
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_getCountBranchEntriesTX, EC.Select.txErrorCB, _getCountBranchEntriesSuccessCB);
+			EC.db.transaction(_getCountBranchEntriesTX, EC.Select.errorCB, _getCountBranchEntriesSuccessCB);
 
 			// return promise
 			return deferred.promise();

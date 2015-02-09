@@ -33,11 +33,11 @@ EC.Select = ( function(module) {"use strict";
 
 			//var branch_query = 'SELECT _id, value, type FROM ec_branch_data WHERE form_id IN (SELECT _id FROM ec_branch_forms WHERE project_id=? AND has_media=?) AND (type=? OR type=? OR type=?) AND is_data_synced=? AND is_media_synced=? AND value<>? LIMIT 1';
 
-			tx.executeSql(hierarchy_query, [project_id, 1, photo, 1, 0, ""], _getOneImageSQLSuccess, EC.Select.txErrorCB);
-			tx.executeSql(hierarchy_query, [project_id, 1, audio, 1, 0, ""], _getOneAudioSQLSuccess, EC.Select.txErrorCB);
-			tx.executeSql(hierarchy_query, [project_id, 1, video, 1, 0, ""], _getOneVideoSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(hierarchy_query, [project_id, 1, photo, 1, 0, ""], _getOneImageSQLSuccess, EC.Select.errorCB);
+			tx.executeSql(hierarchy_query, [project_id, 1, audio, 1, 0, ""], _getOneAudioSQLSuccess, EC.Select.errorCB);
+			tx.executeSql(hierarchy_query, [project_id, 1, video, 1, 0, ""], _getOneVideoSQLSuccess, EC.Select.errorCB);
 
-			//tx.executeSql(branch_query, [project_id, 1, photo, video, audio, 1, 0, ""], _getBranchMediaSQLSuccess, EC.Select.txErrorCB);
+			//tx.executeSql(branch_query, [project_id, 1, photo, video, audio, 1, 0, ""], _getBranchMediaSQLSuccess, EC.Select.errorCB);
 
 			EC.Select.query_error_message = "EC.SelectgetOneHierarchyMediaPerType() _getOneHierarchyMediaPerTypeTX";
 		};
@@ -95,7 +95,7 @@ EC.Select = ( function(module) {"use strict";
 
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_getOneHierarchyMediaPerTypeTX, EC.Select.txErrorCB, _getOneHierarchyMediaPerTypeSuccessCB);
+			EC.db.transaction(_getOneHierarchyMediaPerTypeTX, EC.Select.errorCB, _getOneHierarchyMediaPerTypeSuccessCB);
 
 			// return promise to update ui when entry has/has not been found
 			return deferred.promise();

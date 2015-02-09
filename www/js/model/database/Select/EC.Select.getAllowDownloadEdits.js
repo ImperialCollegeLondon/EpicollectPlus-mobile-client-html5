@@ -16,7 +16,7 @@ EC.Select = ( function(module) {
 
 			var query = 'SELECT allowDownloadEdits FROM ec_projects WHERE _id=?';
 
-			tx.executeSql(query, [project_id], _getADEFlagSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [project_id], _getADEFlagSQLSuccess, EC.Select.errorCB);
 		};
 
 		var _getADEFlagSQLSuccess = function(the_tx, the_result) {
@@ -41,7 +41,7 @@ EC.Select = ( function(module) {
 			project_id = the_project_id;
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_getADEFlagTX, EC.Select.txErrorCB, _getADEFlagTXSuccessCB);
+			EC.db.transaction(_getADEFlagTX, EC.Select.errorCB, _getADEFlagTXSuccessCB);
 
 			return deferred.promise();
 

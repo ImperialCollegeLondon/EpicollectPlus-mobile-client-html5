@@ -42,7 +42,7 @@ EC.Select = ( function(module) {"use strict";
 			//map any option (if any) to the inputs
 			if (branch_input_options_ids.length > 0) {
 				//get input options
-				EC.db.transaction(_getBranchInputOptionsTX, EC.Select.txErrorCB, _getBranchInputOptionsSuccessCB);
+				EC.db.transaction(_getBranchInputOptionsTX, EC.Select.errorCB, _getBranchInputOptionsSuccessCB);
 			}
 
 			//no options to map then just render form
@@ -114,7 +114,7 @@ EC.Select = ( function(module) {"use strict";
 			//get all input options per each input
 			for ( i = 0; i < iLenght; i++) {
 				query = 'SELECT * FROM ec_branch_input_options WHERE input_id=?';
-				tx.executeSql(query, [branch_input_options_ids[i].id], _getBranchInputOptionsSQLSuccess, EC.Select.txErrorCB);
+				tx.executeSql(query, [branch_input_options_ids[i].id], _getBranchInputOptionsSQLSuccess, EC.Select.errorCB);
 			}
 
 		};
@@ -136,7 +136,7 @@ EC.Select = ( function(module) {"use strict";
 			//get all branch inputs (using a nested query to get form id in the database)
 			var query = 'SELECT * FROM ec_branch_inputs WHERE form_id IN (SELECT _id FROM ec_branch_forms WHERE name=? AND project_id=?) ORDER BY position';
 
-			tx.executeSql(query, [branch_form_name, project_id], _getBranchInputsSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [branch_form_name, project_id], _getBranchInputsSQLSuccess, EC.Select.errorCB);
 
 		};
 
@@ -166,7 +166,7 @@ EC.Select = ( function(module) {"use strict";
 				form_level_keys = cached_keys.concat(branch_entry_keys).unique();
 				window.localStorage.branch_primary_keys = JSON.stringify(form_level_keys);
 
-				EC.db.transaction(_getBranchInputsTX, EC.Select.txErrorCB, _getBranchInputsSuccessCB);
+				EC.db.transaction(_getBranchInputsTX, EC.Select.errorCB, _getBranchInputsSuccessCB);
 
 			});
 

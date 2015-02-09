@@ -24,9 +24,9 @@ EC.Select = ( function(module) {"use strict";
 			var iLength = forms.length;
 			var hierarchy_query = 'SELECT _id, value, type FROM ec_data WHERE form_id IN (SELECT _id FROM ec_forms WHERE project_id=? AND has_media=?) AND type=? AND is_data_synced=? AND is_media_synced=? AND value<>? LIMIT 1';
 
-			tx.executeSql(hierarchy_query, [project_id, 1, EC.Const.PHOTO, 1, 0, ""], _getOneImageSQLSuccess, EC.Select.txErrorCB);
-			tx.executeSql(hierarchy_query, [project_id, 1, EC.Const.AUDIO, 1, 0, ""], _getOneAudioSQLSuccess, EC.Select.txErrorCB);
-			tx.executeSql(hierarchy_query, [project_id, 1, EC.Const.VIDEO, 1, 0, ""], _getOneVideoSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(hierarchy_query, [project_id, 1, EC.Const.PHOTO, 1, 0, ""], _getOneImageSQLSuccess, EC.Select.errorCB);
+			tx.executeSql(hierarchy_query, [project_id, 1, EC.Const.AUDIO, 1, 0, ""], _getOneAudioSQLSuccess, EC.Select.errorCB);
+			tx.executeSql(hierarchy_query, [project_id, 1, EC.Const.VIDEO, 1, 0, ""], _getOneVideoSQLSuccess, EC.Select.errorCB);
 
 			EC.Select.query_error_message = "EC.SelectgetOneHierarchyMediaPerType() _getOneHierarchyMediaPerTypeTX";
 		};
@@ -75,7 +75,7 @@ EC.Select = ( function(module) {"use strict";
 			hierarchy_video = null;
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_getOneHierarchyMediaPerTypeTX, EC.Select.txErrorCB, _getOneHierarchyMediaPerTypeSuccessCB);
+			EC.db.transaction(_getOneHierarchyMediaPerTypeTX, EC.Select.errorCB, _getOneHierarchyMediaPerTypeSuccessCB);
 
 			// return promise to update ui when entry has/has not been found
 			return deferred.promise();

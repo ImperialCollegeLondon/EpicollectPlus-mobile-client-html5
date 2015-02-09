@@ -12,7 +12,7 @@ EC.Select = ( function(module) {"use strict";
 
 			var query = "SELECT ec_branch_inputs._id, ec_branch_inputs.ref FROM ec_branch_inputs JOIN ec_branch_forms ON ec_branch_forms._id=ec_branch_inputs.form_id WHERE ec_branch_forms.project_id=?";
 
-			tx.executeSql(query, [project_id], _getBranchInputsLocalIDsSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [project_id], _getBranchInputsLocalIDsSQLSuccess, EC.Select.errorCB);
 
 		};
 
@@ -47,7 +47,7 @@ EC.Select = ( function(module) {"use strict";
 			deferred = new $.Deferred();
 			mapped_branch_inputs = [];
 
-			EC.db.transaction(_getBranchInputsLocalIDsTX, EC.Select.txErrorCB, _getBranchInputsLocalIDsSuccessCB);
+			EC.db.transaction(_getBranchInputsLocalIDsTX, EC.Select.errorCB, _getBranchInputsLocalIDsSuccessCB);
 
 			// return promise
 			return deferred.promise();

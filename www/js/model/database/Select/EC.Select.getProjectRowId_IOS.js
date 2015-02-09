@@ -21,7 +21,7 @@ EC.Select = ( function(module) {"use strict";
 		var _getProjectRowIdTX = function(tx) {
 
 			var query = 'SELECT _id FROM ec_projects WHERE name=?';
-			tx.executeSql(query, [project_name], _getProjectRowIdSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [project_name], _getProjectRowIdSQLSuccess, EC.Select.errorCB);
 		};
 
 		module.getProjectRowId = function(the_project_name) {
@@ -29,7 +29,7 @@ EC.Select = ( function(module) {"use strict";
 			deferred = new $.Deferred();
 			project_name = the_project_name;
 
-			EC.db.transaction(_getProjectRowIdTX, EC.Select.txErrorCB, _getProjectRowIdSuccessCB);
+			EC.db.transaction(_getProjectRowIdTX, EC.Select.errorCB, _getProjectRowIdSuccessCB);
 
 			return deferred.promise();
 

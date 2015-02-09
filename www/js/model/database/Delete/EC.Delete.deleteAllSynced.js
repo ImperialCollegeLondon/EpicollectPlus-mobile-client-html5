@@ -49,15 +49,15 @@ EC.Delete = ( function(module) {
 					select_files_query = "SELECT value,type from ec_data WHERE form_id=? AND is_data_synced=? AND is_media_synced=? AND (type=? OR type=? OR type=?)";
 
 					//get all file names before deleting
-					tx.executeSql(select_files_query, [forms[i]._id, 1, 1, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO], _selectFilesSQLSuccessCB, EC.Delete.txErrorCB);
-					tx.executeSql(delete_query, [forms[i]._id, 1], _deleteAllSyncedSQLSuccessCB, EC.Delete.txErrorCB);
+					tx.executeSql(select_files_query, [forms[i]._id, 1, 1, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO], _selectFilesSQLSuccessCB, EC.Delete.errorCB);
+					tx.executeSql(delete_query, [forms[i]._id, 1], _deleteAllSyncedSQLSuccessCB, EC.Delete.errorCB);
 
 				}
 				else {
 
 					//no media for this form, go ahead and delete entries which are "data" synced
 					// only
-					tx.executeSql(delete_query, [forms[i]._id, 1], _deleteAllSyncedSQLSuccessCB, EC.Delete.txErrorCB);
+					tx.executeSql(delete_query, [forms[i]._id, 1], _deleteAllSyncedSQLSuccessCB, EC.Delete.errorCB);
 				}
 
 			}
@@ -69,8 +69,8 @@ EC.Delete = ( function(module) {
 				branch_select_files_query = "SELECT value,type from ec_branch_data WHERE form_id IN (SELECT _id FROM branch_forms WHERE project_id=? AND has_media=?) AND is_data_synced=? AND is_media_synced=? AND (type=? OR type=? OR type=?)";
 				branch_delete_query = "DELETE FROM ec_branch_data WHERE form_id IN (SELECT _id FROM branch_forms WHERE project_id=?) AND is_data_synced=?";
 
-				tx.executeSql(branch_select_files_query, [project_id, 1, 1, 1, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO], _selectBranchFilesSQLSuccessCB, EC.Delete.txErrorCB);
-				tx.executeSql(branch_delete_query, [project_id, 1], _deleteAllBranchesSyncedSQLSuccessCB, EC.Delete.txErrorCB);
+				tx.executeSql(branch_select_files_query, [project_id, 1, 1, 1, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO], _selectBranchFilesSQLSuccessCB, EC.Delete.errorCB);
+				tx.executeSql(branch_delete_query, [project_id, 1], _deleteAllBranchesSyncedSQLSuccessCB, EC.Delete.errorCB);
 
 			}
 
@@ -167,7 +167,7 @@ EC.Delete = ( function(module) {
 			has_branches = EC.Utils.projectHasBranches();
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_deleteAllSyncedTX, EC.Delete.txErrorCB, _deleteAllSyncedTXSuccessCB);
+			EC.db.transaction(_deleteAllSyncedTX, EC.Delete.errorCB, _deleteAllSyncedTXSuccessCB);
 
 			return deferred.promise();
 		};

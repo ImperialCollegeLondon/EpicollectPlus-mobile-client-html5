@@ -14,7 +14,7 @@ EC.Select = ( function(module) {"use strict";
 		var _getProjectsTX = function(tx) {
 
 			var query = 'SELECT _id, name, total_hierarchy_forms, total_branch_forms FROM ec_projects ORDER BY name';
-			tx.executeSql(query, [], _getProjectsSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [], _getProjectsSQLSuccess, EC.Select.errorCB);
 		};
 
 		var _getProjectsSQLSuccess = function(the_tx, the_result) {
@@ -36,7 +36,7 @@ EC.Select = ( function(module) {"use strict";
 			//clear projects array
 			projects.length = 0;
 
-			EC.db.transaction(_getProjectsTX, EC.Select.txErrorCB, _getProjectsSuccessCB);
+			EC.db.transaction(_getProjectsTX, EC.Select.errorCB, _getProjectsSuccessCB);
 
 			return deferred.promise();
 

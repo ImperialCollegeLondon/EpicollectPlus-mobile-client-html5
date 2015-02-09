@@ -48,7 +48,7 @@ EC.Select = ( function(module) {"use strict";
 				//console.log(JSON.stringify(input_options_ids));
 
 				//get input options
-				EC.db.transaction(_getInputOptionsTX, EC.Select.txErrorCB, _getInputOptionsSuccessCB);
+				EC.db.transaction(_getInputOptionsTX, EC.Select.errorCB, _getInputOptionsSuccessCB);
 
 			}
 			//no options to map then just render form
@@ -112,7 +112,7 @@ EC.Select = ( function(module) {"use strict";
 			//get all input options per each input
 			for ( i = 0; i < iLenght; i++) {
 				query = 'SELECT * FROM ec_input_options WHERE input_id=?';
-				tx.executeSql(query, [input_options_ids[i].id], _getInputOptionsSQLSuccess, EC.Select.txErrorCB);
+				tx.executeSql(query, [input_options_ids[i].id], _getInputOptionsSQLSuccess, EC.Select.errorCB);
 			}
 
 		};
@@ -132,7 +132,7 @@ EC.Select = ( function(module) {"use strict";
 		var _getInputsTX = function(tx) {
 
 			var query = 'SELECT * FROM ec_inputs WHERE form_id=? ORDER BY position';
-			tx.executeSql(query, [form_id], _getInputsSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [form_id], _getInputsSQLSuccess, EC.Select.errorCB);
 		};
 
 		module.getInputs = function(the_form_id) {
@@ -159,7 +159,7 @@ EC.Select = ( function(module) {"use strict";
 				form_level_keys = cached_keys.concat(entry_keys).unique();
 				window.localStorage.primary_keys = JSON.stringify(form_level_keys);
 
-				EC.db.transaction(_getInputsTX, EC.Select.txErrorCB, _getInputsSuccessCB);
+				EC.db.transaction(_getInputsTX, EC.Select.errorCB, _getInputsSuccessCB);
 
 			});
 

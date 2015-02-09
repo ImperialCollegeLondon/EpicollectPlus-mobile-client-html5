@@ -50,7 +50,7 @@ EC.Select = ( function(module) {"use strict";
 			//select a single entry key
 			var query = "SELECT DISTINCT entry_key FROM ec_data WHERE form_id=? AND is_data_synced=? LIMIT 1";
 
-			tx.executeSql(query, [form._id, 0], _getOneEntryKeySQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [form._id, 0], _getOneEntryKeySQLSuccess, EC.Select.errorCB);
 
 		};
 
@@ -67,7 +67,7 @@ EC.Select = ( function(module) {"use strict";
 				hierarchy_entry_values = [];
 
 				//get all the values for the hierarchy entry key found
-				EC.db.transaction(_getOneHierarchyEntryTX, EC.Select.txErrorCB, _getOneHierarchyEntrySuccessCB);
+				EC.db.transaction(_getOneHierarchyEntryTX, EC.Select.errorCB, _getOneHierarchyEntrySuccessCB);
 
 			} else {
 
@@ -124,7 +124,7 @@ EC.Select = ( function(module) {"use strict";
 
 			var query = "SELECT _id, entry_key, parent, value, type, ref, created_on FROM ec_data WHERE entry_key=? AND form_id=? AND is_data_synced=?";
 
-			tx.executeSql(query, [entry_key, form._id, 0], _getOneHierarchyEntrySQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [entry_key, form._id, 0], _getOneHierarchyEntrySQLSuccess, EC.Select.errorCB);
 
 			EC.Select.query_error_message = "EC.Select.getOneHierarchyEntry _getOneHierarchyEntryTX";
 
@@ -325,7 +325,7 @@ EC.Select = ( function(module) {"use strict";
 				deferred = new $.Deferred();
 			}
 
-			EC.db.transaction(_getOneEntryKeyTX, EC.Select.txErrorCB, _getOneEntryKeySuccessCB);
+			EC.db.transaction(_getOneEntryKeyTX, EC.Select.errorCB, _getOneEntryKeySuccessCB);
 
 			if (is_called_from_view) {
 				// return promise to update ui when entry has/has not been found

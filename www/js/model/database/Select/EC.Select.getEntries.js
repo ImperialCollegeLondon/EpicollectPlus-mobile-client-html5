@@ -37,7 +37,7 @@ EC.Select = ( function(module) {"use strict";
 			 * if no inputs are set as title, default to the value of the primary key
 			 */
 
-			EC.db.transaction(_getEntriesTitlesTX, EC.Select.txErrorCB, _getEntriesTitlesSuccessCB);
+			EC.db.transaction(_getEntriesTitlesTX, EC.Select.errorCB, _getEntriesTitlesSuccessCB);
 
 			/*
 			 * Using each entry, count how many child entry there are per each entry
@@ -95,7 +95,7 @@ EC.Select = ( function(module) {"use strict";
 			//TODO: fix ordering of entries
 			var query = 'SELECT _id, entry_key, parent FROM ec_data WHERE form_id=? AND parent=? GROUP BY entry_key ORDER BY _id LIMIT ' + window.localStorage.QUERY_LIMIT + " OFFSET " + offset;
 
-			tx.executeSql(query, [form_id, parent], _getEntriesSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [form_id, parent], _getEntriesSQLSuccess, EC.Select.errorCB);
 
 		};
 
@@ -124,7 +124,7 @@ EC.Select = ( function(module) {"use strict";
 			//select all the rows to build the title (aside from skipped values as in the case of jumps)
 			for ( i = 0; i < iLenght; i++) {
 				query = 'SELECT _id, value, entry_key FROM ec_data WHERE form_id=? AND is_title=? AND entry_key=? AND parent=? AND value<>?';
-				tx.executeSql(query, [form_id, 1, entries[i].entry_key, entries[i].parent, EC.Const.SKIPPED], _getEntriesTitlesSQLSuccess, EC.Select.txErrorCB);
+				tx.executeSql(query, [form_id, 1, entries[i].entry_key, entries[i].parent, EC.Const.SKIPPED], _getEntriesTitlesSQLSuccess, EC.Select.errorCB);
 			}//for
 
 		};
@@ -163,7 +163,7 @@ EC.Select = ( function(module) {"use strict";
 
 				// console.log(query);
 
-				tx.executeSql(query, [parent], _getChildrenCountSQLSuccessCB, EC.Select.txErrorCB);
+				tx.executeSql(query, [parent], _getChildrenCountSQLSuccessCB, EC.Select.errorCB);
 
 			}
 
@@ -204,7 +204,7 @@ EC.Select = ( function(module) {"use strict";
 			if (entries.length > 0) {
 
 				//get the count of children per each parent
-				EC.db.transaction(_getChildrenCountTX, EC.Select.txErrorCB, _getChildrenCountSuccessCB);
+				EC.db.transaction(_getChildrenCountTX, EC.Select.errorCB, _getChildrenCountSuccessCB);
 
 			} else {
 
@@ -236,7 +236,7 @@ EC.Select = ( function(module) {"use strict";
 			offset = the_offset;
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_getEntriesTX, EC.Select.txErrorCB, _getEntriesSuccessCB);
+			EC.db.transaction(_getEntriesTX, EC.Select.errorCB, _getEntriesSuccessCB);
 
 			return deferred.promise();
 

@@ -26,7 +26,7 @@ EC.Select = ( function(module) {
 			total_all_synced_rows = 0;
 			total_branch_media_files = 0;
 			has_branches = EC.Utils.projectHasBranches();
-			EC.db.transaction(_getDataInfoTX, EC.Select.txErrorCB, _getDataInfoSuccessCB);
+			EC.db.transaction(_getDataInfoTX, EC.Select.errorCB, _getDataInfoSuccessCB);
 
 		};
 
@@ -41,10 +41,10 @@ EC.Select = ( function(module) {
 
 			for ( i = 0; i < iLength; i++) {
 
-				tx.executeSql(has_data_synced_query, [forms[i]._id, 1], _onDataSyncedSQLSuccess, EC.Select.txErrorCB);
-				tx.executeSql(has_entries_query, [forms[i]._id], _onHasEntriesSQLSuccess, EC.Select.txErrorCB);
-				tx.executeSql(has_media_query, [forms[i]._id, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO, ""], _onHasMediaSQLSuccess, EC.Select.txErrorCB);
-				tx.executeSql(has_all_synced_query, [forms[i]._id, 1, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO, 1], _onHasAllSyncedSQLSuccess, EC.Select.txErrorCB);
+				tx.executeSql(has_data_synced_query, [forms[i]._id, 1], _onDataSyncedSQLSuccess, EC.Select.errorCB);
+				tx.executeSql(has_entries_query, [forms[i]._id], _onHasEntriesSQLSuccess, EC.Select.errorCB);
+				tx.executeSql(has_media_query, [forms[i]._id, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO, ""], _onHasMediaSQLSuccess, EC.Select.errorCB);
+				tx.executeSql(has_all_synced_query, [forms[i]._id, 1, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO, 1], _onHasAllSyncedSQLSuccess, EC.Select.errorCB);
 			}
 
 		};
@@ -117,7 +117,7 @@ EC.Select = ( function(module) {
 		var _getFormsTX = function(tx) {
 
 			var query = 'SELECT _id, name, key, num, has_media, has_branches, is_genkey_hidden, total_inputs, entries FROM ec_forms WHERE project_id=?';
-			tx.executeSql(query, [project_id], _getFormsSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [project_id], _getFormsSQLSuccess, EC.Select.errorCB);
 		};
 
 		var _getFormsSQLSuccess = function(the_tx, the_result) {
@@ -141,7 +141,7 @@ EC.Select = ( function(module) {
 			forms = [];
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_getFormsTX, EC.Select.txErrorCB, _getFormsSuccessCB);
+			EC.db.transaction(_getFormsTX, EC.Select.errorCB, _getFormsSuccessCB);
 
 			return deferred.promise();
 

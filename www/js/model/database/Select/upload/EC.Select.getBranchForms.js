@@ -12,7 +12,7 @@ EC.Select = ( function(module) {"use strict";
 
 			var query = "SELECT _id, name, num, key, total_inputs, has_media, is_genkey_hidden, entries FROM ec_branch_forms WHERE project_id=?";
 
-			tx.executeSql(query, [project_id], _getBranchFormsSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [project_id], _getBranchFormsSQLSuccess, EC.Select.errorCB);
 
 		};
 
@@ -40,7 +40,7 @@ EC.Select = ( function(module) {"use strict";
 			branch_forms = [];
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_getBranchFormsTX, EC.Select.txErrorCB, _getBranchFormsSuccessCB);
+			EC.db.transaction(_getBranchFormsTX, EC.Select.errorCB, _getBranchFormsSuccessCB);
 
 			// return promise (with the branch_forms)
 			return deferred.promise();

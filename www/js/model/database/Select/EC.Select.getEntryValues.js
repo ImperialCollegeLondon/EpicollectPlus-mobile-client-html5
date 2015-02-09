@@ -16,7 +16,7 @@ EC.Select = ( function(module) {"use strict";
 			//get all entry values
 			var query = 'SELECT * FROM ec_data WHERE form_id=? AND entry_key=? AND parent=? ORDER BY position';
 
-			tx.executeSql(query, [form_id, entry_key, parent_path], _getEntryValuesSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [form_id, entry_key, parent_path], _getEntryValuesSQLSuccess, EC.Select.errorCB);
 
 		};
 		//_getEntryValues
@@ -72,7 +72,7 @@ EC.Select = ( function(module) {"use strict";
 			parent_path = the_parent_path;
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_getEntryValues, EC.Select.txErrorCB, _getEntryValuesSuccessCB);
+			EC.db.transaction(_getEntryValues, EC.Select.errorCB, _getEntryValuesSuccessCB);
 			
 			return deferred.promise();
 

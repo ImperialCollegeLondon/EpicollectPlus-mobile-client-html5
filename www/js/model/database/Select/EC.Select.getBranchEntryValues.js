@@ -16,7 +16,7 @@ EC.Select = ( function(module) {"use strict";
 			//get all entry values
 			var query = 'SELECT * FROM ec_branch_data WHERE form_id IN (SELECT _id FROM ec_branch_forms WHERE name=? AND project_id=?) AND entry_key=? AND hierarchy_entry_key_value =? ORDER BY position';
 
-			tx.executeSql(query, [branch_form_name, project_id, entry_key, hierarchy_entry_key_value], _getBranchEntryValuesSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [branch_form_name, project_id, entry_key, hierarchy_entry_key_value], _getBranchEntryValuesSQLSuccess, EC.Select.errorCB);
 
 		};
 		//_getEntryValues
@@ -67,7 +67,7 @@ EC.Select = ( function(module) {"use strict";
 			//clear values array before requesting new values
 			values.length = 0;
 
-			EC.db.transaction(_getBranchEntryValuesTX, EC.Select.txErrorCB, _getBranchEntryValuesSuccessCB);
+			EC.db.transaction(_getBranchEntryValuesTX, EC.Select.errorCB, _getBranchEntryValuesSuccessCB);
 
 			return deferred.promise();
 

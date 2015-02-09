@@ -30,14 +30,14 @@ EC.Select = ( function(module) {"use strict";
 			branch_form_counter = 0;
 
 			for ( i = 0; i < iLength; i++) {
-				tx.executeSql(select_query, [forms[i]._id], _getAllProjectEntriesSQLSuccessCB, EC.Select.txErrorCB);
+				tx.executeSql(select_query, [forms[i]._id], _getAllProjectEntriesSQLSuccessCB, EC.Select.errorCB);
 			}
 
 			if (has_branches) {
 				branch_data_rows = [];
 				branch_form_names = [];
 				branch_select_query = "SELECT * FROM ec_branch_data JOIN ec_branch_forms ON ec_branch_data.form_id=ec_branch_forms._id WHERE ec_branch_forms.project_id=?";
-				tx.executeSql(branch_select_query, [project_id], _getAllProjectBranchEntriesSQLSuccessCB, EC.Select.txErrorCB);
+				tx.executeSql(branch_select_query, [project_id], _getAllProjectBranchEntriesSQLSuccessCB, EC.Select.errorCB);
 			}
 
 		};
@@ -126,7 +126,7 @@ EC.Select = ( function(module) {"use strict";
 			branch_data_rows = [];
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_getAllProjectEntriesTX, EC.Select.txErrorCB, _getAllProjectEntriesSuccessCB);
+			EC.db.transaction(_getAllProjectEntriesTX, EC.Select.errorCB, _getAllProjectEntriesSuccessCB);
 
 			return deferred.promise();
 

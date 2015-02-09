@@ -13,7 +13,7 @@ EC.Select = ( function(module) {"use strict";
 
 			var query = "SELECT _id, value, type FROM ec_branch_data WHERE form_id IN (SELECT _id FROM ec_branch_forms WHERE project_id=? AND has_media=?) AND type=? AND is_data_synced=? AND is_media_synced=? AND value<>? LIMIT 1";
 
-			tx.executeSql(query, [project_id, 1, EC.Const.AUDIO, 1, 0, ""], getOneBranchAudioFileSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [project_id, 1, EC.Const.AUDIO, 1, 0, ""], getOneBranchAudioFileSQLSuccess, EC.Select.errorCB);
 
 		};
 
@@ -43,7 +43,7 @@ EC.Select = ( function(module) {"use strict";
 			deferred = new $.Deferred();
 			audio =null;
 
-			EC.db.transaction(_getOneBranchAudioFileTX, EC.Select.txErrorCB, _getOneBranchAudioFileSuccessCB);
+			EC.db.transaction(_getOneBranchAudioFileTX, EC.Select.errorCB, _getOneBranchAudioFileSuccessCB);
 
 			// return promise to update ui when entry has/has not been found
 			return deferred.promise();

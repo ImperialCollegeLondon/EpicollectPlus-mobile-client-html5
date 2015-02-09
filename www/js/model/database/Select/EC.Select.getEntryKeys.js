@@ -13,7 +13,7 @@ EC.Select = ( function(module) {"use strict";
 			//get all entry key for the specified form
 			var query = 'SELECT DISTINCT entry_key FROM ec_data WHERE form_id=?';
 			
-			tx.executeSql(query, [form_id], _getEntryKeysSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [form_id], _getEntryKeysSQLSuccess, EC.Select.errorCB);
 		};
 
 		var _getEntryKeysSQLSuccess = function(the_tx, the_result) {
@@ -37,7 +37,7 @@ EC.Select = ( function(module) {"use strict";
 			deferred = new $.Deferred();
 			form_id = the_form_id;
 			entry_keys =[];
-			EC.db.transaction(_getEntryKeys, EC.Select.txErrorCB, _getEntryKeysSuccessCB);
+			EC.db.transaction(_getEntryKeys, EC.Select.errorCB, _getEntryKeysSuccessCB);
 			
 			return deferred.promise();
 

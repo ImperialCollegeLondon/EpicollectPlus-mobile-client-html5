@@ -26,7 +26,7 @@ EC.Select = ( function(module) {
 
 		var _getBranchFormsTX = function(tx) {
 			var query = 'SELECT _id, name, key, num, has_media, is_genkey_hidden, total_inputs, entries FROM ec_branch_forms WHERE project_id=?';
-			tx.executeSql(query, [project_id], _getBranchFormsSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [project_id], _getBranchFormsSQLSuccess, EC.Select.errorCB);
 		};
 
 		module.getBranchForms = function(the_project_id) {
@@ -35,7 +35,7 @@ EC.Select = ( function(module) {
 			branch_forms =[];
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_getBranchFormsTX, EC.Select.txErrorCB, _getBranchFormsSuccessCB);
+			EC.db.transaction(_getBranchFormsTX, EC.Select.errorCB, _getBranchFormsSuccessCB);
 
 			return deferred.promise();
 

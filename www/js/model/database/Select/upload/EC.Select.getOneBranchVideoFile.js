@@ -14,7 +14,7 @@ EC.Select = ( function(module) {
 
 			var query = "SELECT _id, value, type FROM ec_branch_data WHERE form_id IN (SELECT _id FROM ec_branch_forms WHERE project_id=? AND has_media=?) AND type=? AND is_data_synced=? AND is_media_synced=? AND value<>? LIMIT 1";
 
-			tx.executeSql(query, [project_id, 1, EC.Const.VIDEO, 1, 0, ""], getOneBranchVideoFileSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [project_id, 1, EC.Const.VIDEO, 1, 0, ""], getOneBranchVideoFileSQLSuccess, EC.Select.errorCB);
 
 		};
 
@@ -45,7 +45,7 @@ EC.Select = ( function(module) {
 			deferred = new $.Deferred();
 			video = null;
 
-			EC.db.transaction(_getOneBranchVideoFileTX, EC.Select.txErrorCB, _getOneBranchVideoFileSuccessCB);
+			EC.db.transaction(_getOneBranchVideoFileTX, EC.Select.errorCB, _getOneBranchVideoFileSuccessCB);
 
 			// return promise to update ui when entry has/has not been found
 			return deferred.promise();

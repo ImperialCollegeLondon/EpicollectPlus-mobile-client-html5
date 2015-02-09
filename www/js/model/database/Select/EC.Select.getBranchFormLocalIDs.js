@@ -16,7 +16,7 @@ EC.Select = ( function(module) {"use strict";
 			var query = "SELECT _id, name FROM ec_branch_forms WHERE name=? AND project_id=?";
 
 			for ( i = 0; i < iLength; i++) {
-				tx.executeSql(query, [branch_form_names[i], project_id], _getBranchFormLocalIDsSQLSuccess, EC.Select.txErrorCB);
+				tx.executeSql(query, [branch_form_names[i], project_id], _getBranchFormLocalIDsSQLSuccess, EC.Select.errorCB);
 			}
 
 		};
@@ -45,7 +45,7 @@ EC.Select = ( function(module) {"use strict";
 			deferred = new $.Deferred();
 			mapped_branch_forms = [];
 
-			EC.db.transaction(_getBranchFormLocalIDsTX, EC.Select.txErrorCB, _getBranchFormLocalIDsSuccessCB);
+			EC.db.transaction(_getBranchFormLocalIDsTX, EC.Select.errorCB, _getBranchFormLocalIDsSuccessCB);
 
 			// return promise
 			return deferred.promise();

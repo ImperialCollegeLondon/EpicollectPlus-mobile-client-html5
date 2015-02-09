@@ -45,7 +45,7 @@ EC.Update = ( function(module) {"use strict";
 				deleted_entries.push(total_deleted);
 				query = 'UPDATE ec_forms SET entries = entries - ' + total_deleted + ' WHERE _id=?';
 
-				tx.executeSql(query, [forms[i]._id], _onUpdateEntriesCountSQLSuccess, EC.Update.txErrorCB);
+				tx.executeSql(query, [forms[i]._id], _onUpdateEntriesCountSQLSuccess, EC.Update.errorCB);
 			}
 
 			//store how many entries were deleted per each fomr in localStorage
@@ -65,7 +65,7 @@ EC.Update = ( function(module) {"use strict";
 			deleted_entries.length = 0;
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_updateEntriesCountTX, EC.Update.txErrorCB, _updateEntriesCountSuccessCB);
+			EC.db.transaction(_updateEntriesCountTX, EC.Update.errorCB, _updateEntriesCountSuccessCB);
 
 			return deferred.promise();
 

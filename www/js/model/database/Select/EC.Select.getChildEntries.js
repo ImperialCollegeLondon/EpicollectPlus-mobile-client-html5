@@ -32,7 +32,7 @@ EC.Select = ( function(module) {"use strict";
 			query += 'LIMIT ' + 1 + ' ';
 			query += 'OFFSET ' + (parent_offset);
 
-			tx.executeSql(query, [form_id], _getChildEntriesParentsSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [form_id], _getChildEntriesParentsSQLSuccess, EC.Select.errorCB);
 		};
 
 		var _getChildEntriesParentsSuccessCB = function(the_tx) {
@@ -56,7 +56,7 @@ EC.Select = ( function(module) {"use strict";
 				parents.push(the_result.rows.item(0));
 
 				//get children per each parent
-				EC.db.transaction(_getAllChildrenTX, EC.Select.txErrorCB, _getAllChildrenSuccessCB);
+				EC.db.transaction(_getAllChildrenTX, EC.Select.errorCB, _getAllChildrenSuccessCB);
 			} else {
 
 				//no more parents found, display entries
@@ -121,7 +121,7 @@ EC.Select = ( function(module) {"use strict";
 
 			}
 
-			tx.executeSql(query, [parent, EC.Const.SKIPPED], _getAllChildrenSQLSuccessCB, EC.Select.txErrorCB);
+			tx.executeSql(query, [parent, EC.Const.SKIPPED], _getAllChildrenSQLSuccessCB, EC.Select.errorCB);
 
 		};
 
@@ -214,7 +214,7 @@ EC.Select = ( function(module) {"use strict";
 			var i;
 			var iLength = parents.length;
 
-			EC.db.transaction(_getNestedChildrenCountTX, EC.Select.txErrorCB, _getNestedChildrenCountSuccessCB);
+			EC.db.transaction(_getNestedChildrenCountTX, EC.Select.errorCB, _getNestedChildrenCountSuccessCB);
 		};
 
 		var _getNestedChildrenCountSuccessCB = function() {
@@ -237,7 +237,7 @@ EC.Select = ( function(module) {"use strict";
 					children_offset = 0;
 
 					//get next parent first
-					EC.db.transaction(_getChildEntriesParentsTX, EC.Select.txErrorCB, _getChildEntriesParentsSuccessCB);
+					EC.db.transaction(_getChildEntriesParentsTX, EC.Select.errorCB, _getChildEntriesParentsSuccessCB);
 
 				} else {
 
@@ -292,7 +292,7 @@ EC.Select = ( function(module) {"use strict";
 
 				query = 'SELECT entry_key FROM ec_data WHERE parent=? AND form_id=? GROUP BY entry_key';
 
-				tx.executeSql(query, [parent_path, child_form_id], _getNestedChildrenCountSQLSuccessCB, EC.Select.txErrorCB);
+				tx.executeSql(query, [parent_path, child_form_id], _getNestedChildrenCountSQLSuccessCB, EC.Select.errorCB);
 
 			}
 
@@ -321,7 +321,7 @@ EC.Select = ( function(module) {"use strict";
 			self = this;
 
 			//get all parents first
-			EC.db.transaction(_getChildEntriesParentsTX, EC.Select.txErrorCB, _getChildEntriesParentsSuccessCB);
+			EC.db.transaction(_getChildEntriesParentsTX, EC.Select.errorCB, _getChildEntriesParentsSuccessCB);
 
 		};
 
@@ -335,7 +335,7 @@ EC.Select = ( function(module) {"use strict";
 			parent_counter++;
 
 			//get all parents first
-			EC.db.transaction(_getChildEntriesParentsTX, EC.Select.txErrorCB, _getChildEntriesParentsSuccessCB);
+			EC.db.transaction(_getChildEntriesParentsTX, EC.Select.errorCB, _getChildEntriesParentsSuccessCB);
 
 		};
 
@@ -363,7 +363,7 @@ EC.Select = ( function(module) {"use strict";
 			console.log(parents);
 
 			//get more entries for the same parent
-			EC.db.transaction(_getAllChildrenTX, EC.Select.txErrorCB, _getAllChildrenSuccessCB);
+			EC.db.transaction(_getAllChildrenTX, EC.Select.errorCB, _getAllChildrenSuccessCB);
 
 		};
 

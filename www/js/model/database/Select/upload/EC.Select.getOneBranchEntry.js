@@ -25,7 +25,7 @@ EC.Select = ( function(module) {"use strict";
 			//select a single entry key
 			query += "SELECT DISTINCT entry_key FROM ec_branch_data WHERE hierarchy_entry_key_value=? AND is_data_synced=? AND form_id IN (SELECT _id from ec_branch_forms WHERE name=? AND project_id=?) LIMIT 1";
 
-			tx.executeSql(query, [hierarchy_entry_key_value, 0, branch_form_name, project_id], _getOneEntryKeySQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [hierarchy_entry_key_value, 0, branch_form_name, project_id], _getOneEntryKeySQLSuccess, EC.Select.errorCB);
 
 		};
 
@@ -43,7 +43,7 @@ EC.Select = ( function(module) {"use strict";
 				branch_entry_values = [];
 
 				//get all the values for the branche entry key found
-				EC.db.transaction(_getOneBranchEntryTX, EC.Select.txErrorCB, _getOneBranchEntrySuccessCB);
+				EC.db.transaction(_getOneBranchEntryTX, EC.Select.errorCB, _getOneBranchEntrySuccessCB);
 			} else {
 
 				//no unsynced branch entries for the current branch form, try next one (if any)
@@ -79,7 +79,7 @@ EC.Select = ( function(module) {"use strict";
 			query += '(SELECT _id from ec_branch_forms WHERE name=? AND project_id=?) ';
 			query += 'AND is_data_synced=? AND hierarchy_entry_key_value=? AND entry_key=?';
 
-			tx.executeSql(query, [branch_form_name, project_id, 0, hierarchy_entry_key_value, branch_entry_key], _getOneBranchEntrySQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [branch_form_name, project_id, 0, hierarchy_entry_key_value, branch_entry_key], _getOneBranchEntrySQLSuccess, EC.Select.errorCB);
 		};
 
 		/**
@@ -276,7 +276,7 @@ EC.Select = ( function(module) {"use strict";
 
 			var query = "SELECT DISTINCT hierarchy_entry_key_value FROM ec_branch_data WHERE is_data_synced=? AND form_id IN (SELECT _id from ec_branch_forms WHERE name=? AND project_id=?) LIMIT 1";
 
-			tx.executeSql(query, [0, branch_form_name, project_id], _getOneHierarchyEntryKeyValueSQLSuccess, EC.Select.txErrorCB);
+			tx.executeSql(query, [0, branch_form_name, project_id], _getOneHierarchyEntryKeyValueSQLSuccess, EC.Select.errorCB);
 
 		};
 
@@ -295,7 +295,7 @@ EC.Select = ( function(module) {"use strict";
 				//TODO: get entry key
 
 				//get a single branch entry key
-				EC.db.transaction(_getOneEntryKeyTX, EC.Select.txErrorCB, _getOneEntryKeySuccessCB);
+				EC.db.transaction(_getOneEntryKeyTX, EC.Select.errorCB, _getOneEntryKeySuccessCB);
 
 			} else {
 
@@ -351,7 +351,7 @@ EC.Select = ( function(module) {"use strict";
 			}
 
 			//get a single hierarchy_entry_key_value
-			EC.db.transaction(_getOneHierarchyEntryKeyValueTX, EC.Select.txErrorCB, _getOneHierarchyEntryKeyValueSuccessCB);
+			EC.db.transaction(_getOneHierarchyEntryKeyValueTX, EC.Select.errorCB, _getOneHierarchyEntryKeyValueSuccessCB);
 
 			// return promise to update ui when entry has/has not been found
 			if (is_called_from_view) {

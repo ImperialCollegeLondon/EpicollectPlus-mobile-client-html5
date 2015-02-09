@@ -1,19 +1,18 @@
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
+/*
+ * Get all the media files for a single hierarchy entry passing form ID and entry key
+ */
 var EC = EC || {};
 EC.Select = EC.Select || {};
 EC.Select = ( function(module) {
 		"use strict";
 
+		var self;
 		var form;
 		var deferred;
 		var files;
-
-		var _errorCB = function(the_tx, the_error) {
-			console.log(EC.Const.TRANSACTION_ERROR);
-			console.log(the_tx);
-			console.log(the_error);
-		};
+		var entry_key;
 		
 		var _selectHierarchyFilesSQLSuccessCB = function(the_tx, the_result) {
 
@@ -23,16 +22,14 @@ EC.Select = ( function(module) {
 			for ( i = 0; i < iLength; i++) {
 				files.push(the_result.rows.item(i));
 			}
-
-			
 		};
 
 		var _getHierarchyFilesTX = function(tx) {
 
-			var select_hierarchy_files_query = 'SELECT value, type from ec_data WHERE form_id=? AND (type=? OR type=? OR type=?) AND value <>?';
+			var select_hierarchy_files_query = 'SELECT value, type from ec_data WHERE form_id=? AND entry_key=? AND (type=? OR type=? OR type=?) AND value <>?';
 
 			//get all file names and types
-			tx.executeSql(select_hierarchy_files_query, [form._id, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO, ""], _selectHierarchyFilesSQLSuccessCB, _errorCB);
+			tx.executeSql(select_hierarchy_files_query, [form._id, entry_key, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO, ""], _selectHierarchyFilesSQLSuccessCB, self.errorCB);
 		};
 		
 		var _getHierarchyFilesSuccessCB = function(){
@@ -43,14 +40,15 @@ EC.Select = ( function(module) {
 			deferred.resolve(files);
 		};
 		
-		//get all the media files for a hierarchy entry
-		module.getHierarchyFiles = function(the_form) {
-
+		module.getHierarchyFiles = function(the_form, the_entry_key) {
+			
+			self = this;
 			deferred = new $.Deferred();
 			form = the_form;
+			entry_key = the_entry_key;
 			files =[];
 
-			EC.db.transaction(_getHierarchyFilesTX, _errorCB, _getHierarchyFilesSuccessCB);
+			EC.db.transaction(_getHierarchyFilesTX, self.errorCB, _getHierarchyFilesSuccessCB);
 			
 			return deferred.promise();
 

@@ -23,7 +23,7 @@ EC.Update = ( function(module) {
 
 			var query = 'UPDATE ' + table + ' SET is_media_synced=? WHERE _id=?';
 
-			tx.executeSql(query, [1, row_id], _flagOneFileAsSyncedSQLSuccess, EC.Update.txErrorCB);
+			tx.executeSql(query, [1, row_id], _flagOneFileAsSyncedSQLSuccess, EC.Update.errorCB);
 
 		};
 
@@ -48,7 +48,7 @@ EC.Update = ( function(module) {
 
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_flagOneFileAsSyncedTX, EC.Update.txErrorCB, _flagOneFileAsSyncedSuccessCB);
+			EC.db.transaction(_flagOneFileAsSyncedTX, EC.Update.errorCB, _flagOneFileAsSyncedSuccessCB);
 
 			// return promise to upload next file
 			return deferred.promise();

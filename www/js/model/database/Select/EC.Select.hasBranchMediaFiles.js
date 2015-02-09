@@ -25,7 +25,7 @@ EC.Select = ( function(module) {
 			var query = 'SELECT COUNT(*) AS total_branch_media_files FROM ec_branch_data WHERE form_id=? AND (type=? OR type=? OR type=?) AND value<>?';
 
 			for ( i = 0; i < iLength; i++) {
-				tx.executeSql(query, [branch_forms_ids[i], EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO, ""], _getBranchMediaFileSQLSuccess, EC.Select.txErrorCB);
+				tx.executeSql(query, [branch_forms_ids[i], EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO, ""], _getBranchMediaFileSQLSuccess, EC.Select.errorCB);
 			}
 
 		};
@@ -36,7 +36,7 @@ EC.Select = ( function(module) {
 			total_branch_media_files = 0;
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_getBranchMediaFileTX, EC.Select.txErrorCB, _getBranchMediaFileSuccessCB);
+			EC.db.transaction(_getBranchMediaFileTX, EC.Select.errorCB, _getBranchMediaFileSuccessCB);
 
 			return deferred.promise();
 

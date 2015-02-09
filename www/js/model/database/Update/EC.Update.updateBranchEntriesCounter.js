@@ -19,7 +19,7 @@ EC.Update = ( function(module) {"use strict";
 		var _updateHierarchyEntriesCounterTX = function(tx) {
 
 			var query = 'UPDATE ec_branch_forms SET entries = entries + ' + amount + ' WHERE _id=?';
-			tx.executeSql(query, [form_id], _onupdateHierarchyEntriesCounterSQLCB, EC.Update.txErrorCB);
+			tx.executeSql(query, [form_id], _onupdateHierarchyEntriesCounterSQLCB, EC.Update.errorCB);
 		};
 
 		var _onCounterUpdateSuccessCB = function() {
@@ -129,7 +129,7 @@ EC.Update = ( function(module) {"use strict";
 			forms_data_left = the_forms_data_left;
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_updateHierarchyEntriesCounterTX, EC.Update.txErrorCB, _onCounterUpdateSuccessCB);
+			EC.db.transaction(_updateHierarchyEntriesCounterTX, EC.Update.errorCB, _onCounterUpdateSuccessCB);
 
 			return deferred.promise();
 

@@ -252,9 +252,6 @@ EC.Entries = ( function() {
 			var entry_key = window.localStorage.entry_key;
 			var form_id = window.localStorage.form_id;
 			var project_name = window.localStorage.project_name;
-			var children_forms = [];
-
-			children_forms = EC.Utils.getChildrenForms(form_id);
 
 			//get hash from data-hef attribute
 			window.localStorage.back_nav_url = $('div#entry-values div[data-role="header"] div[data-role="navbar"] ul li.inactive-tab i').attr("data-href");
@@ -263,7 +260,7 @@ EC.Entries = ( function() {
 			window.localStorage.removeItem('cached_entries_list');
 
 			//delete all the rows for this entry
-			$.when(EC.Delete.deleteEntry(project_name, rows_to_delete, entry_key, form_id, children_forms)).then(function(is_positive) {
+			$.when(EC.Delete.deleteEntry(project_name, rows_to_delete, entry_key, form_id)).then(function(is_positive) {
 
 				if (is_positive) {
 					EC.Notification.showToast(EC.Localise.getTranslation("entry_deleted"), "short");
