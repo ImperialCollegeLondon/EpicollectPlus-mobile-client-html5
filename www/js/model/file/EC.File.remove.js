@@ -5,13 +5,13 @@
  */
 var EC = EC || {};
 
-/* Remove one or more files from a project recursively
+/* Remove one or more files from a project recursively 
  *
  * @submodule File
  * @method remove
  * @param {string} the_project_name - the name of the project
  * @param {array} files - array of file names and media type like:
- * 
+ *
  * {value: <the_filenemae>, type: <the_media_type>}
  *
  */
@@ -33,7 +33,7 @@ EC.File = ( function(module) {
 			//get files details
 			project_name = the_project_name;
 			files = the_files;
-			
+
 			//remove 1 file at a time recursively
 			_removeOneFile();
 
@@ -42,14 +42,14 @@ EC.File = ( function(module) {
 		};
 
 		var _removeOneFile = function() {
-			
+
 			//get a single file
 			var file = files.shift();
 			var filename = file.value;
 			var type = file.type;
 			var dir;
 			var full_path;
-			
+
 			//get directory the file is saved in based on its type (photo, audio, video)
 			switch(type) {
 
@@ -66,13 +66,24 @@ EC.File = ( function(module) {
 					break;
 
 			}
-			
-			full_path = EC.Const.ANDROID_APP_PRIVATE_URI + dir + project_name + "/" + filename;
+
+			//get full path to file based on platform
+			switch(window.device.platform) {
+
+				case EC.Const.ANDROID:
+					full_path = EC.Const.ANDROID_APP_PRIVATE_URI + dir + project_name + "/" + filename;
+					break;
+				case EC.Const.IOS:
+					
+					//on iOS we need to prepend "file://" to get file object for deletion
+					full_path = 'file://' + EC.Const.IOS_APP_PRIVATE_URI + dir + project_name + "/" + filename;
+					break;
+			}
 
 			console.log("file full path: " + full_path);
 
 			//get file entry
-			window.resolveLocalFileSystemURI(full_path, _onGetFileSuccess, _onGetFileError);
+			window.resolveLocalFileSystemURL(full_path, _onGetFileSuccess, _onGetFileError);
 		};
 
 		var _onGetFileSuccess = function(the_file_entry) {
