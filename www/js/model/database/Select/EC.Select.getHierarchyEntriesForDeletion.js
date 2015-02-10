@@ -2,15 +2,21 @@
 /*global $, jQuery*/
 
 /*
-
+ * @method getHierarchyEntriesForDeletion
  *
  * Select and count the rows we are going to delete to be able to update the
- * entries counters later, the one we use to show the entries total per each form
+ * entries counters later, the ones we use to show the entries total per each form
  * on the form list page
  * This is mainly done for performance reason, as querying COUNT per each form
  * each time the form list view is called was a bit heavy
  * Doing this way we have a column "entries_total" per each form and we keep that
  * value updated accordingly
+ *
+ * This method also caches details about the entries we are going to delete later,
+ * this is mainly to have a reference for any branches or media files  attached
+ * to these entries which need to be deleted as well
+ * 
+ * on resolve(), entries and counters objects are returned
  */
 var EC = EC || {};
 EC.Select = EC.Select || {};
@@ -23,7 +29,7 @@ EC.Select = ( function(module) {
 		var entries;
 		var counters;
 
-		var _countEntriesForDeletionSQLSuccessCB = function(the_tx, the_result) {
+		var _getHierarchyEntriesForDeletionSQLSuccessCB = function(the_tx, the_result) {
 
 			var i;
 			var iLength = the_result.rows.length;
@@ -38,26 +44,22 @@ EC.Select = ( function(module) {
 				form_id : entries[0].form_id,
 				amount : entries.length
 			});
-
-			console.log(entries);
-
 		};
 
-		var _countEntriesForDeletionTX = function(tx) {
+		var _getHierarchyEntriesForDeletionTX = function(tx) {
 
-			//select COUNT(*) and rows we are going to delete: we do this to update the entry
-			// counter after deletion
 			var query = "SELECT form_id, parent, entry_key, COUNT(*) as count FROM ec_data WHERE entry_key=? GROUP BY form_id";
 
-			tx.executeSql(query, [entry_key], _countEntriesForDeletionSQLSuccessCB, EC.Delete.errorCB);
+			tx.executeSql(query, [entry_key], _getHierarchyEntriesForDeletionSQLSuccessCB, EC.Delete.errorCB);
 		};
 
-		var _countEntriesForDeletionSuccessCB = function() {
-
+		var _getHierarchyEntriesForDeletionSuccessCB = function() {
+			
+			//return entries details and counters
 			deferred.resolve(entries, counters);
 		};
 
-		module.countEntriesForDeletion = function(the_entry_key) {
+		module.getHierarchyEntriesForDeletion = function(the_entry_key) {
 
 			self = this;
 			deferred = new $.Deferred();
@@ -65,10 +67,9 @@ EC.Select = ( function(module) {
 			entries = [];
 			counters = [];
 
-			EC.db.transaction(_countEntriesForDeletionTX, EC.Delete.errorCB, _countEntriesForDeletionSuccessCB);
+			EC.db.transaction(_getHierarchyEntriesForDeletionTX, EC.Delete.errorCB, _getHierarchyEntriesForDeletionSuccessCB);
 
 			return deferred.promise();
-
 		};
 
 		return module;

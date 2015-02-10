@@ -52,7 +52,7 @@ EC.Select = ( function(module) {
 			deferred = new $.Deferred();
 			form = the_form;
 			files = [];
-			entries = self.deletion_entries;
+			entries = EC.Delete.deletion_entries;
 
 			EC.db.transaction(_getHierarchyChildrenFilesTX, self.errorCB, _getHierarchyChildrenFilesSuccessCB);
 

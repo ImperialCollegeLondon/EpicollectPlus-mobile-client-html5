@@ -2,9 +2,9 @@
 /*global $, jQuery*/
 
 /*
- * Select  all the rows we are going to delete and cache them
+ * Select  all the entries we are going to delete and cache them
  *
- * We need the total amount of rows deleted ot updated the entries counter per
+ * We need the total amount of entries deleted to update the entries counter per
  * each form, also we need to delete any children based on the entry key of the
  * selected entry
  */
@@ -24,11 +24,13 @@ EC.Select = ( function(module) {
 
 			var i;
 			var iLength = the_result.rows.length;
-
+			
+			//get all child entries
 			for ( i = 0; i < iLength; i++) {
 				child_entries.push(the_result.rows.item(i));
 			}
-
+			
+			//get totalt of entries deleted from a specific form
 			if (iLength > 0) {
 				child_counters = {
 					form_id : child_entries[0].form_id,
@@ -59,9 +61,6 @@ EC.Select = ( function(module) {
 				else {
 					parent_key = parent_entries[i].parent + EC.Const.ENTRY_ROOT_PATH_SEPARATOR + parent_entries[i].entry_key;
 				}
-
-				//TODO: is parent key always the same for all entries? IT should be...
-				console.log("parent key: " + parent_key);
 
 				tx.executeSql(query, [parent_key], _getChildEntriesForDeletionSQLSuccessCB, self.errorCB);
 			}

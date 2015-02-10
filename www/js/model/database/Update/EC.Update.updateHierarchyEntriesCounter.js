@@ -16,7 +16,7 @@ EC.Update = ( function(module) {
 
 		/*
 		 * @method updateHierarchyEntriesCounter Update the total of entries for a
-		 * hierarchy form, after entering/deleting entries
+		 * hierarchy form, after entering entries
 		 * @param {the_entry_key} the value of the primary key for the form (entry) just
 		 * entered
 		 * @param {the_form_id} the _id of the form in the database
@@ -79,14 +79,7 @@ EC.Update = ( function(module) {
 				window.localStorage.forms = JSON.stringify(old_forms);
 			}
 
-			if (action === EC.Const.DELETE_SINGLE_ENTRY) {
-
-				amount = -amount;
-
-				////update forms in localStorage with the new total entries values
-				//todo, maybe not needed
-				console.log("localstorage forms maybe need to be updated here");
-			}
+			
 
 			EC.db.transaction(_updateHierarchyEntriesCounterTX, EC.Update.errorCB, _onCounterUpdateSuccessCB);
 
@@ -181,25 +174,6 @@ EC.Update = ( function(module) {
 					deferred.resolve();
 					//reset total of entries
 					amount = 0;
-
-					break;
-
-				case EC.Const.DELETE_SINGLE_ENTRY:
-
-					if (forms_data_left.length > 0) {
-
-						var current_count = forms_data_left.shift();
-
-						_doUpdate(null, current_count.form_id, current_count.amount, EC.Const.DELETE_SINGLE_ENTRY, forms_data_left);
-
-					}
-					else {
-
-						deferred.resolve();
-
-						//reset total of entries
-						amount = 0;
-					}
 
 					break;
 

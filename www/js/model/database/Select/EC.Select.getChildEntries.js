@@ -21,9 +21,6 @@ EC.Select = ( function(module) {"use strict";
 		var self;
 		var new_request;
 
-		/**
-		 * @method _getChildEntriesParentsTX Get a parent entry (one at a time)
-		 */
 		var _getChildEntriesParentsTX = function(tx) {
 
 			//get all the parents one at a time
@@ -39,11 +36,6 @@ EC.Select = ( function(module) {"use strict";
 
 		};
 
-		/**
-		 * @method _getChildEntriesParentsSQLSuccess Get all the children for the passed parent
-		 * @param {Object} the_tx the transaction
-		 * @param {Object} the_result the object returned by a successful query
-		 */
 		var _getChildEntriesParentsSQLSuccess = function(the_tx, the_result) {
 
 			var i;
@@ -81,11 +73,6 @@ EC.Select = ( function(module) {"use strict";
 
 		};
 
-		/**
-		 *
-		 * @method _getAllChildrenTX query ec_data table for children of a parent, paginated by LIMIT * (number of inputs for that form)
-		 * @param {Object} tx the transaction
-		 */
 		var _getAllChildrenTX = function(tx) {
 
 			//select all entries aside from the one skipped (by jumps)
@@ -125,12 +112,6 @@ EC.Select = ( function(module) {"use strict";
 
 		};
 
-		/**
-		 * @method _getAllChildrenSQLSuccessCB Gets all the children for a parent.
-		 * A single entry is made of multiple rows so we need to loop to build the title
-		 * @param {Object} the_tx
-		 * @param {Object} the_result
-		 */
 		var _getAllChildrenSQLSuccessCB = function(the_tx, the_result) {
 
 			var i;

@@ -5,12 +5,14 @@
  */
 var EC = EC || {};
 
-/* Remove one or more files from a project
+/* Remove one or more files from a project recursively
  *
  * @submodule File
  * @method remove
  * @param {string} the_project_name - the name of the project
- * @param {array} files - array of file names
+ * @param {array} files - array of file names and media type like:
+ * 
+ * {value: <the_filenemae>, type: <the_media_type>}
  *
  */
 EC.File = EC.File || {};
@@ -25,23 +27,30 @@ EC.File = ( function(module) {
 
 		module.remove = function(the_project_name, the_files) {
 
-			var filename;
-			var type;
-			var file;
-			var dir;
-
 			self = this;
 			deferred = new $.Deferred();
 
 			//get files details
 			project_name = the_project_name;
 			files = the_files;
+			
+			//remove 1 file at a time recursively
+			_removeOneFile();
 
+			return deferred.promise();
+
+		};
+
+		var _removeOneFile = function() {
+			
 			//get a single file
-			file = files.shift();
-			filename = file.value;
-			type = file.type;
-
+			var file = files.shift();
+			var filename = file.value;
+			var type = file.type;
+			var dir;
+			var full_path;
+			
+			//get directory the file is saved in based on its type (photo, audio, video)
 			switch(type) {
 
 				case EC.Const.PHOTO:
@@ -57,42 +66,24 @@ EC.File = ( function(module) {
 					break;
 
 			}
-
-			_removeOneFile(filename, dir);
-
-			return deferred.promise();
-
-		};
-
-		var _removeOneFile = function(the_filename, the_dir) {
-
-			var filename = the_filename;
-			var dir = the_dir;
-			var full_path;
-
+			
 			full_path = EC.Const.ANDROID_APP_PRIVATE_URI + dir + project_name + "/" + filename;
 
 			console.log("file full path: " + full_path);
 
 			//get file entry
 			window.resolveLocalFileSystemURI(full_path, _onGetFileSuccess, _onGetFileError);
-
 		};
 
 		var _onGetFileSuccess = function(the_file_entry) {
 
 			var file_entry = the_file_entry;
 
-			console.log(file_entry);
-
 			file_entry.remove(_onRemoveSuccess, _onRemoveError);
-
 		};
 
 		var _onGetFileError = function(the_error) {
-
 			console.log("Error getting file: " + JSON.stringify(the_error));
-
 		};
 
 		var _onRemoveSuccess = function(the_entry) {
@@ -101,18 +92,14 @@ EC.File = ( function(module) {
 
 			//delete next file (if any)
 			if (files.length > 0) {
-
 				//recursive call to remove next file
-				self.remove(project_name, files);
+				_removeOneFile();
 			}
 			else {
-
 				//All files removed
 				EC.Notification.showToast(EC.Localise.getTranslation("all_media_deleted"), "short");
 				deferred.resolve();
-
 			}
-
 		};
 
 		var _onRemoveError = function(the_error) {
