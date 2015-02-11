@@ -4,10 +4,10 @@
 /*
  * @method updateCountersOnSingleEntryInsertion
  * Update the total of entries for a
- * hierarchy form, after entering entries. 
+ * hierarchy form, after entering entries.
  * It also updates the total of branch
  * entries linked to a hierarchy entry if any
- * 
+ *
  * @param {the_entry_key} the value of the primary key for the form (entry) just
  * entered
  * @param {the_form_id} the _id of the form in the database
@@ -17,7 +17,7 @@ EC.Update = EC.Update || {};
 EC.Update = ( function(module) {
 		"use strict";
 
-		var self = this;
+		var self;
 		var form_id;
 		var entry_key;
 		var amount;
@@ -25,8 +25,8 @@ EC.Update = ( function(module) {
 
 		module.updateCountersOnSingleEntryInsertion = function(the_entry_key, the_form_id) {
 
+			self = this;
 			deferred = new $.Deferred();
-
 			entry_key = the_entry_key;
 			form_id = the_form_id;
 

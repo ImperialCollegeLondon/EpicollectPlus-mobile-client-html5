@@ -18,7 +18,7 @@ EC.Update = ( function(module) {
 			tx.executeSql(query, [form_id], null, self.errorCB);
 		};
 
-		var _onCounterUpdateSuccessCB = function() {
+		var _updateCountersOnSingleBranchEntryInsertionSuccessCB = function() {
 			deferred.resolve(true, entry_key);
 		};
 

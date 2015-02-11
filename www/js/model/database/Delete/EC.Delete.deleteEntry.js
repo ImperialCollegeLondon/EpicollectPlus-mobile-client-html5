@@ -31,7 +31,7 @@ EC.Delete = ( function(module) {
 		 */
 		module.deleteEntry = function(the_project_name, the_rows, the_entry_key, the_current_form_id) {
 
-			debugger;
+			;
 
 			self = this;
 			deferred = new $.Deferred();
@@ -68,8 +68,6 @@ EC.Delete = ( function(module) {
 			 * selected antry
 			 */
 			$.when(EC.Select.getHierarchyEntriesForDeletion(entry_key)).then(function(the_entries, the_counters) {
-
-				debugger;
 
 				self.deletion_entries = the_entries;
 				self.deletion_counters = the_counters;
@@ -125,7 +123,7 @@ EC.Delete = ( function(module) {
 			//delete the hierarchy entry (the one currently selected by the user)
 			$.when(EC.Delete.removeHierarchyEntryData(entry_key)).then(function() {
 
-				debugger;
+				;
 
 				//TODO delete all the media files -> wait, check for children and children files
 
@@ -138,7 +136,7 @@ EC.Delete = ( function(module) {
 
 					$.when(EC.Delete.deleteChildEntries()).then(function() {
 
-						debugger;
+						;
 
 						//all children deleted, update counters (recursively) for all the forms
 						console.log("all children deleted");
