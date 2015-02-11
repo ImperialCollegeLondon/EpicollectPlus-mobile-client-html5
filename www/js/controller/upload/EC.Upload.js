@@ -6,7 +6,8 @@
  *
  */
 var EC = EC || {};
-EC.Upload = ( function() {"use strict";
+EC.Upload = ( function() {
+		"use strict";
 
 		var project_id;
 		var data_rows = [];
@@ -20,6 +21,9 @@ EC.Upload = ( function() {"use strict";
 		var images = [];
 		var audios = [];
 		var videos = [];
+		var audio_synced;
+		var photo_synced;
+		var video_synced;
 		var media_type = "";
 
 		/**
@@ -45,7 +49,8 @@ EC.Upload = ( function() {"use strict";
 			if (!EC.Utils.isChrome()) {
 
 				upload_URL = window.localStorage.upload_URL;
-			} else {
+			}
+			else {
 
 				upload_URL = "test.php";
 			}
@@ -60,18 +65,21 @@ EC.Upload = ( function() {"use strict";
 
 		return {
 			hierarchy_rows_to_sync : hierarchy_rows_to_sync,
-			branch_rows_to_sync:branch_rows_to_sync,
+			branch_rows_to_sync : branch_rows_to_sync,
 			main_rows_to_post : main_rows_to_post,
 			main_entries : main_entries,
 			hierarchy_forms : hierarchy_forms,
 			action : action,
-			current_entry: current_entry,
-			current_branch_entry:current_branch_entry,
-			current_form: current_form,
+			current_entry : current_entry,
+			current_branch_entry : current_branch_entry,
+			current_form : current_form,
 			current_branch_form : current_branch_form,
 			has_branches : has_branches,
 			setUploadURL : setUploadURL,
-			getUploadURL : getUploadURL
+			getUploadURL : getUploadURL,
+			audio_synced : audio_synced,
+			photo_synced : photo_synced,
+			video_synced : video_synced
 		};
 
 	}());

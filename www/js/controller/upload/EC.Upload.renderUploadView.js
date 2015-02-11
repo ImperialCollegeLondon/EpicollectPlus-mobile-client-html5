@@ -7,12 +7,15 @@
  */
 var EC = EC || {};
 EC.Upload = EC.Upload || {};
-EC.Upload = ( function(module) {"use strict";
-
+EC.Upload = ( function(module) {
+		"use strict";
+		
+		var self;
 		var upload_data_btn;
 		var upload_images_btn;
 		var upload_audios_btn;
 		var upload_videos_btn;
+		var all_synced_message;
 		var back_btn;
 		var project_name;
 		var project_id;
@@ -34,29 +37,33 @@ EC.Upload = ( function(module) {"use strict";
 			upload_audios_btn = $('div#upload div#upload-options div#upload-audios-btn');
 			upload_videos_btn = $('div#upload div#upload-options div#upload-videos-btn');
 			back_btn = $("div#upload div[data-role='header'] div[data-href='back-btn']");
+			all_synced_message = $('div#upload div#upload-options .all-synced-message');
 
 			hash = "forms.html?project=" + project_id + "&name=" + project_name;
 			if (has_hard_reload) {
-				//back_button_label.text(project_name.trunc(EC.Const.PROJECT_NAME_MAX_LENGTH) + " forms");
 				back_button_label.text("Forms");
 			}
 
 			if (window.localStorage.back_nav_url && window.localStorage.back_nav_url !== "#refresh") {
 				back_button_label.text("Entries");
-			} else {
+			}
+			else {
 				back_button_label.text("Forms");
 			}
 
 			//bind back button for navigating back from upload page
 			back_btn.off().one('vclick', function(e) {
 
-				//TODO: we have to decide what is better...go back to save feedback page or entries list??
-				//if (window.localStorage.back_nav_url && window.localStorage.back_nav_url !== "#refresh") {
-					//go back to entries list; back_nav_url is an url when user goes to upload page after adding/editing an entry
-					//EC.Routing.changePage(window.localStorage.back_nav_url);
+				//TODO: we have to decide what is better...go back to save feedback page or
+				// entries list??
+				//if (window.localStorage.back_nav_url && window.localStorage.back_nav_url !==
+				// "#refresh") {
+				//go back to entries list; back_nav_url is an url when user goes to upload page
+				// after adding/editing an entry
+				//EC.Routing.changePage(window.localStorage.back_nav_url);
 				//} else {
-					//go back to form list
-					window.history.back(-1);
+				//go back to form list
+				window.history.back(-1);
 				//}
 
 			});
@@ -81,7 +88,8 @@ EC.Upload = ( function(module) {"use strict";
 					//prepare branch entry
 					self.prepareOneBranchEntry(self.current_branch_form.name, self.current_branch_entry);
 
-				} else {
+				}
+				else {
 
 					//prepare hierarchy entry
 					self.prepareOneHierarchyEntry(self.current_form.name, self.current_entry);
@@ -102,7 +110,8 @@ EC.Upload = ( function(module) {"use strict";
 
 				EC.Notification.showProgressDialog(EC.Localise.getTranslation("uploaded"), EC.Localise.getTranslation("wait"));
 
-				//post one image directly as it is already loaded in memory when requesting the upload page
+				//post one image directly as it is already loaded in memory when requesting the
+				// upload page
 				media_dir = EC.Const.PHOTO_DIR;
 				EC.File.uploadFile(image, media_dir);
 
@@ -144,9 +153,10 @@ EC.Upload = ( function(module) {"use strict";
 
 		module.renderUploadView = function(the_has_hard_reload_flag) {
 
-			var self = this;
+			
 			var has_hard_reload = the_has_hard_reload_flag;
-
+			
+			self = this;
 			project_name = window.localStorage.project_name;
 			project_id = parseInt(window.localStorage.project_id, 10);
 			self.has_branches = EC.Utils.projectHasBranches();
@@ -160,9 +170,9 @@ EC.Upload = ( function(module) {"use strict";
 
 			//bind view buttons
 			_bindBtns(has_hard_reload, self);
-			
+
 			//Localise
-			if(window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH){
+			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
 				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
 			}
 
@@ -177,6 +187,9 @@ EC.Upload = ( function(module) {"use strict";
 
 				//enable upload data button
 				upload_data_btn.removeClass("ui-disabled");
+
+				//hide all synced message
+				all_synced_message.addClass('not-shown');
 			}
 
 			//callback when no hierarchy un-synced entries are found upon first page load
@@ -187,7 +200,8 @@ EC.Upload = ( function(module) {"use strict";
 				//reset branch forms array to get rid of old cahced forms
 				EC.Upload.branch_forms = [];
 
-				//no hierarchy entry found, if the project has branches check for any un-synced branch entries
+				//no hierarchy entry found, if the project has branches check for any un-synced
+				// branch entries
 				if (self.has_branches) {
 
 					var _onOneBranchEntryFound = function(the_branch_entry) {
@@ -200,7 +214,7 @@ EC.Upload = ( function(module) {"use strict";
 
 						//enable upload data button
 						upload_data_btn.removeClass("ui-disabled");
-
+						all_synced_message.addClass('not-shown');
 					};
 
 					var _onOneBranchEntryNotFound = function() {
@@ -223,71 +237,42 @@ EC.Upload = ( function(module) {"use strict";
 						$.when(EC.Select.getOneBranchEntry(project_id, self.current_branch_form.name, true).then(_onOneBranchEntryFound, _onOneBranchEntryNotFound));
 					});
 
-				} else {
+				}
+				else {
 
 					/* This project does not have branches: since no hierarchy entries were found,
-					 * check if we have any media ready to upload (is_data_synced = 1 AND is_media_synced = 0)
+					 * check if we have any media ready to upload (is_data_synced = 1 AND
+					 * is_media_synced = 0)
 					 */
 					self.handleMedia();
 
 				}
 
 			}
-			
+
 			//let's start looking at hierarchy branches first, then branches
 			EC.Upload.is_branch_image = false;
 			EC.Upload.is_branch_audio = false;
 			EC.Upload.is_branch_video = false;
 
-			//get first hierarchy entry not yet synced. The approach is to upload and sync a single entry (cluster of rows) at a time
+			//get first hierarchy entry not yet synced. The approach is to upload and sync a
+			// single entry (cluster of rows) at a time
 			$.when(EC.Select.getOneHierarchyEntry(self.current_form, true).then(_onOneHierarchyEntryFound, _onOneHierarchyEntryNotFound));
 
 		};
 
 		module.handleMedia = function() {
 
-			var self = this;
+			
+			self.audio_synced = true;
+			self.photo_synced = true;
+			self.video_synced = true;
 
-			/*We are using a super safe approach to just fetch 1 single row (file) per media type, and then fetch the next one recursively (like we did for data)
-			 *It is a bit slower but I will have only 1 element at a time in memory and it is easier to recover from a failure (dropped connections, server down, phone kills the app, etc)
-			 */
+			var _audioCheck = function(the_audio) {
 
-			$.when(EC.Select.getOneHierarchyMediaPerType(project_id)).then(function(the_image, the_audio, the_video) {
-
-				//got media, enable buttons with media and look for branch file if no hierarchy media found
-				image = the_image;
+				var deferred = new $.Deferred();
 				audio = the_audio;
-				video = the_video;
 
-				/**
-				 *
-				 */
-				if (!image) {
-
-					if (self.has_branches) {
-						$.when(EC.Select.getOneBranchPhotoFile(project_id, EC.Const.PHOTO)).then(function(the_image) {
-
-							image = the_image;
-
-							EC.Upload.is_branch_image = true;
-
-							//enable upload image button
-							upload_images_btn.removeClass("ui-disabled");
-
-						});
-
-					}
-
-				} else {
-					
-					EC.Upload.is_branch_image = false;
-					//enable upload image button
-					upload_images_btn.removeClass("ui-disabled");
-				}
-
-				/**
-				 *
-				 */
 				if (!audio) {
 
 					if (self.has_branches) {
@@ -300,47 +285,143 @@ EC.Upload = ( function(module) {"use strict";
 							//enable upload audio button
 							upload_audios_btn.removeClass("ui-disabled");
 
+							self.audio_synced = false;
+							deferred.resolve();
+						}, function() {
+							deferred.resolve();
+
 						});
 
 					}
+					else {
+						deferred.resolve();
+					}
 
-				} else {
-					
+				}
+				else {
+
 					EC.Upload.is_branch_audio = false;
 					//enable upload audio button
 					upload_audios_btn.removeClass("ui-disabled");
+
+					self.audio_synced = false;
+					deferred.resolve();
 				}
 
-				/**
-				 *
-				 */
+				return deferred.promise();
+
+			};
+
+			var _photoCheck = function(the_image) {
+
+				var deferred = new $.Deferred();
+				image = the_image;
+
+				if (!image) {
+
+					if (self.has_branches) {
+						$.when(EC.Select.getOneBranchPhotoFile(project_id, EC.Const.PHOTO)).then(function(the_image) {
+
+							image = the_image;
+							EC.Upload.is_branch_image = true;
+
+							//enable upload image button
+							upload_images_btn.removeClass("ui-disabled");
+							self.photo_synced = false;
+							deferred.resolve();
+						}, function() {
+							deferred.resolve();
+						});
+					}
+					else {
+						deferred.resolve();
+					}
+				}
+				else {
+
+					EC.Upload.is_branch_image = false;
+					//enable upload image button
+					upload_images_btn.removeClass("ui-disabled");
+					self.photo_synced = false;
+					deferred.resolve();
+				}
+
+				return deferred.promise();
+			};
+
+			var _videoCheck = function(the_video) {
+
+				var deferred = new $.Deferred();
+				video = the_video;
+
 				if (!video) {
 
 					if (self.has_branches) {
 						$.when(EC.Select.getOneBranchVideoFile(project_id, EC.Const.VIDEO)).then(function(the_video) {
 
 							video = the_video;
+							self.video_synced = false;
 
 							EC.Upload.is_branch_video = true;
 
 							//enable upload audio button
 							upload_videos_btn.removeClass("ui-disabled");
 
+							deferred.resolve();
+
+						}, function() {
+							deferred.resolve();
 						});
 					}
+					else {
+						deferred.resolve();
+					}
 
-				} else {
-					
+				}
+				else {
+
+					self.video_synced = false;
 					EC.Upload.is_branch_video = false;
 					//enable upload video button
 					upload_videos_btn.removeClass("ui-disabled");
+
+					deferred.resolve();
+
 				}
+
+				return deferred.promise();
+			};
+
+			/*We are using a super safe approach to just fetch 1 single row (file) per media
+			 * type, and then fetch the next one recursively (like we did for data)
+			 *It is a bit slower but I will have only 1 element at a time in memory and it is
+			 * easier to recover from a failure (dropped connections, server down, phone
+			 * kills the app, etc)
+			 */
+
+			$.when(EC.Select.getOneHierarchyMediaPerType(project_id)).then(function(the_image, the_audio, the_video) {
+
+				//got media, enable buttons with media and look for branch file if no hierarchy
+				// media found
+				image = the_image;
+				audio = the_audio;
+				video = the_video;
+
+				//if all media are synced, show all synced message
+				$.when(_photoCheck(image), _audioCheck(audio), _videoCheck(video)).then(function() {
+					if (!(self.audio_synced && self.photo_synced && self.video_synced)) {
+						all_synced_message.addClass('not-shown');
+					}
+					else {
+						all_synced_message.removeClass('not-shown');
+					}
+				});
 
 			}, function() {
 
 				//TODO: no media found (image, audio, video are ALL empty)
 				//do nothing yet
-
+				all_synced_message.removeClass('not-shown');
 			});
 
 		};
@@ -352,12 +433,14 @@ EC.Upload = ( function(module) {"use strict";
 			//notify user all data were uploaded successfully
 			EC.Notification.hideProgressDialog();
 
-			//show upload success notification only after an upload. When the user first request the uplad view, that will not be shown
+			//show upload success notification only after an upload. When the user first
+			// request the uplad view, that will not be shown
 			if (self.action === EC.Const.STOP_HIERARCHY_UPLOAD || self.action === EC.Const.STOP_BRANCH_UPLOAD) {
 				if (is_successful) {
 
 					//disable data upload button as no data to upload any more
 					upload_data_btn.addClass('ui-disabled');
+					all_synced_message.removeClass('not-shown');
 
 					EC.Notification.showToast(EC.Localise.getTranslation("data_upload_success"), "short");
 

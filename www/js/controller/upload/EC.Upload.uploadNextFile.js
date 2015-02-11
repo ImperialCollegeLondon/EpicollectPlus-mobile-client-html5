@@ -19,6 +19,7 @@ EC.Upload = ( function(module) {
 			var self = this;
 			var media_dir;
 			var project_id = parseInt(window.localStorage.project_id, 10);
+			var all_synced_message = $('div#upload div#upload-options .all-synced-message');
 
 			//upload another file of same type (if any)
 			switch(the_media_type) {
@@ -50,6 +51,15 @@ EC.Upload = ( function(module) {
 							//disable upload images button, as no more images to upload
 							upload_images_btn = $('div#upload div#upload-options div#upload-images-btn');
 							upload_images_btn.addClass("ui-disabled");
+							self.photo_synced = true;
+							
+							//if all sync show message
+							if (!(self.audio_synced && self.photo_synced && self.video_synced)) {
+								all_synced_message.addClass('not-shown');
+							}
+							else {
+								all_synced_message.removeClass('not-shown');
+							}
 
 							//notify user all data were uploaded successfully
 							EC.Notification.hideProgressDialog();
@@ -77,18 +87,27 @@ EC.Upload = ( function(module) {
 						/* No more audio files to post
 						 * check branches for audios
 						 */
-						$.when(EC.Select.getOneBranchAudioFile(project_id)).then(function(the_branch_image) {
+						$.when(EC.Select.getOneBranchAudioFile(project_id)).then(function(the_branch_audio) {
 
 							//post image
 							media_dir = EC.Const.AUDIO_DIR;
 							EC.Upload.is_branch_audio = true;
-							EC.File.uploadFile(the_branch_image, media_dir);
+							EC.File.uploadFile(the_branch_audio, media_dir);
 
 						}, function() {
 
 							//disable upload audios button, as no more audio files to upload
 							upload_audios_btn = $('div#upload div#upload-options div#upload-audios-btn');
 							upload_audios_btn.addClass("ui-disabled");
+							self.audio_synced = true;
+							
+							//if all sync show message
+							if (!(self.audio_synced && self.photo_synced && self.video_synced)) {
+								all_synced_message.addClass('not-shown');
+							}
+							else {
+								all_synced_message.removeClass('not-shown');
+							}
 
 							//notify user all data were uploaded successfully
 							EC.Notification.hideProgressDialog();
@@ -126,6 +145,15 @@ EC.Upload = ( function(module) {
 							//disable upload audios button, as no more audio files to upload
 							upload_videos_btn = $('div#upload div#upload-options div#upload-videos-btn');
 							upload_videos_btn.addClass("ui-disabled");
+							self.video_synced = true;
+							
+							//if all sync show message
+							if (!(self.audio_synced && self.photo_synced && self.video_synced)) {
+								all_synced_message.addClass('not-shown');
+							}
+							else {
+								all_synced_message.removeClass('not-shown');
+							}
 
 							//notify user all data were uploaded successfully
 							EC.Notification.hideProgressDialog();
