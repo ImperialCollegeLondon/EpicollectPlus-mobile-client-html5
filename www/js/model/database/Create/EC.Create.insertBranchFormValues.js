@@ -86,7 +86,7 @@ EC.Create = ( function(module) {"use strict";
 			var branch_form_id = branch_form_values[0].form_id;
 
 			//update branch entries counter, + 1
-			$.when(EC.Update.updateBranchEntriesCounter(entry_key, branch_form_id, 1, EC.Const.INSERT, null)).then(function() {
+			$.when(EC.Update.updateCountersOnSingleBranchEntryInsertion(entry_key, branch_form_id)).then(function() {
 				deferred.resolve(entry_key);
 			}, function() {
 				deferred.reject();

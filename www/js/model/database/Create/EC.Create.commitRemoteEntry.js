@@ -321,7 +321,7 @@ EC.Create = ( function(module) {"use strict";
 		var _insertTopFormValuesSuccessCB = function(the_tx, the_result) {
 
 			//update entries counter for the current form (adding new entry, + 1)
-			$.when(EC.Update.updateHierarchyEntriesCounter(null, form_id, 1, EC.Const.DOWNLOAD, null)).then(function() {
+			$.when(EC.Update.updateCountersOnEntriesDownload(form_id)).then(function() {
 				deferred.resolve();
 			});
 
@@ -330,7 +330,7 @@ EC.Create = ( function(module) {"use strict";
 		var _insertChildFormValuesSuccessCB = function(the_tx, the_result) {
 
 			//update entries counter for the current form (adding new entry, + 1)
-			$.when(EC.Update.updateHierarchyEntriesCounter(null, form_id, 1, EC.Const.DOWNLOAD, null)).then(function() {
+			$.when(EC.Update.updateCountersOnEntriesDownload(form_id)).then(function() {
 				deferred.resolve();
 			});
 

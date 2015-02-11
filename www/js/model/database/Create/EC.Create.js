@@ -148,7 +148,7 @@ EC.Create = ( function() {"use strict";
 				self.insertEntries(entries);
 			} else {
 				//update entries counter for the current form. Resolved: all hierarchy data saved; Rejected: still data to save
-				$.when(EC.Update.updateHierarchyEntriesCounter(null, local_form_id, form_total_entries, EC.Const.RESTORE, hierarchy_forms_data)).then(function() {
+				$.when(EC.Update.updateCountersOnEntriesRestore(local_form_id, form_total_entries, hierarchy_forms_data)).then(function() {
 					//all forms updated
 					deferred.resolve();
 				}, function(the_forms_data_left) {

@@ -71,7 +71,7 @@ EC.Create = ( function(module) {"use strict";
 			console.log("FORM VALUES SAVED SUCCESSFULLY");
 
 			//update entries counter, + 1
-			$.when(EC.Update.updateHierarchyEntriesCounter(entry_key, form_id, 1, EC.Const.INSERT, null)).then(function(main_form_entry_key) {
+			$.when(EC.Update.updateCountersOnSingleEntryInsertion(entry_key, form_id)).then(function(main_form_entry_key) {
 				deferred.resolve(main_form_entry_key);
 			}, function() {
 				deferred.reject();

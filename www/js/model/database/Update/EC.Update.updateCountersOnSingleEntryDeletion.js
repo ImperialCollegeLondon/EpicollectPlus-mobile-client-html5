@@ -30,7 +30,7 @@ EC.Update = ( function(module) {
 		var forms_data_left;
 		var deferred;
 
-		var _onCounterUpdateSuccessCB = function() {
+		var _updateCountersOnSingleEntryDeletionSuccessCB = function() {
 			
 			//any more forms to update?
 			if (counters.length > 0) {
@@ -45,7 +45,7 @@ EC.Update = ( function(module) {
 
 		};
 
-		var _updateHierarchyEntriesCounterTX = function(tx) {
+		var _updateCountersOnSingleEntryDeletionTX = function(tx) {
 
 			var query = 'UPDATE ec_forms SET entries = entries + ' + amount + ' WHERE _id=?';
 
@@ -61,7 +61,7 @@ EC.Update = ( function(module) {
 			//TODO, maybe not needed
 			console.log("localstorage forms maybe need to be updated here");
 
-			EC.db.transaction(_updateHierarchyEntriesCounterTX, self.errorCB, _onCounterUpdateSuccessCB);
+			EC.db.transaction(_updateCountersOnSingleEntryDeletionTX, self.errorCB, _updateCountersOnSingleEntryDeletionSuccessCB);
 		}
 
 

@@ -51,7 +51,6 @@ EC.Update = ( function(module) {
 		};
 
 		/*
-		 * @method updateHierarchyEntriesCounter Update the total of entries for a form, after entering/deleting entries
 		 */
 		module.setCachedBranchesAsStored = function(the_cached_branch_entry_keys, the_main_form_key_value, the_project_id) {
 
