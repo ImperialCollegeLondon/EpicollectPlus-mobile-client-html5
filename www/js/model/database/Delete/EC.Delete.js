@@ -14,6 +14,7 @@ EC.Delete = ( function() {
 		var deletion_entries = [];
 		var deletion_files = [];
 		var children_forms = [];
+		var deletion_synced_entry_keys =[];
 
 		//callback for a transaction error
 		var errorCB = function(the_error) {

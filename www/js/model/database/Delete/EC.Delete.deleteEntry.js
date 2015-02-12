@@ -9,16 +9,34 @@ var EC = EC || {};
 EC.Delete = EC.Delete || {};
 EC.Delete = ( function(module) {
 		"use strict";
-
+		
+		var self;
 		var entry_key;
 		var current_form;
 		var current_child_form;
 		var hierarchy_files = [];
 		var branch_files = [];
 		var has_branches;
-		var self;
 		var deferred;
 		var project_name;
+
+		function _handleBranches(the_entry_key) {
+
+			var deferred = new $.Deferred();
+			var entry_key = the_entry_key;
+
+			//get all the branch files (if any)
+			$.when(EC.Select.getBranchFiles(entry_key)).then(function(the_files) {
+
+				self.deletion_files = self.deletion_files.concat(the_files);
+
+				//delete all branch entries linked to this hierarchy entry
+				$.when(EC.Delete.removeLinkedBranchEntries(entry_key)).then(function() {
+					deferred.resolve();
+				});
+			});
+			return deferred.promise();
+		}
 
 		/**
 		 * @method deleteEntry Deletes all the rows belonging to a single entry. It will
@@ -31,8 +49,6 @@ EC.Delete = ( function(module) {
 		 */
 		module.deleteEntry = function(the_project_name, the_rows, the_entry_key, the_current_form_id) {
 
-			;
-
 			self = this;
 			deferred = new $.Deferred();
 			entry_key = the_entry_key;
@@ -43,24 +59,6 @@ EC.Delete = ( function(module) {
 			self.deletion_counters = [];
 			self.deletion_entries = [];
 			self.children_forms = EC.Utils.getChildrenForms(current_form._id);
-
-			function _handleBranches(the_entry_key) {
-
-				var deferred = new $.Deferred();
-				var entry_key = the_entry_key;
-
-				//get all the branch files (if any)
-				$.when(EC.Select.getBranchFiles(entry_key)).then(function(the_files) {
-
-				self.deletion_files = self.deletion_files.concat(the_files);
-
-					//delete all branch entries linked to this hierarchy entry
-					$.when(EC.Delete.removeLinkedBranchEntries(entry_key)).then(function() {
-						deferred.resolve();
-					});
-				});
-				return deferred.promise();
-			}
 
 			/*
 			 * select COUNT(*) and rows we are going to delete: we do this to update the
@@ -123,8 +121,6 @@ EC.Delete = ( function(module) {
 			//delete the hierarchy entry (the one currently selected by the user)
 			$.when(EC.Delete.removeHierarchyEntryData(entry_key)).then(function() {
 
-				;
-
 				//TODO delete all the media files -> wait, check for children and children files
 
 				//TODO delete hierarchy files, branches and branch files if any
@@ -135,8 +131,6 @@ EC.Delete = ( function(module) {
 					console.log("delete children and branches and media attached");
 
 					$.when(EC.Delete.deleteChildEntries()).then(function() {
-
-						;
 
 						//all children deleted, update counters (recursively) for all the forms
 						console.log("all children deleted");

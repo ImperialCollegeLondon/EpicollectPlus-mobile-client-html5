@@ -145,7 +145,7 @@ EC.File = ( function(module) {
 
 			//update flag for this file row to indicate it has been synced to the
 			// server
-			$.when(EC.Update.flagOneFileAsSynceded(_id, is_branch_file)).then(function() {
+			$.when(EC.Update.flagOneFileAsSynced(_id, is_branch_file)).then(function() {
 
 				//upload another file (if any) of the same media type
 				EC.Upload.uploadNextFile(media_type);

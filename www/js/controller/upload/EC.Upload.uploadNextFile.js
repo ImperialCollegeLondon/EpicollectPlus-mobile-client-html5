@@ -131,14 +131,14 @@ EC.Upload = ( function(module) {
 					}, function() {
 
 						/* No more video files to post
-						 * check branches for audios
+						 * check branches for video files
 						 */
-						$.when(EC.Select.getOneBranchAudioFile(project_id)).then(function(the_branch_image) {
+						$.when(EC.Select.getOneBranchVideoFile(project_id)).then(function(the_branch_video) {
 
 							//post image
 							media_dir = EC.Const.VIDEO_DIR;
 							EC.Upload.is_branch_video = true;
-							EC.File.uploadFile(the_branch_image, media_dir);
+							EC.File.uploadFile(the_branch_video, media_dir);
 
 						}, function() {
 

@@ -1,4 +1,4 @@
-/*jslint vars: true , nomen: true, devel: true, plusplus:true*/
+/*jslint vars: true , nomen: true, devel: true, plusplus:true, stupid: true*/
 /*global $, jQuery*/
 /*
  *
@@ -10,167 +10,137 @@ EC.Delete = EC.Delete || {};
 EC.Delete = ( function(module) {
 		"use strict";
 
+		var self;
 		var project_name;
 		var project_id;
 		var forms;
-		var files;
-		var branch_files;
-		var self;
+		var current_form;
 		var counter;
-		var rows_deleted = [];
 		var deferred;
-		var has_branches;
 
-		var _deleteAllSyncedTX = function(tx) {
+		function _doDeletion() {
 
-			var i;
-			var iLength = forms.length;
-			var select_files_query = "";
-			var delete_query = "";
-			var branch_select_files_query;
-			var branch_delete_query;
+			//delete synced hierarchy entries for the current form
+			$.when(EC.Delete.removeSyncedHierarchyEntries(current_form._id)).then(function() {
 
-			counter = 0;
-			rows_deleted.length = 0;
-			files = [];
-			branch_files = [];
-
-			for ( i = 0; i < iLength; i++) {
-
-				rows_deleted[counter] = {};
-				rows_deleted[counter].form_id = forms[i]._id;
-
-				delete_query = "DELETE FROM ec_data WHERE form_id=? AND is_data_synced=?";
-
-				if (forms[i].has_media === 1) {
-
-					//this form has some media to delete so we need to delete only the rows which are
-					// BOTH data and media synced
-					select_files_query = "SELECT value,type from ec_data WHERE form_id=? AND is_data_synced=? AND is_media_synced=? AND (type=? OR type=? OR type=?)";
-
-					//get all file names before deleting
-					tx.executeSql(select_files_query, [forms[i]._id, 1, 1, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO], _selectFilesSQLSuccessCB, EC.Delete.errorCB);
-					tx.executeSql(delete_query, [forms[i]._id, 1], _deleteAllSyncedSQLSuccessCB, EC.Delete.errorCB);
-
+				if (forms.length > 0) {
+					//delete synced entries for next form
+					_deleteSynced(forms.shift());
 				}
 				else {
 
-					//no media for this form, go ahead and delete entries which are "data" synced
-					// only
-					tx.executeSql(delete_query, [forms[i]._id, 1], _deleteAllSyncedSQLSuccessCB, EC.Delete.errorCB);
+					//update total of synced hierachy entries deletes in ec_forms table for each form
+					// of this project
+					$.when(EC.Update.updateCountersOnSyncedEntriesDeletion(self.deletion_counters)).then(function() {
+
+						//remove files (if any)
+						if (self.deletion_files.length > 0) {
+							$.when(EC.File.remove(project_name, self.deletion_files)).then(function() {
+								deferred.resolve();
+							});
+						}
+						else {
+							deferred.resolve();
+						}
+					});
+
 				}
 
-			}
-
-			if (has_branches) {
-
-				//some branches with media to delete, same approach: cache the file names then
-				// delete
-				branch_select_files_query = "SELECT value,type from ec_branch_data WHERE form_id IN (SELECT _id FROM branch_forms WHERE project_id=? AND has_media=?) AND is_data_synced=? AND is_media_synced=? AND (type=? OR type=? OR type=?)";
-				branch_delete_query = "DELETE FROM ec_branch_data WHERE form_id IN (SELECT _id FROM branch_forms WHERE project_id=?) AND is_data_synced=?";
-
-				tx.executeSql(branch_select_files_query, [project_id, 1, 1, 1, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO], _selectBranchFilesSQLSuccessCB, EC.Delete.errorCB);
-				tx.executeSql(branch_delete_query, [project_id, 1], _deleteAllBranchesSyncedSQLSuccessCB, EC.Delete.errorCB);
-
-			}
-
-		};
-
-		var _selectFilesSQLSuccessCB = function(the_tx, the_result) {
-
-			var i;
-			var iLength = the_result.rows.length;
-
-			for ( i = 0; i < iLength; i++) {
-				files.push(the_result.rows.item(i));
-			}
-
-			console.log("files:" + JSON.stringify(files));
-
-		};
-
-		var _selectBranchFilesSQLSuccessCB = function(the_tx, the_result) {
-
-			var i;
-			var iLength = the_result.rows.length;
-
-			for ( i = 0; i < iLength; i++) {
-				branch_files.push(the_result.rows.item(i));
-			}
-
-			console.log("files:" + JSON.stringify(branch_files));
-
-		};
-
-		var _deleteAllSyncedSQLSuccessCB = function(the_tx, the_result) {
-
-			console.log("_deleteAllSyncedSQLSuccessCB");
-
-			rows_deleted[counter].total_deleted = the_result.rowsAffected;
-			counter++;
-
-			console.log(the_result);
-			console.log(the_tx);
-
-		};
-
-		var _deleteAllBranchesSyncedSQLSuccessCB = function(the_tx, the_result) {
-
-			//TODO: check this, but I think we do not need to count how many branches have
-			// been deleted as they are linked to its hierarchy entry that gets deleted
-			// anyway
-			console.log("_deleteAllBranchesSyncedSQLSuccessCB");
-			console.log(the_result);
-			console.log(the_tx);
-
-		};
-
-		/**
-		 * After successful rows deletion, resolve the deferred AFTER the total of
-		 * hierarchy entries is updated AND all the files (if any) are deleted
-		 */
-		var _deleteAllSyncedTXSuccessCB = function() {
-
-			console.log(self);
-			var forms = JSON.parse(window.localStorage.forms);
-			var file_deleted_defr = new $.Deferred();
-			var count_synced_defr = new $.Deferred();
-
-			//update total of entries in ec_forms table
-			$.when(EC.Update.countSyncedDeleted(rows_deleted, forms)).then(function() {
-				count_synced_defr.resolve();
 			});
+		}
 
-			//remove files (if any)
-			if (files.length > 0) {
-				$.when(EC.File.remove(project_name, files)).then(function() {
-					file_deleted_defr.resolve();
+		function _handleBranches(the_entry_keys) {
+
+			var deferred = new $.Deferred();
+			var entry_keys = the_entry_keys;
+
+			//get all the branch files linked to synced entries (if any)
+			$.when(EC.Select.getBranchSyncedFiles(entry_keys)).then(function(the_files) {
+
+				self.deletion_files = self.deletion_files.concat(the_files);
+
+				//delete all branch entries which are both data and media synced
+				$.when(EC.Delete.removeSyncedBranchEntries(entry_keys)).then(function() {
+					deferred.resolve();
 				});
-			}
-			else {
-				file_deleted_defr.resolve();
-			}
-
-			//both the above actions completed, resolve deferred
-			$.when(file_deleted_defr, count_synced_defr).then(function() {
-				deferred.resolve();
 			});
+			return deferred.promise();
+		}
 
-		};
 
 		module.deleteAllSynced = function(the_project_id, the_project_name, the_forms) {
 
 			self = this;
+			deferred = new $.Deferred();
 			project_name = the_project_name;
 			project_id = the_project_id;
 			forms = the_forms;
-			has_branches = EC.Utils.projectHasBranches();
-			deferred = new $.Deferred();
+			self.deletion_synced_entry_keys = [];
+			self.deletion_files = [];
+			self.deletion_counters = [];
 
-			EC.db.transaction(_deleteAllSyncedTX, EC.Delete.errorCB, _deleteAllSyncedTXSuccessCB);
+			//delete synced entries per each for recursively
+			_deleteSynced(forms.shift());
 
 			return deferred.promise();
 		};
+
+		function _deleteSynced(the_current_form) {
+
+			current_form = the_current_form;
+
+			/*
+			 * Select all the synced entries, we need the hierarchy
+			 * entry keys to delete any branches
+			 *
+			 */
+			$.when(EC.Select.getSyncedEntryKeys(current_form._id)).then(function(the_entry_keys) {
+
+				self.deletion_synced_entry_keys = the_entry_keys;
+				self.deletion_counters.push({form_id: current_form._id, amount: the_entry_keys.length});
+
+				if (current_form.has_media === 1) {
+
+					//get hierarchy files to delete (synced only)
+					$.when(EC.Select.getHierarchySyncedFiles(current_form._id)).then(function(the_files) {
+
+						self.deletion_files = self.deletion_files.concat(the_files);
+
+						//any branches?
+						if (current_form.has_branches === 1) {
+
+							//get branch files and delete branch entries
+							$.when(_handleBranches(self.deletion_synced_entry_keys)).then(function() {
+								_doDeletion();
+							});
+
+						}
+						else {
+							_doDeletion();
+						}
+					});
+
+				}
+				else {
+
+					//no media for this form, any branches?
+					if (current_form.has_branches === 1) {
+
+						//get branch files and delete branch entries
+						$.when(_handleBranches(self.deletion_synced_entry_keys)).then(function() {
+							_doDeletion();
+						});
+
+					}
+					else {
+						_doDeletion();
+					}
+
+				}
+
+			});
+
+		}
 
 		return module;
 

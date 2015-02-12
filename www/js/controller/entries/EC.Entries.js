@@ -219,6 +219,7 @@ EC.Entries = ( function() {
 			var deleted_entries = JSON.parse(window.localStorage.deleted_entries);
 			var count;
 			var current_count_holder;
+			var current_form_list_item;
 
 			//close panel
 			$('#project-options').panel("close");
@@ -230,13 +231,18 @@ EC.Entries = ( function() {
 
 					var new_count;
 
-					current_count_holder = $(this).find('a').find('span.ui-li-count');
+					current_form_list_item = $(this).find('a');
+					current_count_holder = current_form_list_item.find('span.ui-li-count');
 
 					new_count = parseInt(current_count_holder.text(), 10) - deleted_entries[i];
 
 					console.log("new_count" + new_count);
 
 					current_count_holder.text(new_count);
+
+					if (new_count === 0 && i>0) {
+						current_form_list_item.addClass("ui-disabled");
+					}
 
 				});
 				EC.Notification.showToast(EC.Localise.getTranslation("all_synced_deleted"), "short");

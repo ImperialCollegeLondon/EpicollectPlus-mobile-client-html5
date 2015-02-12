@@ -26,17 +26,13 @@ EC.Select = ( function(module) {
 
 		var _getHierarchyFilesTX = function(tx) {
 
-			var select_hierarchy_files_query = 'SELECT value, type from ec_data WHERE form_id=? AND entry_key=? AND (type=? OR type=? OR type=?) AND value <>?';
+			var query = 'SELECT value, type from ec_data WHERE form_id=? AND entry_key=? AND (type=? OR type=? OR type=?) AND value <>?';
 
 			//get all file names and types
-			tx.executeSql(select_hierarchy_files_query, [form._id, entry_key, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO, ""], _selectHierarchyFilesSQLSuccessCB, self.errorCB);
+			tx.executeSql(query, [form._id, entry_key, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO, ""], _selectHierarchyFilesSQLSuccessCB, self.errorCB);
 		};
 		
 		var _getHierarchyFilesSuccessCB = function(){
-			
-			console.log("Hierarchy files: ****************************************");
-			console.log("files:" + JSON.stringify(files));
-			
 			deferred.resolve(files);
 		};
 		

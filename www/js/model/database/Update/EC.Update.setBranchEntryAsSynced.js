@@ -1,8 +1,17 @@
-/*jslint vars: true , nomen: true, devel: true, plusplus:true*/
+/*jslint vars: true , nomen: true, devel: true, plusplus:true, stupid: true*/
 /*global $, jQuery*/
+
+/* @method setBranchEntryAsSynced
+ * Set all the rows of a branch entry to synced, setting is_data_synced to 1
+ * 
+ * @param {Array } the_branch_rows_to_sync
+ * all the rows of a branch entry
+ */
+
 var EC = EC || {};
 EC.Update = EC.Update || {};
-EC.Update = ( function(module) {"use strict";
+EC.Update = ( function(module) {
+		"use strict";
 
 		var branch_rows_to_sync;
 		var deferred;
@@ -16,41 +25,24 @@ EC.Update = ( function(module) {"use strict";
 			var branch_form_name;
 
 			for ( i = 0; i < iLength; i++) {
-
 				query = 'UPDATE ec_branch_data SET is_data_synced=? WHERE _id=?';
-				tx.executeSql(query, [1, branch_rows_to_sync[i]._id], _updateDataSyncedFlagSQLSuccess, EC.Update.errorCB);
-				//set error message if query fails
-				self.query_error_message = "Error -> EC.Update.setBranchEntryAsSynced";
-
+				tx.executeSql(query, [1, branch_rows_to_sync[i]._id], null, self.errorCB);
 			}
-
-		};
-
-		var _updateDataSyncedFlagSQLSuccess = function(the_tx, the_result) {
-
-			console.log("UPDATE BRANCH DATA SYNCED FLAG SQL SUCCESS");
-
 		};
 
 		var _updateDataSyncedFlagSuccessCB = function() {
-
-			console.log("UPDATE BRANCH DATA SYNCED FLAG TRANSACTION SUCCESS");
 			deferred.resolve();
-
 		};
 
 		module.setBranchEntryAsSynced = function(the_branch_rows_to_sync) {
-			
-			//TODO: check this assignment?
-			self = EC.Update;
+
+			self = this;
 			branch_rows_to_sync = the_branch_rows_to_sync;
 			deferred = new $.Deferred();
 
-			EC.db.transaction(_updateDataSyncedFlagTX, EC.Update.errorCB, _updateDataSyncedFlagSuccessCB);
+			EC.db.transaction(_updateDataSyncedFlagTX, self.errorCB, _updateDataSyncedFlagSuccessCB);
 
-			// return promise so that outside code cannot reject/resolve the deferred
 			return deferred.promise();
-
 		};
 
 		return module;
