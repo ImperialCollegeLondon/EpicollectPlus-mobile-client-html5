@@ -45,7 +45,7 @@ EC.Utils = ( function() {
 		//open db based on platform
 		var openDatabase = function() {
 
-			if(EC.Utils.isChrome()) {
+			if (EC.Utils.isChrome()) {
 				console.log('chrome websql db init');
 				//Chrome Chrome
 				return window.openDatabase("epicollect", "1.0", "Epicollect", 5 * 1024 * 1024);
@@ -78,11 +78,11 @@ EC.Utils = ( function() {
 			var connection_type;
 
 			//return immediately if testing in the Chrome
-			if(EC.Utils.isChrome()) {
+			if (EC.Utils.isChrome()) {
 				return true;
 			}
 
-			if(navigator.network) {
+			if (navigator.network) {
 
 				connection_type = navigator.network.connection.type;
 				console.log(JSON.stringify(connection_type));
@@ -94,8 +94,8 @@ EC.Utils = ( function() {
 
 			var i;
 			var start = new Date().getTime();
-			for( i = 0; i < 1e7; i++) {
-				if((new Date().getTime() - start) > milliseconds) {
+			for ( i = 0; i < 1e7; i++) {
+				if ((new Date().getTime() - start) > milliseconds) {
 					break;
 				}
 			}
@@ -118,7 +118,7 @@ EC.Utils = ( function() {
 			elements = (type === "date") ? format.split('/') : format.split(':');
 
 			iLength = elements.length;
-			for( i = 0; i < iLength; i++) {
+			for ( i = 0; i < iLength; i++) {
 
 				switch(elements[i]) {
 
@@ -186,7 +186,7 @@ EC.Utils = ( function() {
 			var i;
 			var iLength = format_parts.length;
 
-			for( i = 0; i < iLength; i++) {
+			for ( i = 0; i < iLength; i++) {
 
 				switch (format_parts[i]) {
 
@@ -229,7 +229,7 @@ EC.Utils = ( function() {
 			var i;
 			var iLength = format_parts.length;
 
-			for( i = 0; i < iLength; i++) {
+			for ( i = 0; i < iLength; i++) {
 
 				switch (format_parts[i]) {
 
@@ -269,7 +269,7 @@ EC.Utils = ( function() {
 			var _addZero = function(num) {
 				return (num >= 0 && num < 10) ? "0" + num : num;
 			};
-			for( i = 0; i < iLength; i++) {
+			for ( i = 0; i < iLength; i++) {
 				switch (format_parts[i]) {
 					case "hh":
 						parsed_date_parts.push(hours12);
@@ -314,7 +314,7 @@ EC.Utils = ( function() {
 			var _addZero = function(num) {
 				return (num >= 0 && num < 10) ? "0" + num : num;
 			};
-			for( i = 0; i < iLength; i++) {
+			for ( i = 0; i < iLength; i++) {
 				switch (format_parts[i]) {
 					case "hh":
 						parsed_date_parts.push(hours12);
@@ -372,12 +372,12 @@ EC.Utils = ( function() {
 			var child_form_id;
 			var child_form_name;
 
-			for( i = 0; i < iLength; i++) {
+			for ( i = 0; i < iLength; i++) {
 
 				//get current form num
-				if(parseInt(this.forms[i]._id, 10) === form_id) {
+				if (parseInt(this.forms[i]._id, 10) === form_id) {
 
-					if(i - 1 === -1) {
+					if (i - 1 === -1) {
 						//return 0 if this is the top parent form in the tree
 						parent_form_id = 0;
 						parent_form_name = "";
@@ -388,7 +388,7 @@ EC.Utils = ( function() {
 						parent_form_name = this.forms[i - 1].name;
 					}
 
-					if(i + 1 === iLength) {
+					if (i + 1 === iLength) {
 
 						child_form_id = 0;
 						child_form_name = "";
@@ -427,7 +427,7 @@ EC.Utils = ( function() {
 			var object = {};
 			var temp_array = string.split(",");
 
-			if(temp_array[0] === EC.Const.SKIPPED) {
+			if (temp_array[0] === EC.Const.SKIPPED) {
 				object.Latitude = "";
 				object.Longitude = "";
 				object.Altitude = "";
@@ -473,7 +473,7 @@ EC.Utils = ( function() {
 			function _onGpsChecked(isEnabled) {
 				console.log("gps is " + isEnabled);
 
-				if(!isEnabled) {
+				if (!isEnabled) {
 					deferred.reject();
 				}
 				else {
@@ -482,7 +482,7 @@ EC.Utils = ( function() {
 
 			}
 
-			if(!EC.Utils.isChrome()) {
+			if (!EC.Utils.isChrome()) {
 
 				switch(window.device.platform) {
 
@@ -515,7 +515,7 @@ EC.Utils = ( function() {
 			var args = Array.prototype.slice.call(arguments).splice(2);
 			var namespaces = functionName.split(".");
 			var func = namespaces.pop();
-			for( i = 0; i < namespaces.length; i++) {
+			for ( i = 0; i < namespaces.length; i++) {
 				context = context[namespaces[i]];
 			}
 			return context[func].apply(this, args);
@@ -548,14 +548,14 @@ EC.Utils = ( function() {
 			raw_jumps = the_jump_string.split(',');
 			iLength = raw_jumps.length;
 
-			for( i = 0; i < iLength; i += 2) {
+			for ( i = 0; i < iLength; i += 2) {
 
 				obj = {};
 
 				//even element is a jump destination, as @ref
 				obj.jump_to = raw_jumps[i];
 
-				if(raw_jumps[i + 1].charAt(0) === "!") {
+				if (raw_jumps[i + 1].charAt(0) === "!") {
 
 					obj.jump_when = EC.Const.JUMP_VALUE_IS_NOT;
 					obj.jump_value = raw_jumps[i + 1].substr(1);
@@ -598,9 +598,9 @@ EC.Utils = ( function() {
 			var iLength = forms.length;
 			var name = the_form_name;
 
-			for( i = 0; i < iLength; i++) {
+			for ( i = 0; i < iLength; i++) {
 
-				if(forms[i].name === name) {
+				if (forms[i].name === name) {
 					return forms[i]._id;
 				}
 
@@ -615,9 +615,9 @@ EC.Utils = ( function() {
 			var i;
 			var iLength = forms.length;
 
-			for( i = 0; i < iLength; i++) {
+			for ( i = 0; i < iLength; i++) {
 
-				if(parseInt(forms[i]._id, 10) === form_id) {
+				if (parseInt(forms[i]._id, 10) === form_id) {
 					return parseInt(forms[i].is_genkey_hidden, 10);
 				}
 
@@ -640,9 +640,9 @@ EC.Utils = ( function() {
 			var iLength = inputs.length;
 			var ref = the_ref;
 
-			for( i = 0; i < iLength; i++) {
+			for ( i = 0; i < iLength; i++) {
 
-				if(inputs[i].ref === ref) {
+				if (inputs[i].ref === ref) {
 
 					return inputs[i]._id;
 
@@ -658,9 +658,9 @@ EC.Utils = ( function() {
 			var i;
 			var iLength = forms.length;
 
-			for( i = 0; i < iLength; i++) {
+			for ( i = 0; i < iLength; i++) {
 
-				if(forms[i]._id === form_id) {
+				if (forms[i]._id === form_id) {
 
 					return forms[i].key;
 				}
@@ -675,9 +675,9 @@ EC.Utils = ( function() {
 			var iLength = forms.length;
 			var has_branches = false;
 
-			for( i = 0; i < iLength; i++) {
+			for ( i = 0; i < iLength; i++) {
 
-				if(parseInt(forms[i].has_branches, 10) === 1) {
+				if (parseInt(forms[i].has_branches, 10) === 1) {
 					has_branches = true;
 				}
 			}
@@ -692,9 +692,9 @@ EC.Utils = ( function() {
 			var i;
 			var iLength = forms.length;
 
-			for( i = 0; i < iLength; i++) {
+			for ( i = 0; i < iLength; i++) {
 
-				if(forms[i]._id === form_id) {
+				if (forms[i]._id === form_id) {
 
 					return forms[i - 1].key;
 				}
@@ -709,9 +709,9 @@ EC.Utils = ( function() {
 			var i;
 			var iLength = forms.length;
 
-			for( i = 0; i < iLength; i++) {
+			for ( i = 0; i < iLength; i++) {
 
-				if(parseInt(forms[i]._id, 10) === form_id) {
+				if (parseInt(forms[i]._id, 10) === form_id) {
 
 					return forms[i];
 				}
@@ -726,7 +726,7 @@ EC.Utils = ( function() {
 			var forms = JSON.parse(window.localStorage.forms);
 			var count = 0;
 
-			for( i = 0; i < iLength; i++) {
+			for ( i = 0; i < iLength; i++) {
 
 				count += parseInt(forms[i].entries, 10);
 
@@ -743,9 +743,9 @@ EC.Utils = ( function() {
 			var i;
 			var iLength = forms.length;
 
-			for( i = 0; i < iLength; i++) {
+			for ( i = 0; i < iLength; i++) {
 
-				if(forms[i]._id === form_id) {
+				if (forms[i]._id === form_id) {
 
 					return forms[i - 1];
 				}
@@ -760,9 +760,9 @@ EC.Utils = ( function() {
 			var i;
 			var iLength = forms.length;
 
-			for( i = 0; i < iLength; i++) {
+			for ( i = 0; i < iLength; i++) {
 
-				if(forms[i]._id === form_id) {
+				if (forms[i]._id === form_id) {
 
 					//increase entries counter
 					forms[i].entries = forms[i].entries + 1;
@@ -781,9 +781,9 @@ EC.Utils = ( function() {
 			var i;
 			var iLength = forms.length;
 
-			for( i = 0; i < iLength; i++) {
+			for ( i = 0; i < iLength; i++) {
 
-				if(forms[i]._id === form_id) {
+				if (forms[i]._id === form_id) {
 
 					//return all the elements after the current index
 					return forms.slice(i + 1, iLength + 1);
@@ -809,7 +809,7 @@ EC.Utils = ( function() {
 		//check if a value is in the array, return true on success
 		var inArray = function(the_array, the_value, is_case_sensitive) {
 
-			if(!the_array) {
+			if (!the_array) {
 				return false;
 			}
 
@@ -820,7 +820,7 @@ EC.Utils = ( function() {
 			}
 
 			//case sensitive search
-			if(is_case_sensitive) {
+			if (is_case_sensitive) {
 				return (the_array.indexOf(the_value) !== -1);
 			}
 
@@ -829,7 +829,7 @@ EC.Utils = ( function() {
 		};
 
 		/*
-		 * Get app version name 
+		 * Get app version name
 		 */
 		var getVersionName = function() {
 
@@ -846,14 +846,14 @@ EC.Utils = ( function() {
 
 		};
 
-		
 		//get absolute path for page urls
 		var getPageBaseURI = function() {
 
 			var base_uri;
 
-			//if we are testing with Chrome Chrome/browser on the iMac (replace based on your dev environment if needed)
-			if(EC.Utils.isChrome()) {
+			//if we are testing with Chrome Chrome/browser on the iMac (replace based on your
+			// dev environment if needed)
+			if (EC.Utils.isChrome()) {
 
 				base_uri = window.localStorage.BASE_URI;
 
@@ -869,7 +869,7 @@ EC.Utils = ( function() {
 						//check if the phone is running anything less than 4.4.*
 						// KitKat then request pages via the service if needed
 						console.log("kitkat regex: " + EC.Const.PRE_KITKAT_REGEX.test(window.device.version));
-						if(EC.Const.DEBUG === 1 && !(EC.Const.PRE_KITKAT_REGEX.test(window.device.version) || EC.Const.LOLLIPOP_REGEX.test(window.device.version) )) {
+						if (EC.Const.DEBUG === 1 && !(EC.Const.PRE_KITKAT_REGEX.test(window.device.version) || EC.Const.LOLLIPOP_REGEX.test(window.device.version) )) {
 
 							//base_uri = "content://jsHybugger.org/file:///android_asset/www/";
 							//@debug off
@@ -910,17 +910,17 @@ EC.Utils = ( function() {
 			var clone_value = the_clone_value;
 
 			//return immediately if input is branch
-			if(input.type === EC.Const.BRANCH) {
+			if (input.type === EC.Const.BRANCH) {
 				return validation;
 			}
 
 			//return immediately if input is integer value is not an integer but
 			// a float (user can enter the dot, depending on the native keyboard
 			// layout)
-			if(input.type === EC.Const.INTEGER) {
+			if (input.type === EC.Const.INTEGER) {
 
 				//check if number value is integer, not float
-				if(parseFloat(value) !== parseInt(value, 10) && value !== "") {
+				if (parseFloat(value) !== parseInt(value, 10) && value !== "") {
 
 					validation.is_valid = false;
 					validation.message = EC.Localise.getTranslation("invalid_integer");
@@ -935,12 +935,12 @@ EC.Utils = ( function() {
 			 * input against wrong chars
 			 *
 			 */
-			if(input.type === EC.Const.DECIMAL) {
+			if (input.type === EC.Const.DECIMAL) {
 
 				//check if value is a decimal value (http://goo.gl/Q4J4cU)
-				if(!self.isNumber(value)) {
+				if (!self.isNumber(value)) {
 
-					if(value !== "") {
+					if (value !== "") {
 						validation.is_valid = false;
 						validation.message = EC.Localise.getTranslation("invalid_decimal");
 
@@ -952,7 +952,7 @@ EC.Utils = ( function() {
 
 			//if the value is a primary key, check that is does not contain the
 			// char set as ENTRY_ROOT_PATH_SEPARATOR
-			if(input.is_primary_key === 1 && value.indexOf(EC.Const.ENTRY_ROOT_PATH_SEPARATOR) !== -1) {
+			if (input.is_primary_key === 1 && value.indexOf(EC.Const.ENTRY_ROOT_PATH_SEPARATOR) !== -1) {
 
 				validation.is_valid = false;
 				validation.message = EC.Localise.getTranslation("pk_reserved_char") + EC.Const.ENTRY_ROOT_PATH_SEPARATOR;
@@ -962,9 +962,9 @@ EC.Utils = ( function() {
 			}
 
 			//check if the input needs to match a regular expression
-			if(input.regex !== "") {
+			if (input.regex !== "") {
 
-				if(!value.match(input.regex)) {
+				if (!value.match(input.regex)) {
 
 					validation.is_valid = false;
 					validation.message = EC.Localise.getTranslation("invalid_regex") + input.regex;
@@ -975,9 +975,9 @@ EC.Utils = ( function() {
 
 			//check if the value has a double check. In that case 'value' will
 			// contain 2 values to match
-			if(parseInt(input.has_double_check, 10) === 1) {
+			if (parseInt(input.has_double_check, 10) === 1) {
 
-				if(value !== clone_value) {
+				if (value !== clone_value) {
 
 					validation.is_valid = false;
 					validation.message = EC.Localise.getTranslation("values_unmatched");
@@ -987,10 +987,10 @@ EC.Utils = ( function() {
 			}
 
 			//check if the value is within the max range
-			if(input.max_range !== "") {
+			if (input.max_range !== "") {
 
 				//use parseFloat as it can be an integer or a decimal value
-				if(parseFloat(value) > parseFloat(input.max_range)) {
+				if (parseFloat(value) > parseFloat(input.max_range)) {
 
 					validation.is_valid = false;
 					validation.message = EC.Localise.getTranslation("out_of_range");
@@ -1000,10 +1000,10 @@ EC.Utils = ( function() {
 			}
 
 			//check if the value is within the min range
-			if(input.min_range !== "") {
+			if (input.min_range !== "") {
 
 				//use parseFloat as it can be an integer or a decimal value
-				if(parseFloat(value) < parseFloat(input.min_range)) {
+				if (parseFloat(value) < parseFloat(input.min_range)) {
 
 					validation.is_valid = false;
 					validation.message = EC.Localise.getTranslation("out_of_range");
@@ -1013,7 +1013,7 @@ EC.Utils = ( function() {
 			}
 
 			//check the user did not entered the reserved word _skipp3d_
-			if(input.value === EC.Const.SKIPPED) {
+			if (input.value === EC.Const.SKIPPED) {
 
 				validation.is_valid = false;
 				validation.message = EC.Localise.getTranslation("reserved_keyword");
@@ -1023,13 +1023,13 @@ EC.Utils = ( function() {
 			}
 
 			//check if the input is required
-			if(parseInt(input.is_required, 10) === 1) {
+			if (parseInt(input.is_required, 10) === 1) {
 
 				//if the input is a dropdown, radio or checkbox, check for
 				// NO_OPTION_SELECTED label
-				if(input.type === EC.Const.DROPDOWN || input.type === EC.Const.RADIO || input.type === EC.Const.CHECKBOX) {
+				if (input.type === EC.Const.DROPDOWN || input.type === EC.Const.RADIO || input.type === EC.Const.CHECKBOX) {
 
-					if(value === EC.Const.NO_OPTION_SELECTED) {
+					if (value === EC.Const.NO_OPTION_SELECTED) {
 
 						validation.is_valid = false;
 						validation.message = EC.Localise.getTranslation("field_required");
@@ -1040,7 +1040,7 @@ EC.Utils = ( function() {
 				}
 				else {
 
-					if(value === "") {
+					if (value === "") {
 
 						validation.is_valid = false;
 						validation.message = EC.Localise.getTranslation("field_required");
@@ -1063,7 +1063,7 @@ EC.Utils = ( function() {
 
 				//get absolute path on iOS 8, there is a bug in Cordova 3.7 see
 				// http://goo.gl/lUIqyl
-				if(window.device.platform === EC.Const.IOS && parseFloat(window.device.version) >= 8) {
+				if (window.device.platform === EC.Const.IOS && parseFloat(window.device.version) >= 8) {
 
 					documents_path = fileSystem.toURL();
 
@@ -1101,7 +1101,7 @@ EC.Utils = ( function() {
 			}
 
 			//on iOS 8, get the Directory Entry using new method
-			if(window.device.platform === EC.Const.IOS && parseFloat(window.device.version) >= 8) {
+			if (window.device.platform === EC.Const.IOS && parseFloat(window.device.version) >= 8) {
 				window.resolveLocalFileSystemURL(cordova.file.applicationDirectory, onSuccess, onError);
 			}
 			else {
@@ -1176,8 +1176,8 @@ EC.Utils = ( function() {
 			var current_filename = the_current_filename;
 			var iLength = filenames.length;
 
-			for( i = 0; i < iLength; i++) {
-				if(filenames[i].filename === current_filename) {
+			for ( i = 0; i < iLength; i++) {
+				if (filenames[i].filename === current_filename) {
 					return filenames[i].timestamp;
 				}
 			}
@@ -1202,9 +1202,9 @@ EC.Utils = ( function() {
 				var i;
 				var iLength = inputs.length;
 
-				for( i = 0; i < iLength; i++) {
+				for ( i = 0; i < iLength; i++) {
 
-					if(inputs[i].ref === the_ref) {
+					if (inputs[i].ref === the_ref) {
 						return inputs[i];
 					}
 				}
@@ -1219,10 +1219,10 @@ EC.Utils = ( function() {
 				var iLength = value_as_array.length;
 				var jLength = current_input.options.length;
 				var labels = [];
-				for( i = 0; i < iLength; i++) {
-					for( j = 0; j < jLength; j++) {
+				for ( i = 0; i < iLength; i++) {
+					for ( j = 0; j < jLength; j++) {
 
-						if(current_input.options[j].value === value_as_array[i].trim()) {
+						if (current_input.options[j].value === value_as_array[i].trim()) {
 							labels.push(current_input.options[j].label);
 						}
 
@@ -1240,8 +1240,8 @@ EC.Utils = ( function() {
 				var value = the_value;
 				var iLength = current_input.options.length;
 
-				for( i = 0; i < iLength; i++) {
-					if(current_input.options[i].value === value.value.trim()) {
+				for ( i = 0; i < iLength; i++) {
+					if (current_input.options[i].value === value.value.trim()) {
 						return current_input.options[i].label;
 					}
 				}
@@ -1278,6 +1278,49 @@ EC.Utils = ( function() {
 			return mapped_label;
 
 		};
+
+		//check if the audio files is stored or cache, comparing the paths
+		function isAudioFileStored(the_cache_path, _the_file_path) {
+
+			var file_path = _the_file_path;
+			var cache_path = the_cache_path;
+			var file_path_parts = file_path.split('/');
+
+			file_path_parts.pop();
+			file_path = file_path_parts.join('/');
+			file_path += '/';
+
+			console.log('cache_path ' + cache_path);
+			console.log('file_path' + file_path);
+
+			return (file_path === cache_path) ? false : true;
+
+		}
+
+		function generateAudioFileName() {
+
+			var filename;
+
+			switch(window.device.platform) {
+
+				case EC.Const.ANDROID:
+					//build filename timestamp + mp4 (Cordova 2.9 sources have been modified manually
+					// to record high quality audio)
+					filename = EC.Utils.getTimestamp() + ".mp4";
+					break;
+
+				case EC.Const.IOS:
+
+					//build filename timestamp + wav (iOS only records to files of type .wav and
+					// returns an error if the file name extension is not correct.)
+					filename = EC.Utils.getTimestamp() + ".wav";
+					break;
+
+			}
+
+			return filename;
+
+		}
 
 		return {
 
@@ -1326,7 +1369,9 @@ EC.Utils = ( function() {
 			setIOSPersistentStoragePath : setIOSPersistentStoragePath,
 			getIOSFilename : getIOSFilename,
 			getParameterByName : getParameterByName,
-			mapLabelToValue : mapLabelToValue
+			mapLabelToValue : mapLabelToValue,
+			isAudioFileStored : isAudioFileStored,
+			generateAudioFileName : generateAudioFileName
 		};
 
 	}());

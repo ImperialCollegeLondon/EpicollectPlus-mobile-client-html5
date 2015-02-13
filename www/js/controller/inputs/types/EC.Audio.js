@@ -147,28 +147,23 @@ EC.InputTypes = ( function(module) {
 				play_btn.addClass('not-shown');
 				ongoing_recording_spinner.removeClass("not-shown");
 
+				//if the current path is not set yet, we are definitely recording a new audio
+				// file
 				if (!current_path) {
-
-					switch(window.device.platform) {
-
-						case EC.Const.ANDROID:
-							//build filename timestamp + mp4 (Cordova 2.9 sources have been modified manually
-							// to record high quality audio)
-							filename = EC.Utils.getTimestamp() + ".mp4";
-							break;
-
-						case EC.Const.IOS:
-
-							//build filename timestamp + wav (iOS only records to files of type .wav and
-							// returns an error if the file name extension is not correct.)
-							filename = EC.Utils.getTimestamp() + ".wav";
-							break;
-
-					}
+					current_path = cache_path + EC.Utils.generateAudioFileName();
 				}
+				else {
 
-				if (!current_path) {
-					current_path = cache_path + filename;
+					/* we have a current path, is it a saved file or cached?
+					 * if it is a saved file, we have to replace the current path with the new
+					 * recording
+					 * path , pointing to the cache folder. This is to replace the existing stored
+					 * audio file with the new recording, so the new cached file will override the
+					 * stored file when saving the entry
+					 */
+					if (EC.Utils.isAudioFileStored(cache_path, current_path)) {
+						current_path = cache_path + EC.Utils.generateAudioFileName();
+					}
 				}
 
 				console.log('Recording... - Full path: ' + current_path);
