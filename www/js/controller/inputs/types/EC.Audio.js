@@ -22,13 +22,10 @@ EC.InputTypes = ( function(module) {
 			var audio_feedback = $('div#input-audio p#audio-feedback');
 			var cached_audio_uri = $('div#input-audio input#cached-audio-uri');
 			var stored_audio_uri = $('div#input-audio input#stored-audio-uri');
-			var prev_btn = $('div.ui-block-a.input-prev-btn');
-			var next_btn = $('div.ui-block-c.input-next-btn');
-			var cancel_btn = $('div.ui-btn-right a.delete');
-			var back_btn = $('div#audio').find('a.back-btn');
+			var header_btns = $('div#audio div.ui-header');
 			var current_path;
 			var audio_full_path_uri;
-			var cached_path;
+			var cache_path;
 			var src;
 			var mediaRec;
 			var current_audio;
@@ -105,7 +102,7 @@ EC.InputTypes = ( function(module) {
 
 			console.log('cache_audio_uri: ' + cached_audio_uri.val());
 
-			//add store audio uri cached_path (if any)
+			//add store audio uri cache_path (if any)
 			stored_audio_uri.val(value.stored || "");
 
 			//reset recording buttons
@@ -116,8 +113,8 @@ EC.InputTypes = ( function(module) {
 			window.requestFileSystem(LocalFileSystem.TEMPORARY, 0, function(the_file_system) {
 
 				console.log(JSON.stringify(the_file_system));
-				cached_path = the_file_system.root.nativeURL;
-				console.log('nativeURL: ' + cached_path);
+				cache_path = the_file_system.root.nativeURL;
+				console.log('nativeURL: ' + cache_path);
 
 				if (window.device.platform === EC.Const.IOS) {
 					/* We need to provide the full path to the tmp folder to record an audio file
@@ -128,7 +125,7 @@ EC.InputTypes = ( function(module) {
 					 * 'Failed to start recording using AvAudioRecorder'
 					 * so it is removed using slice(7);
 					 */
-					cached_path = cached_path.slice(7);
+					cache_path = cache_path.slice(7);
 				}
 
 			}, function(error) {
@@ -141,7 +138,7 @@ EC.InputTypes = ( function(module) {
 				var filename;
 
 				//disable navigation buttons while recording
-				$(prev_btn, next_btn, cancel_btn, back_btn).addClass('ui-disabled');
+				header_btns.addClass('ui-disabled');
 
 				//disable player buttons while recording
 				stop_btn.removeClass('ui-disabled');
@@ -150,28 +147,33 @@ EC.InputTypes = ( function(module) {
 				play_btn.addClass('not-shown');
 				ongoing_recording_spinner.removeClass("not-shown");
 
-				switch(window.device.platform) {
+				if (!current_path) {
 
-					case EC.Const.ANDROID:
-						//build filename timestamp + mp4 (Cordova 2.9 sources have been modified manually
-						// to record high quality audio)
-						filename = EC.Utils.getTimestamp() + ".mp4";
-						break;
+					switch(window.device.platform) {
 
-					case EC.Const.IOS:
+						case EC.Const.ANDROID:
+							//build filename timestamp + mp4 (Cordova 2.9 sources have been modified manually
+							// to record high quality audio)
+							filename = EC.Utils.getTimestamp() + ".mp4";
+							break;
 
-						//build filename timestamp + wav (iOS only records to files of type .wav and
-						// returns an error if the file name extension is not correct.)
-						filename = EC.Utils.getTimestamp() + ".wav";
-						break;
+						case EC.Const.IOS:
 
+							//build filename timestamp + wav (iOS only records to files of type .wav and
+							// returns an error if the file name extension is not correct.)
+							filename = EC.Utils.getTimestamp() + ".wav";
+							break;
+
+					}
 				}
 
-				console.log('Recording...');
-				console.log('cached path: ' + cached_path);
-				console.log('Full path: ' + cached_path + filename);
+				if (!current_path) {
+					current_path = cache_path + filename;
+				}
 
-				mediaRec = new Media(cached_path + filename,
+				console.log('Recording... - Full path: ' + current_path);
+
+				mediaRec = new Media(current_path,
 
 				// success callback
 				function onRecordingSuccess() {
@@ -179,8 +181,9 @@ EC.InputTypes = ( function(module) {
 					play_btn.removeClass('ui-disabled');
 					audio_feedback.text('Audio available');
 					console.log("recordAudio():Audio Success");
-					current_path = cached_path + filename;
+
 					cached_audio_uri.val(current_path);
+
 					console.log("current_path: " + current_path);
 
 				},
@@ -203,7 +206,7 @@ EC.InputTypes = ( function(module) {
 			function stopRecordAudio(e) {
 
 				//re-enable navigation buttons
-				$(prev_btn, next_btn, cancel_btn, back_btn).removeClass('ui-disabled');
+				header_btns.removeClass('ui-disabled');
 
 				//enable player buttons
 				stop_btn.addClass('ui-disabled');
@@ -211,7 +214,7 @@ EC.InputTypes = ( function(module) {
 				play_btn.removeClass('not-shown ui-disabled');
 				ongoing_recording_spinner.addClass('not-shown');
 
-				record_btn.one('vclick', recordAudio);
+				record_btn.off().one('vclick', recordAudio);
 
 				//stop recording and release resources
 				mediaRec.stopRecord();
@@ -231,7 +234,7 @@ EC.InputTypes = ( function(module) {
 				current_audio.release();
 
 				//re-enable navigation buttons
-				$(prev_btn, next_btn, cancel_btn, back_btn).removeClass('ui-disabled');
+				header_btns.removeClass('ui-disabled');
 
 				//re-enable player buttons
 				stop_btn.off().one('vclick', stopRecordAudio);
@@ -245,7 +248,7 @@ EC.InputTypes = ( function(module) {
 			function playAudio() {
 
 				//disable navigation buttons while playing
-				$(prev_btn, next_btn, cancel_btn, back_btn).addClass('ui-disabled');
+				header_btns.addClass('ui-disabled');
 
 				//current_path = cached_audio_uri.val();
 				console.log("Playing... " + current_path);
@@ -256,12 +259,6 @@ EC.InputTypes = ( function(module) {
 				play_btn.addClass('ui-disabled');
 				record_btn.addClass('ui-disabled');
 
-				function onPlaySuccess() {
-				}
-
-				function onPlayError() {
-				}
-
 				function onPlayStatusChange(the_status) {
 
 					var status = the_status;
@@ -269,7 +266,7 @@ EC.InputTypes = ( function(module) {
 					if (status === 4) {
 
 						//re-enable navigation buttons
-						$(prev_btn, next_btn, cancel_btn, back_btn).removeClass('ui-disabled');
+						header_btns.removeClass('ui-disabled');
 
 						//re-enable player buttons
 						stop_btn.addClass('ui-disabled');
@@ -279,7 +276,7 @@ EC.InputTypes = ( function(module) {
 					}
 				}
 
-				current_audio = new Media(current_path, onPlaySuccess, onPlayError, onPlayStatusChange);
+				current_audio = new Media(current_path, null, null, onPlayStatusChange);
 				current_audio.play();
 
 			}//playAudio

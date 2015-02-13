@@ -2,7 +2,8 @@
 /*global $, jQuery, LocalFileSystem, Media*/
 var EC = EC || {};
 EC.BranchInputTypes = EC.BranchInputTypes || {};
-EC.BranchInputTypes = ( function(module) {"use strict";
+EC.BranchInputTypes = ( function(module) {
+		"use strict";
 
 		module.audio = function(the_value, the_input) {
 
@@ -18,17 +19,14 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 			var audio_feedback = $('div#branch-audio div#branch-input-audio p#audio-feedback');
 			var cached_audio_uri = $('div#branch-audio div#branch-input-audio input#cached-audio-uri');
 			var stored_audio_uri = $('div#branch-audio div#branch-input-audio input#stored-audio-uri');
-			var prev_btn = $('div#branch-audio div.ui-block-a.input-prev-btn');
-			var next_btn = $('div#branch-audio div.ui-block-c.input-next-btn');
-			var cancel_btn = $('div#branch-audio div.ui-btn-right a.delete');
-			var back_btn = $('div#branch-audio').find('a.back-btn');
+			var header_btns = $('div#branch-audio div.ui-header');
 			var current_path;
 			var audio_full_path_uri;
-			var cached_path;
+			var cache_path;
 			var src;
 			var mediaRec;
 			var current_audio;
-		
+
 			//update label text
 			span_label.text(input.label);
 
@@ -37,14 +35,13 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
 			}
 
-			
-
 			//attach event handlers (removing old ones to avoid tiggering an event twice)
 			record_btn.off('vclick').one('vclick', recordAudio);
 			stop_btn.off('vclick');
 			play_btn.off('vclick').on('vclick', playAudio);
 
-			//if an audio file is stored add it to hidden input field, to be shown if no cached value is set
+			//if an audio file is stored add it to hidden input field, to be shown if no
+			// cached value is set
 			if (window.localStorage.edit_mode && value.stored === undefined) {
 
 				stored_audio_uri.val(value);
@@ -55,8 +52,7 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 
 			}//if
 
-			console.log('value.cached ' + value.cached);
-			console.log('value.stored ' + value.stored);
+			
 
 			//toggle 'play' button only if we have a file to play
 			if (!value.cached) {
@@ -65,7 +61,8 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 
 					play_btn.removeClass('ui-disabled');
 
-					//build full path to get audio file from private app folder (depending on platform)
+					//build full path to get audio file from private app folder (depending on
+					// platform)
 					switch(window.device.platform) {
 						case EC.Const.ANDROID:
 							audio_full_path_uri = EC.Const.ANDROID_APP_PRIVATE_URI + EC.Const.AUDIO_DIR + window.localStorage.project_name + "/" + value.stored;
@@ -83,14 +80,16 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 
 					console.log("current_path: " + JSON.stringify(audio_full_path_uri));
 
-				} else {
+				}
+				else {
 
 					play_btn.addClass('ui-disabled');
 				}
 
-			} else {
+			}
+			else {
 
-				console.log("we have a cached value");
+			
 
 				//we have a cached file to play, current path gets the cached value
 				play_btn.removeClass('ui-disabled');
@@ -104,7 +103,7 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 			//cached_audio_uri.val(value.cached || "");
 			console.log('cache_audio_uri: ' + cached_audio_uri.val());
 
-			//add store audio uri cached_path (if any)
+			//add store audio uri cache_path (if any)
 			stored_audio_uri.val(value.stored || "");
 
 			//reset recording buttons
@@ -115,9 +114,9 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 			window.requestFileSystem(LocalFileSystem.TEMPORARY, 0, function(the_file_system) {
 
 				console.log(JSON.stringify(the_file_system));
-				cached_path = the_file_system.root.nativeURL;
-				console.log('nativeURL: ' + cached_path);
-				
+				cache_path = the_file_system.root.nativeURL;
+				console.log('nativeURL: ' + cache_path);
+
 				if (window.device.platform === EC.Const.IOS) {
 					/* We need to provide the full path to the tmp folder to record an audio file
 					 *
@@ -127,21 +126,23 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 					 * 'Failed to start recording using AvAudioRecorder'
 					 * so it is removed using slice(7);
 					 */
-					cached_path = cached_path.slice(7);
+					cache_path = cache_path.slice(7);
 				}
-				
+
 			}, function(error) {
 				console.log(JSON.stringify(error));
 			});
 
 			//record audio
 			function recordAudio(e) {
-				
+
 				var filename;
 
-				//disable navigation buttons while recording
-			//disable navigation buttons while recording
-				$(prev_btn, next_btn, cancel_btn, back_btn).addClass('ui-disabled');
+				/*
+				 * disable navigation buttons while recording, to avoid users to navigate away
+				 * from the page causing the media object to stay open and impossible to release
+				 */
+				header_btns.addClass('ui-disabled');
 
 				//disable player buttons while recording
 				stop_btn.removeClass('ui-disabled');
@@ -153,21 +154,28 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 				switch(window.device.platform) {
 
 					case EC.Const.ANDROID:
-						//build filename timestamp + mp4 (Cordova 2.9 sources have been modified manually to record high quality audio)
+						//build filename timestamp + mp4 (Cordova 2.9 sources have been modified manually
+						// to record high quality audio)
 						filename = EC.Utils.getTimestamp() + ".mp4";
 						break;
 
 					case EC.Const.IOS:
-						//build filename timestamp + wav (iOS only records to files of type .wav and returns an error if the file name extension is not correct.)
+						/*build filename timestamp + wav (iOS only records to files of type .wav and
+						  returns an error if the file name extension is not correct.)
+						 */
 						filename = EC.Utils.getTimestamp() + ".wav";
 						break;
 
 				}
-				
-				console.log('Recording...');
-				console.log('Full path: ' + cached_path  + filename);
 
-				mediaRec = new Media(cached_path  + filename,
+				//if there is a file cached already, we replace that one upon further recordings
+				if (!current_path) {
+					current_path = cache_path + filename;
+				}
+
+				console.log('Recording... - Full path: ' + current_path);
+
+				mediaRec = new Media(current_path,
 
 				// success callback
 				function onRecordingSuccess() {
@@ -175,16 +183,12 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 					play_btn.removeClass('ui-disabled');
 					audio_feedback.text('Audio available');
 					console.log("recordAudio():Audio Success");
-					current_path = cached_path + "/" + filename;
 					cached_audio_uri.val(current_path);
-					console.log("current_path: " + current_path);
-
 				},
 
 				// error callback
 				function onRecordingError(err) {
 					console.log("recordAudio():Audio Error: " + err.code);
-					console.log("recordAudio():Audio Error: " + JSON.stringify(err));
 				});
 
 				// Record audio
@@ -199,7 +203,7 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 			function stopRecordAudio(e) {
 
 				//re-enable navigation buttons
-				$(prev_btn, next_btn, cancel_btn, back_btn).removeClass('ui-disabled');
+				header_btns.removeClass('ui-disabled');
 
 				//enable player buttons
 				stop_btn.addClass('ui-disabled');
@@ -227,7 +231,7 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 				current_audio.release();
 
 				//re-enable navigation buttons
-					$(prev_btn, next_btn, cancel_btn, back_btn).removeClass('ui-disabled');
+				header_btns.removeClass('ui-disabled');
 
 				//re-enable player buttons
 				stop_btn.off().one('vclick', stopRecordAudio);
@@ -241,7 +245,7 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 			function playAudio() {
 
 				//disable navigation buttons while playing
-				$(prev_btn, next_btn, cancel_btn, back_btn).addClass('ui-disabled');
+				header_btns.addClass('ui-disabled');
 
 				console.log("Playing... " + current_path);
 
@@ -251,14 +255,6 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 				play_btn.addClass('ui-disabled');
 				record_btn.addClass('ui-disabled');
 
-				
-
-				function onPlaySuccess() {
-				};
-
-				function onPlayError() {
-				};
-
 				function onPlayStatusChange(the_status) {
 
 					var status = the_status;
@@ -266,7 +262,7 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 					if (status === 4) {
 
 						//re-enable navigation buttons
-						$(prev_btn, next_btn, cancel_btn, back_btn).removeClass('ui-disabled');
+						header_btns.removeClass('ui-disabled');
 
 						//re-enable player buttons
 						stop_btn.addClass('ui-disabled');
@@ -275,8 +271,8 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 					}
 
 				}
-				
-				current_audio = new Media(current_path, onPlaySuccess, onPlayError, onPlayStatusChange);
+
+				current_audio = new Media(current_path, null, null, onPlayStatusChange);
 				current_audio.play();
 
 			}//playAudio
