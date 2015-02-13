@@ -6,16 +6,21 @@
  */
 
 var EC = EC || {};
-EC.Entries = ( function(module) {"use strict";
+EC.Entries = ( function(module) {
+		"use strict";
 
 		/**
 		 * @method renderList
-		 * Update the UI listing all the entries for a form. What is listed is all the field values flagged as "title"
-		 * If no title field is found, the value of the primary key of that form is shown instead
+		 * Update the UI listing all the entries for a form. What is listed is all the
+		 * field values flagged as "title"
+		 * If no title field is found, the value of the primary key of that form is shown
+		 * instead
 		 *
 		 * @param {array} the_entries Array with all the entries for a form.
-		 * Each element is like {children: 1, entry_key: "Kingston", full_title: "Kingston, KI6475746856"}
-		 * -children- is the number of child entries belonging to each parent entry (if any)
+		 * Each element is like {children: 1, entry_key: "Kingston", full_title:
+		 * "Kingston, KI6475746856"}
+		 * -children- is the number of child entries belonging to each parent entry (if
+		 * any)
 		 * -entry_key- value of the primary key for that form
 		 * -full_title- all the values flagged as title in csv format
 		 *
@@ -84,7 +89,8 @@ EC.Entries = ( function(module) {"use strict";
 			var iLength = entries.length;
 			var HTML = "";
 
-			//if it is the last form, show single list view row with no nested children (no right button)
+			//if it is the last form, show single list view row with no nested children (no
+			// right button)
 			if (form_tree.child === 0) {
 				for ( i = 0; i < iLength; i++) {
 
@@ -100,10 +106,13 @@ EC.Entries = ( function(module) {"use strict";
 					HTML += '</li>';
 				}//for
 
-			} else {
+			}
+			else {
 
-				//split listview to show a button on the right to navigate down the form tree entries and a button to list the inputs for the entry
-				for ( i = 0, iLength = entries.length; i < iLength; i++) {
+				//split listview to show a button on the right to navigate down the form tree
+				// entries and a button to list the inputs for the entry
+				for ( i = 0,
+				iLength = entries.length; i < iLength; i++) {
 
 					//if no title set, use value of primary key as title
 					entries[i].full_title = (entries[i].full_title === "") ? entries[i].entry_key : entries[i].full_title;
@@ -185,8 +194,6 @@ EC.Entries = ( function(module) {"use strict";
 
 				wls.QUERY_ENTRIES_OFFSET = 0;
 
-				//cache current entries only the first time we load the page from the form list
-				window.localStorage.cached_entries_list = JSON.stringify(entries);
 			}
 
 			//request pagination when going back
@@ -204,7 +211,8 @@ EC.Entries = ( function(module) {"use strict";
 			//show "Show more" button if we have more entries to display
 			if (current_entries_total > (offset + limit)) {
 				load_more_btn.removeClass('not-shown');
-			} else {
+			}
+			else {
 				load_more_btn.addClass('not-shown');
 			}
 
@@ -248,7 +256,8 @@ EC.Entries = ( function(module) {"use strict";
 				//build list of entries markup
 				HTML = _buildList(form_id, form_tree, entries);
 
-			} else {
+			}
+			else {
 
 				//no entries found
 				//hide empty list message (no entries found)
@@ -262,7 +271,8 @@ EC.Entries = ( function(module) {"use strict";
 			//add project name to header
 			header.text(project_name.trunc(EC.Const.PROJECT_NAME_MAX_LENGTH));
 
-			//check if this form is at the top of the tree so the back button will go back to the form page (#forms)
+			//check if this form is at the top of the tree so the back button will go back to
+			// the form page (#forms)
 			if (form_tree.parent === 0) {
 
 				inactive_label = "Forms";
@@ -270,15 +280,18 @@ EC.Entries = ( function(module) {"use strict";
 				//build url
 				back_href = "forms.html?project=" + wls.project_id + "&name=" + wls.project_name;
 
-			} else {
+			}
+			else {
 
-				//this is a nested form, so we need to go back to the previous form in the stack based on what entry was selected
+				//this is a nested form, so we need to go back to the previous form in the stack
+				// based on what entry was selected
 				trail = JSON.parse(wls.breadcrumbs);
 
 				//breadcrumb label will indicate form and last element of the breadcrumb trail
 				inactive_label = form_tree.pname + ": " + trail[trail.length - 1];
 
-				//back button will have parent form and parent entry key (which is the next to last element in the breadcrumb trail)
+				//back button will have parent form and parent entry key (which is the next to
+				// last element in the breadcrumb trail)
 				//and number of children (parent entries when going back) for pagination
 				back_href += 'entries-list.html?form=' + form_tree.parent;
 				back_href += '&name=' + form_tree.pname;
@@ -315,18 +328,22 @@ EC.Entries = ( function(module) {"use strict";
 			wls.removeItem("edit_type");
 			wls.removeItem("edit_id");
 
-			//handle tap on list item: cache Y position from top of screen, to silently scroll to position when navigating back from single entry values
+			//handle tap on list item: cache Y position from top of screen, to silently
+			// scroll to position when navigating back from single entry values
 			$("div#entries-list ul li").off().on('vclick', function() {
 				console.log($(this).position().top);
 				//window.localStorage.previous_tapped_entry_Y = $(this).offset().top;
 				window.localStorage.previous_tapped_entry_Y = $(this).position().top;
 
 			});
-			
+
 			//Localise
 			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
 				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
 			}
+
+			//cache current entries
+			window.localStorage.cached_entries_list = JSON.stringify(entries);
 
 			EC.Notification.hideProgressDialog();
 		};
@@ -367,7 +384,8 @@ EC.Entries = ( function(module) {"use strict";
 			dom_list.listview("refresh");
 			dom_list.trigger("updatelayout");
 
-			//handle tap on list item: cache Y position from top of screen, to silently scroll to position when navigating back from single entry values
+			//handle tap on list item: cache Y position from top of screen, to silently
+			// scroll to position when navigating back from single entry values
 			$("div#entries-list ul li").off().on('vclick', function() {
 				console.log($(this).position().top);
 				//window.localStorage.previous_tapped_entry_Y = $(this).offset().top;
@@ -390,8 +408,6 @@ EC.Entries = ( function(module) {"use strict";
 			//cache new entries
 			cached_entries = JSON.parse(window.localStorage.cached_entries_list);
 			window.localStorage.cached_entries_list = JSON.stringify(cached_entries.concat(entries));
-			
-			
 
 		};
 

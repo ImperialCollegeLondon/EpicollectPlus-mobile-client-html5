@@ -76,6 +76,9 @@ EC.Entries = ( function(module) {"use strict";
 							entries_total : children
 						});
 					}
+					
+					//delete cached entries when going forward
+					window.localStorage.removeItem('cached_entries_list');
 
 					break;
 				case EC.Const.BACKWARD:
