@@ -119,7 +119,7 @@ EC.Delete = ( function(module) {
 		function _doDeletion() {
 
 			//delete the hierarchy entry (the one currently selected by the user)
-			$.when(EC.Delete.removeHierarchyEntryData(entry_key)).then(function() {
+			$.when(EC.Delete.removeHierarchyEntry(entry_key)).then(function() {
 
 				//TODO delete all the media files -> wait, check for children and children files
 

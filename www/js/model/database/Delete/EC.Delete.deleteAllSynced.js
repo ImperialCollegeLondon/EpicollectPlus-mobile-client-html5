@@ -2,7 +2,8 @@
 /*global $, jQuery*/
 /*
  *
- * Comments here - todo
+ * @method deleteAllSynced
+ * deletes all the synced entries for a project. It also deletes any linked branches and any media files linked to the synced entries
  *
  */
 var EC = EC || {};
@@ -113,7 +114,6 @@ EC.Delete = ( function(module) {
 							$.when(_handleBranches(self.deletion_synced_entry_keys)).then(function() {
 								_doDeletion();
 							});
-
 						}
 						else {
 							_doDeletion();
@@ -135,11 +135,8 @@ EC.Delete = ( function(module) {
 					else {
 						_doDeletion();
 					}
-
 				}
-
 			});
-
 		}
 
 		return module;

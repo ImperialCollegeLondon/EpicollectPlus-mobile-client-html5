@@ -35,7 +35,7 @@ EC.Delete = ( function(module) {
 		//recursively delete the children entries
 		function _doChildrenDeletion() {
 			//delete all the hierarchy children data
-			$.when(EC.Delete.removeHierarchyChildrenData()).then(function() {
+			$.when(EC.Delete.removeHierarchyChildrenEntries()).then(function() {
 
 				//another child form to delete entries from?
 				if (EC.Delete.children_forms.length > 0) {

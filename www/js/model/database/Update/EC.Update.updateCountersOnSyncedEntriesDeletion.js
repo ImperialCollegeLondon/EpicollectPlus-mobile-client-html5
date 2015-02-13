@@ -1,5 +1,14 @@
 /*jslint vars: true , nomen: true, devel: true, plusplus:true, stupid: true*/
 /*global $, jQuery*/
+
+/* @method updateCountersOnSyncedEntriesDeletion
+ * Update the total of entries locally stored for each form after deleteing all the synced entries for a project
+ * 
+ * @param {Array} the_counters
+ * 
+ * array of objects containing the amount of entries deleted per each form:
+ * {form_id: <the_form_id>, amount: <the_amount>}
+ */
 var EC = EC || {};
 EC.Update = EC.Update || {};
 EC.Update = ( function(module) {
@@ -19,7 +28,8 @@ EC.Update = ( function(module) {
 			var i;
 			var iLength = counters.length;
 			var query;
-
+			
+			//loop and do a transaction per each form
 			for ( i = 0; i < iLength; i++) {
 
 				query = 'UPDATE ec_forms SET entries = entries - ' + counters[i].amount + ' WHERE _id=?';

@@ -2,8 +2,11 @@
 /*global $, jQuery*/
 /*
  *
- * Comments here - todo
+ * @method removeHierarchyEntry
+ * remove all the rows belonging to a hierarchy entry
  *
+ * @param {String} the_hierarchy_entry_key 
+ * the entry key of the hierarchy entry
  */
 var EC = EC || {};
 EC.Delete = EC.Delete || {};
@@ -14,28 +17,24 @@ EC.Delete = ( function(module) {
 		var hierarchy_entry_key;
 		var deferred;
 		
-		var _removeHierarchyEntryDataSQLSuccessCB = function(the_tx, the_result){
-			//do nothing
-		};
-		
-		var _removeHierarchyEntryDataTX = function(tx){
+		var _removeHierarchyEntryTX = function(tx){
 			
 			//delete all rows belonging to this entry 
 			var query = "DELETE FROM ec_data WHERE entry_key=?";
-			tx.executeSql(query, [hierarchy_entry_key], _removeHierarchyEntryDataSQLSuccessCB, self.errorCB);
+			tx.executeSql(query, [hierarchy_entry_key], null, self.errorCB);
 		};
 		
-		var _removeHierarchyEntryDataSuccessCB = function(){
+		var _removeHierarchyEntrySuccessCB = function(){
 			deferred.resolve();
 		};
 
-		module.removeHierarchyEntryData = function(the_hierarchy_entry_key) {
+		module.removeHierarchyEntry = function(the_hierarchy_entry_key) {
 			
 			self = this;
 			deferred = new $.Deferred();
 			hierarchy_entry_key = the_hierarchy_entry_key;
 
-			EC.db.transaction(_removeHierarchyEntryDataTX, self.errorCB, _removeHierarchyEntryDataSuccessCB);
+			EC.db.transaction(_removeHierarchyEntryTX, self.errorCB, _removeHierarchyEntrySuccessCB);
 
 			return deferred.promise();
 		};
