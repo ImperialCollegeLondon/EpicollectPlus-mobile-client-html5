@@ -44,6 +44,7 @@ EC.BranchInputTypes = ( function(module) {
 			$('div#canvas-wrapper').off().on('vclick', function(e) {
 
 				var href = $('div#branch-input-photo input#cached-image-uri').val();
+				var iOS_popup = $("#branch-photo-popup");
 
 				console.log(href);
 
@@ -66,7 +67,7 @@ EC.BranchInputTypes = ( function(module) {
 						//on iOS we show a built in JQM popup, as swipebox has
 						// got issues
 						case EC.Const.IOS:
-							$("#photo-popup img").attr("src", href);
+							iOS_popup.find('img').attr("src", href);
 
 							/*
 							 * let's use a timeout otherwise the popup is not
@@ -82,7 +83,7 @@ EC.BranchInputTypes = ( function(module) {
 							 */
 
 							window.setTimeout(function() {
-								$("#photo-popup").popup("open");
+								iOS_popup.popup("open");
 							}, 100);
 
 							$(window).on("orientationchange", function(event) {
@@ -90,7 +91,7 @@ EC.BranchInputTypes = ( function(module) {
 
 								//close popup, as it is not scaled/positioned
 								// properly
-								$("#photo-popup").popup("close");
+								iOS_popup.popup("close");
 							});
 
 							break;
