@@ -40,6 +40,9 @@
 		<preference name="MediaPlaybackRequiresUserAction" value="true"/>
 		<!-- Avoid iCloud backups, only local via iTunes -->
 		<preference name="BackupWebStorage" value="local"/>
+        
+        <!-- Disable bouncing scrolling -->
+        <preference name="DisallowOverscroll" value="true" />
 	</platform>
 	<platform name="android">
 		<!-- Automatically install plugin dependencies (this will also install them for iOS) -->
