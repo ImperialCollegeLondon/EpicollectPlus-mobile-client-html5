@@ -32,15 +32,20 @@ EC.Select = ( function(module) {
 		var entry_key;
 		var entry_keys;
 		var deferred;
+		
+		var _errorCB = function(the_result, the_error){
+			console.log(the_result);
+			console.log(the_error);
+		};
 
 		var _getSyncedEntryKeysTX = function(tx) {
 
 			var query = 'SELECT DISTINCT entry_key FROM ec_data WHERE form_id=?';
-			query += ' AND ((is_data_synced=? AND type NOT IN ("audio", "photo", video"))';
-			query += ' OR (is_data_synced=? AND is_media_synced=? AND type IN ("audio", "photo", video"))';
-			query += ' OR (is_data_synced=? AND is_media_synced=? AND type IN ("audio", "photo", video") AND value=?))';
+			query += ' AND ((is_data_synced=? AND type NOT IN ("audio", "photo", "video"))';
+			query += ' OR (is_data_synced=? AND is_media_synced=? AND type IN ("audio", "photo", "video"))';
+			query += ' OR (is_data_synced=? AND is_media_synced=? AND type IN ("audio", "photo", "video") AND value=?))';
 
-			tx.executeSql(query, [form_id, 1, 1, 1, 1, 0, ""], _getSyncedEntryKeysSQLSuccess, self.errorCB);
+			tx.executeSql(query, [form_id, 1, 1, 1, 1, 0, ""], _getSyncedEntryKeysSQLSuccess, _errorCB);
 		};
 
 		var _getSyncedEntryKeysSQLSuccess = function(the_tx, the_result) {

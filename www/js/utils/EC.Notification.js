@@ -107,7 +107,7 @@ EC.Notification = ( function() {
             }
 
             window.plugins.toast.show(text, duration, 'bottom', function(a) {
-                console.log('toast success: ' + a);
+               // console.log('toast success: ' + a);
             }, function(b) {
                 alert('toast error: ' + b);
             });
