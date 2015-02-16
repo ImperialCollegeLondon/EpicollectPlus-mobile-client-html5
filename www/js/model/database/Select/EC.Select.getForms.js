@@ -37,14 +37,16 @@ EC.Select = ( function(module) {
 			var has_data_synced_query = 'SELECT COUNT(*) AS total_synced_rows FROM ec_data WHERE form_id=? AND is_data_synced=?';
 			var has_entries_query = 'SELECT COUNT(*) AS total_entries_rows FROM ec_data WHERE form_id=?';
 			var has_media_query = 'SELECT COUNT(*) AS total_media_files FROM ec_data WHERE form_id=? AND (type=? OR type=? OR type=?) AND value<>?';
-			var has_all_synced_query = 'SELECT COUNT(*) AS total_all_synced_rows FROM ec_data WHERE form_id=? AND is_data_synced=? AND (type=? OR type=? OR type=? AND is_media_synced=?)';
+			
+			//all synced: is_data_synced must be 1, also for all the media entries is_media_syncedmust be 1 as well 
+			var has_all_synced_query = 'SELECT COUNT(*) AS total_all_synced_rows FROM ec_data WHERE form_id=? AND is_data_synced=?';
 
 			for ( i = 0; i < iLength; i++) {
 
 				tx.executeSql(has_data_synced_query, [forms[i]._id, 1], _onDataSyncedSQLSuccess, EC.Select.errorCB);
 				tx.executeSql(has_entries_query, [forms[i]._id], _onHasEntriesSQLSuccess, EC.Select.errorCB);
 				tx.executeSql(has_media_query, [forms[i]._id, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO, ""], _onHasMediaSQLSuccess, EC.Select.errorCB);
-				tx.executeSql(has_all_synced_query, [forms[i]._id, 1, EC.Const.PHOTO, EC.Const.AUDIO, EC.Const.VIDEO, 1], _onHasAllSyncedSQLSuccess, EC.Select.errorCB);
+				tx.executeSql(has_all_synced_query, [forms[i]._id, 1], _onHasAllSyncedSQLSuccess, EC.Select.errorCB);
 			}
 
 		};

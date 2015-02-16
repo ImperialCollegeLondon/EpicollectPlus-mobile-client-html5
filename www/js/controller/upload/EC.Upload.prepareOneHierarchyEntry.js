@@ -76,7 +76,8 @@ EC.Upload = ( function(module) {"use strict";
 			//keep track of row _id (if _id is empty, it is because the location value was split into 4 parts but just one row is saved in the database)
 			if (the_entry_value._id !== "") {
 				self.hierarchy_rows_to_sync.push({
-					_id : the_entry_value._id
+					_id : the_entry_value._id,
+					type: the_entry_value.type
 				});
 			}
 
