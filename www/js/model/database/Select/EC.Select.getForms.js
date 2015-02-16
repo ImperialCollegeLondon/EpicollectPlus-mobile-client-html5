@@ -37,8 +37,13 @@ EC.Select = ( function(module) {
 			var has_data_synced_query = 'SELECT COUNT(*) AS total_synced_rows FROM ec_data WHERE form_id=? AND is_data_synced=?';
 			var has_entries_query = 'SELECT COUNT(*) AS total_entries_rows FROM ec_data WHERE form_id=?';
 			var has_media_query = 'SELECT COUNT(*) AS total_media_files FROM ec_data WHERE form_id=? AND (type=? OR type=? OR type=?) AND value<>?';
-			
-			//all synced: is_data_synced must be 1, also for all the media entries is_media_syncedmust be 1 as well 
+
+			/* all synced: is_data_synced must be 1, there are some edge case where
+			 * is_media_synced must be 1 before deleting, or the entry is of type media but
+			 * no file has been saved
+			 * 
+			 * To simplify things, we enable the button when at least one row has is_data_synced=1 and we handle edge cases upon deletion (see EC.Select.getSyncedEntryKeys())
+			 */
 			var has_all_synced_query = 'SELECT COUNT(*) AS total_all_synced_rows FROM ec_data WHERE form_id=? AND is_data_synced=?';
 
 			for ( i = 0; i < iLength; i++) {
@@ -74,7 +79,7 @@ EC.Select = ( function(module) {
 			var branch_form_with_media_ids = [];
 
 			console.log("Data info collected");
-			
+
 			button_states.unsync_all_data = (total_synced_rows > 0) ? 1 : 0;
 			button_states.delete_all_entries = (total_entries_rows > 0) ? 1 : 0;
 			button_states.delete_media_files = (total_media_files > 0) ? 1 : 0;
