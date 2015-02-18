@@ -17,7 +17,7 @@
        under the License.
  */
 
-package uk.ac.imperial.epicollect5_64bit;
+package uk.ac.imperial.epicollect5;
 
 import java.io.File;
 

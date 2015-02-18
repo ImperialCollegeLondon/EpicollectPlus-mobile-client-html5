@@ -1,62 +1,143 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="uk.ac.imperial.epicollect5" version="2.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
-	<name>Epicollect5</name>
-	<description>Data Collection Tool</description>
-	<author email="m.menegazzo@imperial.ac.uk" href="https://github.com/ImperialCollegeLondon/epicollect5-64bit">Epicollect Team</author>
-	<content src="index.html?project=" />
-	<access origin="*" />
-
+<widget xmlns:cdv="http://cordova.apache.org/ns/1.0"
+	id="uk.ac.imperial.epicollect5"
+	version="2.0.0"
+	xmlns="http://www.w3.org/ns/widgets">
+	<name>
+Epicollect5
+	</name>
+	<description>
+Data Collection Tool
+	</description>
+	<author
+		email="m.menegazzo@imperial.ac.uk"
+		href="https://github.com/ImperialCollegeLondon/epicollect5-64bit">
+Epicollect Team
+	</author>
+	<content src="index.html?project="/>
+	<access origin="*"/>
 	<!-- increase load timeout to 2 minutes, because initial instrumentation takes time -->
-	<preference name="loadUrlTimeoutValue" value="120000" />
-	
-	
+	<preference
+		name="loadUrlTimeoutValue"
+		value="120000"/>
 	<!-- Fix status bar on ios 7+ -->
-	<preference name="StatusBarOverlaysWebView" value="false" />
-	<preference name="StatusBarStyle" value="default" />
-	<preference name="StatusBarBackgroundColor" value="#FFFFFF" />
+	<preference
+		name="StatusBarOverlaysWebView"
+		value="false"/>
+	<preference
+		name="StatusBarStyle"
+		value="default"/>
+	<preference
+		name="StatusBarBackgroundColor"
+		value="#FFFFFF"/>
 	<platform name="ios">
-
-		<!-- iPhone 6 Plus  -->
-		<icon src="res/ios/icon-60@3x.png" width="180" height="180" />
+		<!-- iPhone 6 Plus -->
+		<icon
+			height="180"
+			src="res/ios/icon-60@3x.png"
+			width="180"/>
 		<!-- iOS 7.0+ -->
-		<!-- iPhone / iPod Touch  -->
-		<icon src="res/ios/icon-60.png" width="60" height="60" />
-		<icon src="res/ios/icon-60@2x.png" width="120" height="120" />
+		<!-- iPhone / iPod Touch -->
+		<icon
+			height="60"
+			src="res/ios/icon-60.png"
+			width="60"/>
+		<icon
+			height="120"
+			src="res/ios/icon-60@2x.png"
+			width="120"/>
 		<!-- iPad -->
-		<icon src="res/ios/icon-76.png" width="76" height="76" />
-		<icon src="res/ios/icon-76@2x.png" width="152" height="152" />
-
+		<icon
+			height="76"
+			src="res/ios/icon-76.png"
+			width="76"/>
+		<icon
+			height="152"
+			src="res/ios/icon-76@2x.png"
+			width="152"/>
 		<!-- images are determined by width and height. The following are supported -->
 		<!-- <splash src="res/screen/ios/Default~iphone.png" width="320" height="480"/> -->
-		<splash src="res/ios/Default@2x~iphone.png" width="640" height="960"/>
-		<!-- <splash src="res/screen/ios/Default-Portrait~ipad.png" width="768" height="1024"/>
+		<splash
+			height="960"
+			src="res/ios/Default@2x~iphone.png"
+			width="640"/>
+		<!--
+        <splash src="res/screen/ios/Default-Portrait~ipad.png" width="768" height="1024"/>
 		<splash src="res/screen/ios/Default-Portrait@2x~ipad.png" width="1536" height="2048"/>
 		<splash src="res/screen/ios/Default-Landscape~ipad.png" width="1024" height="768"/>
-		<splash src="res/screen/ios/Default-Landscape@2x~ipad.png" width="2048" height="1536"/> -->
-		<splash src="res/ios/Default-568h@2x~iphone.png" width="640" height="1136"/>
-		<splash src="res/ios/Default-667h.png" width="750" height="1334"/>
-		<splash src="res/ios/Default-736h.png" width="1242" height="2208"/>
+		<splash src="res/screen/ios/Default-Landscape@2x~ipad.png" width="2048" height="1536"/>
+		-->
+		<splash
+			height="1136"
+			src="res/ios/Default-568h@2x~iphone.png"
+			width="640"/>
+		<splash
+			height="1334"
+			src="res/ios/Default-667h.png"
+			width="750"/>
+		<splash
+			height="2208"
+			src="res/ios/Default-736h.png"
+			width="1242"/>
 		<!-- <splash src="res/ios/Default-Landscape-736h.png" width="2208" height="1242"/> -->
-		<preference name="MediaPlaybackRequiresUserAction" value="true"/>
+		<preference
+			name="MediaPlaybackRequiresUserAction"
+			value="true"/>
 		<!-- Avoid iCloud backups, only local via iTunes -->
-		<preference name="BackupWebStorage" value="local"/>
-        
-        <!-- Disable bouncing scrolling -->
-        <preference name="DisallowOverscroll" value="true" />
+		<preference
+			name="BackupWebStorage"
+			value="local"/>
+		<!-- Disable bouncing scrolling -->
+		<preference
+			name="DisallowOverscroll"
+			value="true"/>
 	</platform>
 	<platform name="android">
 		<!-- Automatically install plugin dependencies (this will also install them for iOS) -->
-		<hook type="after_platform_add" src="hooks/install-plugins.js" />
+		<hook
+			src="hooks/install-plugins.js"
+			type="after_platform_add"/>
 		<!-- Android icons and splash screens -->
-		<icon src="res/android/mdpi.png" density="mdpi" />
-		<icon src="res/android/hdpi.png" density="hdpi" />
-		<icon src="res/android/xhdpi.png" density="xhdpi" />
-		<icon src="res/android/xxhdpi.png" density="xxhdpi" />
-		<icon src="res/android/xxxhdpi.png" density="xxxhdpi" />
-		<preference name="SplashScreen" value="screen"/>
-		<splash src="res/android/splash-port-hdpi.png" density="port-hdpi"/>
-		<splash src="res/android/splash-port-ldpi.png" density="port-ldpi"/>
-		<splash src="res/android/splash-port-mdpi.png" density="port-mdpi"/>
-		<splash src="res/android/splash-port-xhdpi.png" density="port-xhdpi"/>
+		<icon
+			density="mdpi"
+			src="res/android/mdpi.png"/>
+		<icon
+			density="hdpi"
+			src="res/android/hdpi.png"/>
+		<icon
+			density="xhdpi"
+			src="res/android/xhdpi.png"/>
+		<icon
+			density="xxhdpi"
+			src="res/android/xxhdpi.png"/>
+		<icon
+			density="xxxhdpi"
+			src="res/android/xxxhdpi.png"/>
+		<preference
+			name="SplashScreen"
+			value="screen"/>
+		<splash
+			density="port-hdpi"
+			src="res/android/splash-port-hdpi.png"/>
+		<splash
+			density="port-ldpi"
+			src="res/android/splash-port-ldpi.png"/>
+		<splash
+			density="port-mdpi"
+			src="res/android/splash-port-mdpi.png"/>
+		<splash
+			density="port-xhdpi"
+			src="res/android/splash-port-xhdpi.png"/>
+		<!-- Target SDK, 2.3+ -->
+		<preference
+			name="android-minSdkVersion"
+			value="10"/>
+		<preference
+			name="android-targetSdkVersion"
+			value="21"/>
+		<!-- Force launch mode to always a single instance of the app -->
+		<preference
+			name="AndroidLaunchMode"
+			value="singleTask"/>
 	</platform>
 </widget>

@@ -278,12 +278,15 @@ EC.Entries = ( function() {
 			});
 
 		};
-
+		
+		/*
+		 * Delete a single branch entry and linked files
+		 */
 		var deleteBranchEntry = function() {
 
 			var rows_to_delete = JSON.parse(window.localStorage.branch_inputs_values);
-
-			//delete all the rows for this branch entry
+			
+			//delete all the rows for this branch entry and linked files (if any)
 			$.when(EC.Delete.deleteBranchEntry(rows_to_delete)).then(function() {
 
 				EC.Notification.showToast(EC.Localise.getTranslation("branch_entry_deleted"), "short");
