@@ -337,5 +337,4 @@ EC.Dictionary = {
 		dismiss: "Annulla",
 		confirm: "Conferma"
 	}
-
 };

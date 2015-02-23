@@ -24,6 +24,7 @@ EC.Select = ( function(module) {"use strict";
 		var _getBranchFormLocalIDsSQLSuccess = function(the_tx, the_result) {
 			
 			//map form names against _id
+			//TODO: is this right? why are we getting the first row only??
 			mapped_branch_forms.push({
 				_id : the_result.rows.item(0)._id,
 				name : the_result.rows.item(0).name
