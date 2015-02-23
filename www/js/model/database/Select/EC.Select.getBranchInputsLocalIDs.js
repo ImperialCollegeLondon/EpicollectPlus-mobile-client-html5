@@ -25,10 +25,9 @@ EC.Select = ( function(module) {"use strict";
 
 				//map form names against _id
 				mapped_branch_inputs.push({
-					_id : the_result.rows.item(0)._id,
-					ref : the_result.rows.item(0).ref
+					_id : the_result.rows.item(i)._id,
+					ref : the_result.rows.item(i).ref
 				});
-
 			}
 
 		};
