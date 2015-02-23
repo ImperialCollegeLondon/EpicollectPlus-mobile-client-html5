@@ -11,7 +11,7 @@ EC.File = ( function(module) {"use strict";
 
 		/**
 		 * @method _writeFile Write the project backup object to a file <project_name>.txt
-		 * The file is written to LocalFileSystem.PERSISTENT, whatever that resolve to (it depends on the device and platform)
+		 * The file is written to LocalFileSystem.PERSISTENT, whatever that resolves to (it depends on the device and platform)
 		 * @param {Object} the_content
 		 */
 		function _writeFile(the_content) {
