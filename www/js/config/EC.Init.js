@@ -7,7 +7,7 @@ EC.Init = EC.Init || {};
  * Init application triggering onDeviceReady when both jQuery Mobile and Cordova
  * are ready
  *
- * Also set the debig mode (EC.Const.DEBUG is set manually)
+ * Also disable console.log() when debugging is off (EC.Const.DEBUG is set manually)
  */
 EC.Init = function() {
 	"use strict";

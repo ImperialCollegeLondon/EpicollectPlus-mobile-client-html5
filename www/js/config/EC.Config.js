@@ -1,12 +1,13 @@
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
 /*
- *
+ * Small library of utility function helpful when running epicollect5 on older platforms or when a custom function is necessary
  *
  */
 var EC = EC || {};
 EC.Config = ( function() {"use strict";
-
+		
+		//concatenate array only keeping unique values	
 		Array.prototype.unique = function() {
 
 			var i;
@@ -23,7 +24,8 @@ EC.Config = ( function() {"use strict";
 
 			return a;
 		};
-
+		
+		//seacrh element in array
 		if (!Array.prototype.indexOf) {
 			Array.prototype.indexOf = function(searchElement, fromIndex) {
 				var i, pivot = fromIndex || 0, length;
@@ -50,7 +52,8 @@ EC.Config = ( function() {"use strict";
 				return -1;
 			};
 		}//indexOf
-
+		
+		//check if two arrays are identical, strict flag if the elements need to be in the same order
 		Array.prototype.equals = function(array, is_strict) {
 
 			var i;
@@ -82,6 +85,7 @@ EC.Config = ( function() {"use strict";
 		};
 
 		//https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
+		//check if a string start with the passed substring/char
 		if (!String.prototype.startsWith) {
 			Object.defineProperty(String.prototype, 'startsWith', {
 				enumerable : false,
@@ -93,7 +97,10 @@ EC.Config = ( function() {"use strict";
 				}
 			});
 		}//startsWith
-
+		
+		/* Truncate a string
+		 * @param {n} the length 
+		 */
 		String.prototype.trunc = function(n) {
 			return this.substr(0, n - 1) + (this.length > n ? '...' : '');
 		};
