@@ -232,7 +232,7 @@ span.input-btn-inner {
 	display:block;
 	line-height:2em;
 }
-span.project-name, span.app-name, span.form-name, span.branch-form-name {
+span.project-name, span.app-name, span.form-name, span.branch-form-name, span.upload-label {
 	vertical-align:middle;
 }
 .ui-icon-ep-next-page {

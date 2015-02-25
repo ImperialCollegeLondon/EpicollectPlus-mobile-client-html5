@@ -4,6 +4,8 @@
  *	@module EC
     @submodule BranchInputs
  *
+ * Route back user from a branch form to the linked hierararchy form, clearing cached branch data
+ * 
  */
 var EC = EC || {};
 EC.BranchInputs = EC.BranchInputs || {};
@@ -31,9 +33,6 @@ EC.BranchInputs = ( function(module) {"use strict";
 			window.localStorage.removeItem("branch_edit_hash");
 			window.localStorage.removeItem("branch_edit_key_value");
 			window.localStorage.removeItem("branch_edit_type");
-
-			//TODO: render previous input, calling the view? or creating it here?
-			//it can't be cached as we need to refresh the view to se the new entered entry
 
 			window.localStorage.back_from_branch = 1;
 

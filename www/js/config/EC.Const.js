@@ -2,6 +2,7 @@
 /*global $, jQuery, cordova, device*/
 var EC = EC || {};
 EC.Const = EC.Const || {};
+
 //Define constant values to be used across the application
 EC.Const = ( function() {
         "use strict";
