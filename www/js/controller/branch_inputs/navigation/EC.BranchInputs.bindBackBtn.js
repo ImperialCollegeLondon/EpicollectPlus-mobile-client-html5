@@ -1,5 +1,10 @@
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
+
+/*
+ * @method bindBackBtn set back button label to go back from branch form to linked hierarchy form
+ */
+
 var EC = EC || {};
 EC.BranchInputs = EC.BranchInputs || {};
 EC.BranchInputs = ( function(module) {"use strict";
@@ -19,13 +24,11 @@ EC.BranchInputs = ( function(module) {"use strict";
 				if (is_data_saved) {
 					//go back to main form input
 					self.backToHierarchyForm();
-
 				} else {
 					//id data are not saved, ask confirmation to user before proceeding
 					EC.Notification.askConfirm(EC.Localise.getTranslation("exit"), EC.Localise.getTranslation("exit_confirm"), "EC.BranchInputs.backToHierarchyForm");
 				}
 			});
-
 		};
 
 		return module;

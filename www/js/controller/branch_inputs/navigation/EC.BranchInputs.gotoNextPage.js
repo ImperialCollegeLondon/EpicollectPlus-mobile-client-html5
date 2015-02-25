@@ -12,7 +12,10 @@ EC.BranchInputs = ( function(module) {"use strict";
 		var self;
 		var branch_current_position;
 		var is_jump_found;
-
+		
+		/*
+		 * @function _checkJumps check if there is any jump to perform based on the input value and jumps mapped to that input
+		 */
 		var _checkJumps = function(the_jumps, the_current_value) {
 
 			var jumps = the_jumps;
@@ -69,10 +72,12 @@ EC.BranchInputs = ( function(module) {"use strict";
 			
 			return branch_destination;
 		};
-
+		
+		/*
+		 * @method gotoNextPage load next input into view, checking for jumps etc.
+		 */
 		module.gotoNextPage = function(evt, the_current_value) {
 
-			
 			var branch_current_input;
 			var current_value = the_current_value;
 			var next_branch_input;

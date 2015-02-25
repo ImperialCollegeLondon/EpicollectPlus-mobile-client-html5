@@ -166,7 +166,9 @@ EC.Upload = ( function(module) {
 			self.action = EC.Const.START_HIERARCHY_UPLOAD;
 
 			//set label (page title)
-			$("div#upload div[data-role='navbar'] ul li.title-tab span#upload-label span").text(project_name.trunc(EC.Const.PROJECT_NAME_MAX_LENGTH));
+			
+			console.log(project_name.trunc(EC.Const.PROJECT_NAME_MAX_LENGTH));
+			$("div#upload div[data-role='navbar'] ul li.title-tab span#upload-label span.project-name").text(project_name.trunc(EC.Const.PROJECT_NAME_MAX_LENGTH));
 
 			//bind view buttons
 			_bindBtns(has_hard_reload, self);
