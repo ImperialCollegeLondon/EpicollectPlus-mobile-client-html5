@@ -7,3 +7,10 @@ platforms/ios
 # All platforms
 
 plugins/
+.idea/.name
+.idea/encodings.xml
+.idea/epicollect5-64bit-iMac.iml
+.idea/modules.xml
+.idea/scopes/scope_settings.xml
+.idea/vcs.xml
+.idea/workspace.xml
