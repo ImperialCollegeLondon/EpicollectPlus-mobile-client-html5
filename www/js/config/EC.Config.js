@@ -4,138 +4,136 @@
  * Small library of utility function helpful when running epicollect5 on older platforms or when a custom function is necessary
  *
  */
-var EC = EC || {};
-EC.Config = ( function() {"use strict";
-		
-		//concatenate array only keeping unique values	
-		Array.prototype.unique = function() {
+var EC = window.EC || {};
+EC.Config = (function () {
+    'use strict';
 
-			var i;
-			var j;
-			var a = this.concat();
+    //concatenate array only keeping unique values
+    Array.prototype.unique = function () {
 
-			for ( i = 0; i < a.length; ++i) {
-				for ( j = i + 1; j < a.length; ++j) {
-					if (a[i] === a[j]) {
-						a.splice(j--, 1);
-					}
-				}
-			}
+        var i;
+        var j;
+        var a = this.concat();
 
-			return a;
-		};
-		
-		//seacrh element in array
-		if (!Array.prototype.indexOf) {
-			Array.prototype.indexOf = function(searchElement, fromIndex) {
-				var i, pivot = fromIndex || 0, length;
+        for (i = 0; i < a.length; ++i) {
+            for (j = i + 1; j < a.length; ++j) {
+                if (a[i] === a[j]) {
+                    a.splice(j--, 1);
+                }
+            }
+        }
+        return a;
+    };
 
-				if (!this) {
-					throw new TypeError();
-				}
+    //search element in array
+    if (!Array.prototype.indexOf) {
+        Array.prototype.indexOf = function (searchElement, fromIndex) {
+            var i, pivot = fromIndex || 0, length;
 
-				length = this.length;
+            if (!this) {
+                throw new TypeError();
+            }
 
-				if (length === 0 || pivot >= length) {
-					return -1;
-				}
+            length = this.length;
 
-				if (pivot < 0) {
-					pivot = length - Math.abs(pivot);
-				}
+            if (length === 0 || pivot >= length) {
+                return -1;
+            }
 
-				for ( i = pivot; i < length; i++) {
-					if (this[i] === searchElement) {
-						return i;
-					}
-				}
-				return -1;
-			};
-		}//indexOf
-		
-		//check if two arrays are identical, strict flag if the elements need to be in the same order
-		Array.prototype.equals = function(array, is_strict) {
+            if (pivot < 0) {
+                pivot = length - Math.abs(pivot);
+            }
 
-			var i;
+            for (i = pivot; i < length; i++) {
+                if (this[i] === searchElement) {
+                    return i;
+                }
+            }
+            return -1;
+        };
+    }//indexOf
 
-			if (!array) {
-				return false;
-			}
-			if (arguments.length === 1) {
-				is_strict = true;
-			}
+    //check if two arrays are identical, strict flag if the elements need to be in the same order
+    Array.prototype.equals = function (array, is_strict) {
 
-			if (this.length !== array.length) {
-				return false;
-			}
-			for ( i = 0; i < this.length; i++) {
-				if (this[i] instanceof Array && array[i] instanceof Array) {
-					if (!this[i].equals(array[i], is_strict)) {
-						return false;
-					}
-				}
-				if (is_strict && this[i] !== array[i]) {
-					return false;
-				}
-				if (!is_strict) {
-					return this.sort().equals(array.sort(), true);
-				}
-			}
-			return true;
-		};
+        var i;
 
-		//https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
-		//check if a string start with the passed substring/char
-		if (!String.prototype.startsWith) {
-			Object.defineProperty(String.prototype, 'startsWith', {
-				enumerable : false,
-				configurable : false,
-				writable : false,
-				value : function(searchString, position) {
-					position = position || 0;
-					return this.indexOf(searchString, position) === position;
-				}
-			});
-		}//startsWith
-		
-		/* Truncate a string
-		 * @param {n} the length 
-		 */
-		String.prototype.trunc = function(n) {
-			return this.substr(0, n - 1) + (this.length > n ? '...' : '');
-		};
+        if (!array) {
+            return false;
+        }
+        if (arguments.length === 1) {
+            is_strict = true;
+        }
 
-		// From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
-		if (!Object.keys) {
-			Object.keys = ( function() {
-					var hasOwnProperty = Object.prototype.hasOwnProperty, hasDontEnumBug = !( {
-						toString : null
-					}).propertyIsEnumerable('toString'), dontEnums = ['toString', 'toLocaleString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'constructor'], dontEnumsLength = dontEnums.length;
+        if (this.length !== array.length) {
+            return false;
+        }
+        for (i = 0; i < this.length; i++) {
+            if (this[i] instanceof Array && array[i] instanceof Array) {
+                if (!this[i].equals(array[i], is_strict)) {
+                    return false;
+                }
+            }
+            if (is_strict && this[i] !== array[i]) {
+                return false;
+            }
+            if (!is_strict) {
+                return this.sort().equals(array.sort(), true);
+            }
+        }
+        return true;
+    };
 
-					return function(obj) {
-						if ( typeof obj !== 'object' && ( typeof obj !== 'function' || obj === null)) {
-							throw new TypeError('Object.keys called on non-object');
-						}
+    //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/startsWith
+    //check if a string start with the passed substring/char
+    if (!String.prototype.startsWith) {
+        Object.defineProperty(String.prototype, 'startsWith', {
+            enumerable: false,
+            configurable: false,
+            writable: false,
+            value: function (searchString, position) {
+                position = position || 0;
+                return this.indexOf(searchString, position) === position;
+            }
+        });
+    }//startsWith
 
-						var result = [], prop, i;
+    /* Truncate a string
+     * @param {n} the length
+     */
+    String.prototype.trunc = function (n) {
+        return this.substr(0, n - 1) + (this.length > n ? '...' : '');
+    };
 
-						for (prop in obj) {
-							if (hasOwnProperty.call(obj, prop)) {
-								result.push(prop);
-							}
-						}
+    // From https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/keys
+    if (!Object.keys) {
+        Object.keys = (function () {
+            var hasOwnProperty = Object.prototype.hasOwnProperty, hasDontEnumBug = !({
+                toString: null
+            }).propertyIsEnumerable('toString'), dontEnums = ['toString', 'toLocaleString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf', 'propertyIsEnumerable', 'constructor'], dontEnumsLength = dontEnums.length;
 
-						if (hasDontEnumBug) {
-							for ( i = 0; i < dontEnumsLength; i++) {
-								if (hasOwnProperty.call(obj, dontEnums[i])) {
-									result.push(dontEnums[i]);
-								}
-							}
-						}
-						return result;
-					};
-				}());
-		}
+            return function (obj) {
+                if (typeof obj !== 'object' && (typeof obj !== 'function' || obj === null)) {
+                    throw new TypeError('Object.keys called on non-object');
+                }
 
-	}());
+                var result = [], prop, i;
 
+                for (prop in obj) {
+                    if (hasOwnProperty.call(obj, prop)) {
+                        result.push(prop);
+                    }
+                }
+
+                if (hasDontEnumBug) {
+                    for (i = 0; i < dontEnumsLength; i++) {
+                        if (hasOwnProperty.call(obj, dontEnums[i])) {
+                            result.push(dontEnums[i]);
+                        }
+                    }
+                }
+                return result;
+            };
+        }());
+    }
+}());

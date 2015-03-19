@@ -1,12 +1,9 @@
-/*jslint vars: true , nomen: true, devel: true, plusplus:true*/
-/*global $, jQuery*/
 var EC = EC || {};
 EC.InputTypes = EC.InputTypes || {};
 EC.InputTypes = ( function(module) {"use strict";
 
 		module.integer = function(the_value, the_input) {
 
-			//to cache dom lookups
 			var obj;
 			var span_label = $('span.label');
 			var clone = $('div.clone');
@@ -18,7 +15,7 @@ EC.InputTypes = ( function(module) {"use strict";
 
 			//update label text
 			span_label.text(input.label);
-			
+
 			//Localise
 			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
 				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
@@ -34,9 +31,9 @@ EC.InputTypes = ( function(module) {"use strict";
 			}
 
 			//check if we need to replicate this input
-			double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
-			
-			//trigger numeric keyboard on iOS	
+			double_entry = (parseInt(input.has_double_check, 10) == 1);
+
+			//trigger numeric keyboard on iOS
 			if (window.device.platform === EC.Const.IOS) {
 				$('div#input-integer input').attr('pattern', '[0-9]*');
 			}
