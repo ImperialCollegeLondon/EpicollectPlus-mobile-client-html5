@@ -60,12 +60,6 @@ EC.Project = ( function(module) {"use strict";
 			input_value = $("div#add-project-content form div input[data-type='search']");
 			autocomplete_spinning_loader = $(".autocomplete-spinner-loader");
 			project_url = window.localStorage.project_server_url;
-			
-			//if Chrome, prepend proxy (CORS)
-			if(EC.Utils.isChrome()){
-				project_url = EC.Const.PROXY;
-			}
-			
 
 			//Localise
 			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
@@ -73,17 +67,16 @@ EC.Project = ( function(module) {"use strict";
 			}
 
 			input_value.val("");
-            
+
             //populate lists with autocomplete suggestions based on project names on the server
 			dom_list.on("listviewbeforefilter", function(e, data) {
-			    
+
 			    console.log("typing");
-			    
+
 				var $ul = $(this);
 				var $input = $(data.input);
 				var value = $input.val();
 				var html = "";
-				
 
 				//wait a fifth of a second the user stops typing
 				var request_delay = 200;
@@ -92,7 +85,7 @@ EC.Project = ( function(module) {"use strict";
 
 				//trigger request with more than 2 chars
 				if (value && value.length > 2) {
-				    
+
 				    autocomplete_spinning_loader.removeClass("not-shown");
 
 					$ul.html('<li class="autocomplete-spinner"><i class="fa fa-spinner fa-spin"></i></li>');
@@ -103,15 +96,15 @@ EC.Project = ( function(module) {"use strict";
 					 */
 					clearTimeout(request_timeout);
 					request_timeout = setTimeout(function() {
-					    
+
 					    console.log("requesting");
 
 						$.ajax({
-							url : project_url + "projects?q=" + value + "&limit=25",
+							url : "http://plus.epicollect.net/" + "projects?q=" + value + "&limit=25",
 							dataType : "json",
 							crossDomain : true,
 							success : function(response) {
-							    
+
 							    autocomplete_spinning_loader.addClass("not-shown");
 
 								$.each(response, function(i) {

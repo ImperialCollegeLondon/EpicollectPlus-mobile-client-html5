@@ -131,6 +131,8 @@ EC.Const = ( function() {
             EPICOLLECT_SERVER_URL : "http://plus.epicollect.net/",
             
             //proxy to load xml in Chrome (CORS)
+            //TODO this is not used anymore as we are using a Chrome plugin, it will be removed
+            //http://goo.gl/oQNhwh
             PROXY: "http://www.corsproxy.com/plus.epicollect.net/",
 
             //the length of a cached file <timestamp.extension> (Android)
