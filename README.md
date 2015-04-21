@@ -7,7 +7,7 @@ Epicollect+  Mobile Client based on HTML5
 
 ## Installation 
 
-1. Clone repo (png resources were added manually using <code>git add res/ios/*.png -f<code>)
+1. Clone repo (png resources were added manually using `git add res/ios/*.png -f`)
 2. Add Android using Cordova CLI
 3. Plugins dependencies are added automatically via Cordova hooks when adding Android
 4. Add iOS using Cordova CLI (plugins will be added already from steps above)
