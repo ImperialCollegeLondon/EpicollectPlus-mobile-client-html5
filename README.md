@@ -4,6 +4,10 @@ Epicollect+  Mobile Client based on HTML5
 ## Dependencies
 - Cordova CLI 4.1.2 resolving to Cordova 3.7 on iOS and 3.6.4 on Android
 - jQuery Mobile 1.3.2
+ 
+## Platforms supported
+ - Android 4.1+ (Jelly Bean, released in July 2012)
+ - iOS 7+ (Released in September 2013)
 
 ## Installation 
 
