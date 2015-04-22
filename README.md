@@ -47,4 +47,8 @@ Epicollect+  Mobile Client based on HTML5
 
 
 14. Custom URL schemes need to be added manually to Android manifest and iOS plist files (if you want to deeplink your app to a web page, otherwise you can skip this)
+
+    iOS: http://goo.gl/SPLNo
+    Android: `todo`
+    
 15. Currently using 3.6.4 on Android, where jsHybugger (debugging tool) does not work. It would work on 3.7.0 but Eclipse does not compile the project (missing .jar). To debug Android <4.4, clone repo, update to 3.7 and debug there. Make the changes to the main repo manually.
