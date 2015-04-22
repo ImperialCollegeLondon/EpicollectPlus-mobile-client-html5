@@ -22,7 +22,8 @@ Epicollect+  Mobile Client based on HTML5
 13. Cordova statusbar plugin (iOS) is causing problems so it does not get installed, modify `MainViewController.m` directly instead. Replace the `viewDidLoad()` method with the following:
 
 
-    ```- (void)viewDidLoad
+    ```
+    - (void)viewDidLoad
      {
          [super viewDidLoad];
          // Do any additional setup after loading the view from its nib.
@@ -37,7 +38,8 @@ Epicollect+  Mobile Client based on HTML5
             self.webView.frame = viewBounds;
         }
      
-    }```
+    }
+    ```
 
 
 14. Custom URL schemes need to be added manually to Android manifest and iOS plist files (if you want to deeplink your app to a web page, otherwise you can skip this)
