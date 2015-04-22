@@ -1,201 +1,213 @@
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
-/*global $, jQuery*/
+/* jslint vars: true , nomen: true devel: true, plusplus: true*/
+/* global $, jQuery*/
 var EC = EC || {};
 EC.Ui = EC.Ui || {};
 EC.Ui = {
 
-	bindBtnStates : function() {"use strict";
+  
 
-		//bind events to apply hover effect on buttons (Action Bar)
-		$(document).on('vmousedown', 'div.ui-btn-right', function(e) {
+    colors: {
+        tap_action_overlay: '#2a6fc3',
+        default_button_background: '#EEEEEE',
+        list_item_background: '#DDDDDD',
+        fa_entry_value_embedded_btn_default: '#000000'
+    },
 
-			e.preventDefault();
-			e.stopPropagation();
+    bindBtnStates: function () {
+        'use strict';
+        
+        var _this = this;
 
-			$(this).css("background-color", "#FFB870");
+        //bind events to apply hover effect on buttons (Action Bar)
+        $(document).on('vmousedown', 'div.ui-btn-right', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		$(document).on('vmouseup', 'div.ui-btn-right', function(e) {
+            $(this).css('background-color', _this.colors.tap_action_overlay);
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("background", "none");
+        $(document).on('vmouseup', 'div.ui-btn-right', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		//bind events to apply hover effect on action buttons large (Action Bar top left)
-		$(document).on('vmousedown', 'div.h-nav-item', function(e) {
+            $(this).css('background', 'none');
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("background-color", "#FFB870");
+        //bind events to apply hover effect on action buttons large (Action Bar top left)
+        $(document).on('vmousedown', 'div.h-nav-item', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		$(document).on('vmouseup', 'div.h-nav-item', function(e) {
+            $(this).css("background-color", _this.colors.tap_action_overlay);
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("background", "none");
+        $(document).on('vmouseup', 'div.h-nav-item', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		//bind events to apply hover effect on navigation list item (sidebar options)
-		$(document).on('vmousedown', 'li.v-nav-item', function(e) {
+            $(this).css("background", "none");
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("background-color", "#FFB870");
+        //bind events to apply hover effect on navigation list item (sidebar options)
+        $(document).on('vmousedown', 'li.v-nav-item', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		$(document).on('vmouseup', 'li.v-nav-item', function(e) {
+            $(this).css("background-color", _this.colors.tap_action_overlay);
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("background-color", "#DDDDDD");
+        $(document).on('vmouseup', 'li.v-nav-item', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		//bind events to apply hover effect on autocomplete list items
-		$(document).on('vmousedown', 'li.h-nav-item', function(e) {
+            $(this).css("background-color", _this.colors.list_item_background);
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("background-color", "#FFB870");
+        //bind events to apply hover effect on autocomplete list items
+        $(document).on('vmousedown', 'li.h-nav-item', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		$(document).on('vmouseup', 'li.h-nav-item', function(e) {
+            $(this).css("background-color", _this.colors.tap_action_overlay);
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("background-color", "#DDDDDD");
+        $(document).on('vmouseup', 'li.h-nav-item', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		// //bind events to apply hover effect on navbar(secondary navigation)
-		$(document).on('vmousedown', 'li.inactive-tab', function(e) {
+            $(this).css("background-color", _this.colors.list_item_background);
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("background-color", "#FFB870");
+        // //bind events to apply hover effect on navbar(secondary navigation)
+        $(document).on('vmousedown', 'li.inactive-tab', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		$(document).on('vmouseup', 'li.inactive-tab', function(e) {
+            $(this).css("background-color", _this.colors.tap_action_overlay);
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("background-color", "#EEEEEE");
+        $(document).on('vmouseup', 'li.inactive-tab', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		//bind events to apply hover effect on prev/next button on inputs page (secondary navigation)
-		$(document).on('vmousedown', '.input-prev-btn', function(e) {
+            $(this).css("background-color", _this.colors.default_button_background);
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("background-color", "#FFB870");
+        //bind events to apply hover effect on prev/next button on inputs page (secondary navigation)
+        $(document).on('vmousedown', '.input-prev-btn', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		$(document).on('vmouseup', '.input-prev-btn', function(e) {
+            $(this).css("background-color", _this.colors.tap_action_overlay);
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("background-color", "#EEEEEE");
+        $(document).on('vmouseup', '.input-prev-btn', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		//bind events to apply hover effect on prev/next button on inputs page (secondary navigation)
-		$(document).on('vmousedown', '.input-next-btn', function(e) {
+            $(this).css("background-color", _this.colors.default_button_background);
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("background-color", "#FFB870");
+        //bind events to apply hover effect on prev/next button on inputs page (secondary navigation)
+        $(document).on('vmousedown', '.input-next-btn', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		$(document).on('vmouseup', '.input-next-btn', function(e) {
+            $(this).css("background-color", _this.colors.tap_action_overlay);
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("background-color", "#EEEEEE");
+        $(document).on('vmouseup', '.input-next-btn', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		//bind events to apply hover effect on embedded buttons
-		$(document).on('vmousedown', 'div.embedded-btn', function(e) {
+            $(this).css("background-color", _this.colors.default_button_background);
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("background-color", "#FFB870");
+        //bind events to apply hover effect on embedded buttons
+        $(document).on('vmousedown', 'div.embedded-btn', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		$(document).on('vmouseup', 'div.embedded-btn', function(e) {
+            $(this).css("background-color", _this.colors.tap_action_overlay);
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("background-color", "#EEEEEE");
+        $(document).on('vmouseup', 'div.embedded-btn', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		//bind events to apply hover effect on embedded buttons
-		$(document).on('vmousedown', 'i.fa-ep-entry-value-embedded-btn', function(e) {
+            $(this).css("background-color", _this.colors.default_button_background);
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("color", "#FFB870");
+        //bind events to apply hover effect on embedded buttons
+        $(document).on('vmousedown', 'i.fa-ep-entry-value-embedded-btn', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		$(document).on('vmouseup', 'i.fa-ep-entry-value-embedded-btn', function(e) {
+            $(this).css("color", _this.colors.tap_action_overlay);
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("color", "#000000");
+        $(document).on('vmouseup', 'i.fa-ep-entry-value-embedded-btn', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		//bind events to apply hover effect on "show more" buttons
-		$(document).on('vmousedown', '.more-items-btn', function(e) {
+            $(this).css("color", _this.colors.fa_entry_value_embedded_btn_default);
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("background-color", "#FFB870");
+        //bind events to apply hover effect on "show more" buttons
+        $(document).on('vmousedown', '.more-items-btn', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-		$(document).on('vmouseup', '.more-items-btn', function(e) {
+            $(this).css("background-color", _this.colors.tap_action_overlay);
 
-			e.preventDefault();
-			e.stopPropagation();
+        });
 
-			$(this).css("background-color", "#EEEEEE");
+        $(document).on('vmouseup', '.more-items-btn', function (e) {
 
-		});
+            e.preventDefault();
+            e.stopPropagation();
 
-	}
+            $(this).css("background-color", _this.colors.default_button_background);
+
+        });
+
+    }
 };
 

@@ -94,7 +94,7 @@ div#entries-list> ul a {
 	border:0 !important;
 }
 .parent-key, .branch-form-name {
-	background:#8156a3;
+	background: #8c4de1;
 	text-align:center;
 	min-height:2em;
 }
@@ -181,7 +181,7 @@ li.tab-nav.ui-block-a, li.tab-nav.ui-block-b {
 	height:2em;
 }
 li.tab-nav.ui-block-b {
-	background-color:#8156a3 !important;
+	background-color:#8c4de1 !important;
 	text-align:center;
 	color:#ffffff !important;
 }
@@ -303,7 +303,7 @@ span.h-entry-value-label p {
 }
 /*****************************************************************/
 li.title-tab {
-	background-color:#8156a3 !important;
+	background-color:#8c4de1 !important;
 	color:#EEEEEE !important;
 	text-align:center;
 }
