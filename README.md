@@ -2,7 +2,7 @@
 Epicollect+  Mobile Client based on HTML5
 
 ## Dependencies
-- Cordova CLI 4.1.2 resolving to Cordova 3.7 on iOS and 3.6.4 on Android
+- Cordova CLI 5.0 resolving to Cordova 3.8 on iOS and Cordova 4.0.0 on Android
 - jQuery Mobile 1.3.2
  
 ## Platforms supported
@@ -14,11 +14,10 @@ Epicollect+  Mobile Client based on HTML5
 1. Clone repo (png resources were added manually using `git add res/ios/*.png -f`)
 2. Add Android using Cordova CLI
 3. Plugins dependencies are added automatically via Cordova hooks when adding Android
-4. Add iOS using Cordova CLI `cordova platform add ios@3.6.3`(plugins will be added already from steps above). There is a bug on Cordova 3.7 iOS where `handleOpenURL()` is not called if the app is not active, solution was to downgrade to 3.6.3
 5. Copy `res/android/` files to proper folder under `platform/android`
 6. Change `android:theme` attribute to `android:theme="@style/Theme.Epicollect5"` 
 7. Run `cordova prepare` to copy file per each platform
-8. Open project in Eclipse (Android) or Xcode (iOS)
+8. Open project in Android Studio (Android) or Xcode (iOS)
 9. Fix deployment info, Java import ect. if needed
 10. Update Android Manifest file, see the one on Epicollect5 repo
 11. Run on device
@@ -51,4 +50,4 @@ Epicollect+  Mobile Client based on HTML5
     iOS: http://goo.gl/SPLNo
     Android: `todo`
     
-15. Currently using 3.6.4 on Android, where jsHybugger (debugging tool) does not work. It would work on 3.7.0 but Eclipse does not compile the project (missing .jar). To debug Android <4.4, clone repo, update to 3.7 and debug there. Make the changes to the main repo manually.
+15. Currently using 4.0.0 on Android, where jsHybugger (debugging tool) does not work. It would work on 3.7.0 but Eclipse does not compile the project (missing .jar). To debug Android <4.4, clone repo, use to 3.7 and debug there. Make the changes to the main repo manually.
