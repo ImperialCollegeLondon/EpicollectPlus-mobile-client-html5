@@ -14,8 +14,9 @@ EC.Project = (function (module) {
 
     module.request = function (the_project_xml_url) {
 
-        console.log('doing request');
         project_xml_URL = the_project_xml_url;
+        console.log('doing request: ' + project_xml_URL);
+
         deferred = new $.Deferred();
 
         $.ajax({

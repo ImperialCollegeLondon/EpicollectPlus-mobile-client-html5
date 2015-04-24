@@ -15,7 +15,7 @@
         Epicollect Team
     </author>
     <content src="index.html?project="/>
-    <access origin="*"/>
+    <access origin="*" subdomains="true"/>
 
     <preference name="SplashScreenDelay" value="7000"/>
     <!-- increase load timeout to 2 minutes, because initial instrumentation takes time -->
