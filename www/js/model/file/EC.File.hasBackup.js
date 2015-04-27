@@ -2,46 +2,47 @@
 /*global $, jQuery*/
 var EC = EC || {};
 EC.File = EC.File || {};
-EC.File = ( function(module) {"use strict";
+EC.File = (function (module) {
+    'use strict';
 
-		module.hasBackup = function(the_project_name) {
+    module.hasBackup = function (the_project_name) {
 
-			var filename = the_project_name + ".txt";
-			var backup_path;
-			var forms_data = [];
-			var deferred = new $.Deferred();
+        var filename = the_project_name + '.txt';
+        var backup_path;
+        var forms_data = [];
+        var deferred = new $.Deferred();
 
-			window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, gotFS, gotFSfail);
+        window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, gotFS, gotFSfail);
 
-			function gotFS(the_fileSystem) {
+        function gotFS(the_fileSystem) {
 
-				console.log(JSON.stringify(the_fileSystem));
+            console.log(JSON.stringify(the_fileSystem));
 
-				backup_path = the_fileSystem.root.fullPath;
+            backup_path = the_fileSystem.root.fullPath;
 
-				the_fileSystem.root.getFile(filename, {
-					create : false,
-					exclusive : false
-				}, gotBackupSuccess, gotBackupFail);
+            the_fileSystem.root.getFile(filename, {
+                create: false,
+                exclusive: false
+            }, gotBackupSuccess, gotBackupFail);
 
-			}
+        }
 
-			function gotBackupSuccess() {
-				deferred.resolve();
-			}
+        function gotBackupSuccess() {
+            deferred.resolve();
+        }
 
-			function gotBackupFail() {
-				deferred.reject();
-			}
+        function gotBackupFail() {
+            deferred.reject();
+        }
 
-			function gotFSfail(the_error) {
-				console.log(the_error);
-			}
+        function gotFSfail(the_error) {
+            console.log(the_error);
+        }
 
-			return deferred.promise();
+        return deferred.promise();
 
-		};
+    };
 
-		return module;
+    return module;
 
-	}(EC.File));
+}(EC.File));

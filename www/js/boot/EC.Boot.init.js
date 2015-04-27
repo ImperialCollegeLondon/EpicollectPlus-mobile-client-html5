@@ -12,12 +12,15 @@ EC.Boot = EC.Boot || {};
 EC.Boot.init = function () {
     'use strict';
 
+
     //wait for both JQM pageinit and PG onDeviceReady before doing anything
     var jqmReady = $.Deferred();
     var cordovaReady = $.Deferred();
 
+    //handle device events
+    EC.Boot.handleDeviceEvents();
 
-   //manually trigger ondeviceready on Chrome browser  only
+    //manually trigger ondeviceready on Chrome browser  only
     if (EC.Utils.isChrome()) {
         console.log('deviceready Chrome');
         cordovaReady.resolve();
@@ -53,12 +56,33 @@ EC.Boot.init = function () {
         window.localStorage.project_server_url = EC.Const.EPICOLLECT_SERVER_URL;
     }
 
-
     //resolve when jqm page is ready
     $(document).bind('pageinit', jqmReady.resolve);
 
     //resolve when Cordova ready
     document.addEventListener('deviceready', cordovaReady.resolve, false);
+
+    //attach global handler to be used when opening app using custom scheme
+    //scheme://key=value
+    window.localStorage.autoload_project_url = '';
+    window.handleOpenURL = function (url) {
+
+        console.log('handleOpenURL called with ' + url);
+
+        var project_name_parts;
+        var project_name;
+
+        if (url) {
+
+            project_name_parts = url.split('://project?');
+            //project_name = url.replace('epicollect5://project?', '');
+            project_name = project_name_parts[1];
+            project_name = 'http://' + project_name;
+            window.localStorage.autoload_project_url = project_name;
+
+            EC.Boot.getProjects();
+        }
+    };
 
     // all ready, trigger app!
     $.when(jqmReady, cordovaReady).then(function () {

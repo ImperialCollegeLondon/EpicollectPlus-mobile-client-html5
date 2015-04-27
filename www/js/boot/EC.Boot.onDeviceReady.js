@@ -123,7 +123,7 @@ EC.Boot.onDeviceReady = function () {
 
     if (!EC.Utils.isChrome()) {
 
-        document.addEventListener('backbutton', onBackButton, false);
+        document.addEventListener('backbutton', window.onBackButton, false);
 
         //set the device UUID (depending on platform)
         switch (window.device.platform) {
