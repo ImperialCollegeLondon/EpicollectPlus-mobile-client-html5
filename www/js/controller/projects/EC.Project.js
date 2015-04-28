@@ -29,6 +29,12 @@ EC.Project = ( function () {
             settings_btn.off().one('vclick', function (e) {
                 EC.Routing.changePage(EC.Const.SETTINGS_VIEW);
             });
+
+            //test closing panel globally: there is bug (panel does not close tapping off the panel) using the built in jqm methods, so this hack is needed
+            //docs: http://demos.jquerymobile.com/1.3.2/widgets/panels/
+            $('.ui-panel-dismiss').off().on('vclick', function() {
+                $('.ui-panel-open').panel('close');
+            });
         });
 
         //bind add project button (action bar)
