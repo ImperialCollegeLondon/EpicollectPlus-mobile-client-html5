@@ -24,9 +24,6 @@ Plugins dependencies are added automatically via Cordova hooks when adding Andro
 Copy `res/android/` files to proper folder under `platform/android`
 
 ####
-Change `android:theme` attribute to `android:theme="@style/Theme.Epicollect5"` 
-
-####
 Run `cordova prepare` to copy file per each platform
 
 ####
