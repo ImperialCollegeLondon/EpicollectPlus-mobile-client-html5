@@ -17,7 +17,7 @@
     <content src="index.html?project="/>
     <access origin="*" subdomains="true"/>
 
-    <preference name="SplashScreenDelay" value="7000"/>
+    <preference name="SplashScreenDelay" value="5000"/>
     <!-- increase load timeout to 2 minutes, because initial instrumentation takes time -->
     <preference
             name="loadUrlTimeoutValue"

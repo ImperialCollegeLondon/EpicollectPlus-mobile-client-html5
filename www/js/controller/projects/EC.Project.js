@@ -24,7 +24,10 @@ EC.Project = ( function () {
         //bind left sidebar open/close
         nav_drawer_btn.off().on('vclick', function (e) {
 
-            $(".home-settings").panel("open");
+            //we are using a class instead of an id because there is a bug with the panel not working when navigating the app
+            var panel = $('.home-settings');
+
+            panel.panel('open');
             //bind add project button (action bar)
             settings_btn.off().one('vclick', function (e) {
                 EC.Routing.changePage(EC.Const.SETTINGS_VIEW);
@@ -32,8 +35,8 @@ EC.Project = ( function () {
 
             //test closing panel globally: there is bug (panel does not close tapping off the panel) using the built in jqm methods, so this hack is needed
             //docs: http://demos.jquerymobile.com/1.3.2/widgets/panels/
-            $('.ui-panel-dismiss').off().on('vclick', function() {
-                $('.ui-panel-open').panel('close');
+            $('.ui-panel-dismiss-open').off().on('vclick', function() {
+                panel.panel('close');
             });
         });
 
