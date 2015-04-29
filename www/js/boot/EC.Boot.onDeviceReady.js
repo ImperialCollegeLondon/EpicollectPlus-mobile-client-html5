@@ -31,6 +31,12 @@ EC.Boot.onDeviceReady = function () {
         }
 
         if (window.device.platform === EC.Const.ANDROID) {
+
+            //create Android media folders
+            $.when(EC.File.createMediaDirs()).then(function () {
+                console.log('Android media folders created');
+            });
+
             navigator.globalization.getLocaleName(function (locale) {
 
                 var device_language = locale.value.substring(0, 2);

@@ -17,8 +17,8 @@ EC.Boot.getProjects = function () {
         $.when(EC.DBAdapter.init()).then(function () {
 
             //database is set
-            window.localStorage.is_db_set = '1';
-            window.localStorage.stress_test = 1;
+            window.localStorage.is_db_set = EC.Const.SET;
+            //window.localStorage.stress_test = EC.Const.SET;
             EC.Project.getList();
         });
     }

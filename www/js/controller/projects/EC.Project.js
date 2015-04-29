@@ -35,7 +35,7 @@ EC.Project = ( function () {
 
             //test closing panel globally: there is bug (panel does not close tapping off the panel) using the built in jqm methods, so this hack is needed
             //docs: http://demos.jquerymobile.com/1.3.2/widgets/panels/
-            $('.ui-panel-dismiss-open').off().on('vclick', function() {
+            $('.ui-panel-dismiss-open').off().on('vclick', function () {
                 panel.panel('close');
             });
         });

@@ -132,5 +132,7 @@
         <preference
                 name="AndroidLaunchMode"
                 value="singleTask"/>
+        <!-- Store files and data in app private folder -->
+        <preference name="AndroidPersistentFileLocation" value="Internal"/>
     </platform>
 </widget>
