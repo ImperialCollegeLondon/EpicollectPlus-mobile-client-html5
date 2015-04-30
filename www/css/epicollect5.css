@@ -497,3 +497,14 @@ div#add-project-content {
     margin-top: 20px;
     color: green;
 }
+/* Location/branch-location view*/
+div.current-accuracy-result {
+    color: green;
+    text-align: center;
+}
+div.current-accuracy-result span{
+    font-weight: bold;
+}
+div.location-accuracy-tip {
+    text-align: center;
+}
