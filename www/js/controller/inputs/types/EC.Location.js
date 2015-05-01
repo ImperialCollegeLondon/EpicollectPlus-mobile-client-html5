@@ -112,7 +112,7 @@ EC.InputTypes = (function (module) {
                 if (window.device.platform === EC.Const.ANDROID) {
 
                     //if the device is older than KitKat I assume it is slow to hide the spinning loader and I need the execution halt to clear race conditions
-                    if (!(EC.Const.PRE_KITKAT_REGEX.test(window.device.version) || EC.Const.LOLLIPOP_REGEX.test(window.device.version))) {
+                    if (!(EC.Const.KITKAT_REGEX.test(window.device.version) || EC.Const.LOLLIPOP_REGEX)) {
                         EC.Utils.sleep(2000);
                     }
                 }

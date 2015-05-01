@@ -3,8 +3,8 @@
 
 var EC = EC || {};
 EC.Utils = EC.Utils || {};
-EC.Utils = ( function () {
-    "use strict";
+EC.Utils = (function () {
+    'use strict';
 
     var UUID;
     var project = {};
@@ -48,7 +48,7 @@ EC.Utils = ( function () {
         if (EC.Utils.isChrome()) {
             console.log('chrome websql db init');
             //Chrome Chrome
-            return window.openDatabase("epicollect", "1.0", "Epicollect", 5 * 1024 * 1024);
+            return window.openDatabase('epicollect', '1.0', 'Epicollect', 5 * 1024 * 1024);
 
         }
 
@@ -56,9 +56,9 @@ EC.Utils = ( function () {
 
         //native implementation via SQLite plugin
         return window.sqlitePlugin.openDatabase({
-            name: "epicollect"
+            name: 'epicollect'
         });
-        //return window.sqlitePlugin.openDatabase({name: "epicollect",
+        //return window.sqlitePlugin.openDatabase({name: 'epicollect',
         // bgType: 0});
 
     };
@@ -115,51 +115,51 @@ EC.Utils = ( function () {
         var iLength;
 
         //split format based on its type
-        elements = (type === "date") ? format.split('/') : format.split(':');
+        elements = (type === 'date') ? format.split('/') : format.split(':');
 
         iLength = elements.length;
         for (i = 0; i < iLength; i++) {
 
             switch (elements[i]) {
 
-                case "dd":
-                    formatted_elements.push("%d");
+                case 'dd':
+                    formatted_elements.push('%d');
                     break;
 
-                case "MM":
-                    formatted_elements.push("%m");
+                case 'MM':
+                    formatted_elements.push('%m');
                     break;
 
-                case "yyyy":
-                    formatted_elements.push("%Y");
+                case 'yyyy':
+                    formatted_elements.push('%Y');
                     break;
 
-                case "YYYY":
-                    formatted_elements.push("%Y");
+                case 'YYYY':
+                    formatted_elements.push('%Y');
                     break;
 
                 //hours in 24 format
-                case "HH":
-                    formatted_elements.push("%H");
+                case 'HH':
+                    formatted_elements.push('%H');
                     break;
 
                 //hours in 12 format
-                case "hh":
-                    formatted_elements.push("%I");
+                case 'hh':
+                    formatted_elements.push('%I');
                     break;
 
-                case "mm":
-                    formatted_elements.push("%M");
+                case 'mm':
+                    formatted_elements.push('%M');
                     break;
 
-                case "ss":
-                    formatted_elements.push("%S");
+                case 'ss':
+                    formatted_elements.push('%S');
                     break;
             }//switch
 
         }//for
 
-        return (type === "date") ? formatted_elements.join("/") : formatted_elements.join(":");
+        return (type === 'date') ? formatted_elements.join('/') : formatted_elements.join(':');
 
     };
 
@@ -181,7 +181,7 @@ EC.Utils = ( function () {
         //months start from 0
         var year = date.getFullYear();
 
-        var format_parts = format.split("/");
+        var format_parts = format.split('/');
         var parsed_date_parts = [];
         var i;
         var iLength = format_parts.length;
@@ -190,25 +190,25 @@ EC.Utils = ( function () {
 
             switch (format_parts[i]) {
 
-                case "dd":
+                case 'dd':
                     parsed_date_parts.push(day);
                     break;
-                case "MM":
+                case 'MM':
                     parsed_date_parts.push(month);
                     break;
-                case "yyyy":
+                case 'yyyy':
                     parsed_date_parts.push(year);
                     break;
             }
 
         }
 
-        return parsed_date_parts.join("/");
+        return parsed_date_parts.join('/');
 
     };
 
     /**
-     * Parse an iOS input type="date" value according to the specified
+     * Parse an iOS input type='date' value according to the specified
      * format.
      * The HTML5 date input specification [1] refers to the RFC3339
      * specification [2], which specifies a full-date     format equal to:
@@ -218,13 +218,13 @@ EC.Utils = ( function () {
     var parseIOSDate = function (the_ios_date, the_format) {
 
         var date = the_ios_date;
-        var date_parts = date.split("-");
+        var date_parts = date.split('-');
         var format = the_format;
         var day = date_parts[2];
         var month = date_parts[1];
         var year = date_parts[0];
 
-        var format_parts = format.split("/");
+        var format_parts = format.split('/');
         var parsed_date_parts = [];
         var i;
         var iLength = format_parts.length;
@@ -233,20 +233,20 @@ EC.Utils = ( function () {
 
             switch (format_parts[i]) {
 
-                case "dd":
+                case 'dd':
                     parsed_date_parts.push(day);
                     break;
-                case "MM":
+                case 'MM':
                     parsed_date_parts.push(month);
                     break;
-                case "yyyy":
+                case 'yyyy':
                     parsed_date_parts.push(year);
                     break;
             }
 
         }
 
-        return parsed_date_parts.join("/");
+        return parsed_date_parts.join('/');
 
     };
 
@@ -261,31 +261,31 @@ EC.Utils = ( function () {
         var minutes = date.getMinutes();
         var seconds = date.getSeconds();
 
-        var format_parts = format.split(":");
+        var format_parts = format.split(':');
         var parsed_date_parts = [];
         var i;
         var iLength = format_parts.length;
 
         var _addZero = function (num) {
-            return (num >= 0 && num < 10) ? "0" + num : num;
+            return (num >= 0 && num < 10) ? '0' + num : num;
         };
         for (i = 0; i < iLength; i++) {
             switch (format_parts[i]) {
-                case "hh":
+                case 'hh':
                     parsed_date_parts.push(hours12);
                     break;
-                case "HH":
+                case 'HH':
                     parsed_date_parts.push(_addZero(hours24));
                     break;
-                case "mm":
+                case 'mm':
                     parsed_date_parts.push(_addZero(minutes));
                     break;
-                case "ss":
+                case 'ss':
                     parsed_date_parts.push(_addZero(seconds));
                     break;
             }
         }
-        return parsed_date_parts.join(":");
+        return parsed_date_parts.join(':');
     };
 
     /**
@@ -299,38 +299,38 @@ EC.Utils = ( function () {
         var time = the_ios_time;
         var format = the_format;
 
-        var time_parts = time.split(":");
+        var time_parts = time.split(':');
 
         var hours24 = parseInt(time_parts[0], 10);
         var hours12 = ((hours24 + 11) % 12) + 1;
         var minutes = parseInt(time_parts[1], 10);
         var seconds = parseInt(time_parts[2], 10);
 
-        var format_parts = format.split(":");
+        var format_parts = format.split(':');
         var parsed_date_parts = [];
         var i;
         var iLength = format_parts.length;
 
         var _addZero = function (num) {
-            return (num >= 0 && num < 10) ? "0" + num : num;
+            return (num >= 0 && num < 10) ? '0' + num : num;
         };
         for (i = 0; i < iLength; i++) {
             switch (format_parts[i]) {
-                case "hh":
+                case 'hh':
                     parsed_date_parts.push(hours12);
                     break;
-                case "HH":
+                case 'HH':
                     parsed_date_parts.push(_addZero(hours24));
                     break;
-                case "mm":
+                case 'mm':
                     parsed_date_parts.push(_addZero(minutes));
                     break;
-                case "ss":
+                case 'ss':
                     parsed_date_parts.push(_addZero(seconds));
                     break;
             }
         }
-        return parsed_date_parts.join(":");
+        return parsed_date_parts.join(':');
     };
 
     var setProject = function (the_project) {
@@ -380,7 +380,7 @@ EC.Utils = ( function () {
                 if (i - 1 === -1) {
                     //return 0 if this is the top parent form in the tree
                     parent_form_id = 0;
-                    parent_form_name = "";
+                    parent_form_name = '';
 
                 }
                 else {
@@ -391,7 +391,7 @@ EC.Utils = ( function () {
                 if (i + 1 === iLength) {
 
                     child_form_id = 0;
-                    child_form_name = "";
+                    child_form_name = '';
 
                 }
                 else {
@@ -425,22 +425,22 @@ EC.Utils = ( function () {
 
         var string = the_string;
         var object = {};
-        var temp_array = string.split(",");
+        var temp_array = string.split(',');
 
         if (temp_array[0] === EC.Const.SKIPPED) {
-            object.Latitude = "";
-            object.Longitude = "";
-            object.Altitude = "";
-            object.Accuracy = "";
-            object.Bearing = "";
+            object.Latitude = '';
+            object.Longitude = '';
+            object.Altitude = '';
+            object.Accuracy = '';
+            object.Bearing = '';
 
         }
         else {
-            object.Latitude = temp_array[0].replace("Latitude: ", "").replace(/(\r\n|\n|\r)/gm, "");
-            object.Longitude = temp_array[1].replace("Longitude: ", "").replace(/(\r\n|\n|\r)/gm, "");
-            object.Altitude = temp_array[2].replace("Altitude: ", "").replace(/(\r\n|\n|\r)/gm, "");
-            object.Accuracy = temp_array[3].replace("Accuracy: ", "").replace(/(\r\n|\n|\r)/gm, "");
-            object.Bearing = temp_array[5].replace("Bearing: ", "").replace(/(\r\n|\n|\r)/gm, "");
+            object.Latitude = temp_array[0].replace('Latitude: ', '').replace(/(\r\n|\n|\r)/gm, '');
+            object.Longitude = temp_array[1].replace('Longitude: ', '').replace(/(\r\n|\n|\r)/gm, '');
+            object.Altitude = temp_array[2].replace('Altitude: ', '').replace(/(\r\n|\n|\r)/gm, '');
+            object.Accuracy = temp_array[3].replace('Accuracy: ', '').replace(/(\r\n|\n|\r)/gm, '');
+            object.Bearing = temp_array[5].replace('Bearing: ', '').replace(/(\r\n|\n|\r)/gm, '');
         }
 
         return object;
@@ -471,7 +471,7 @@ EC.Utils = ( function () {
         var deferred = new $.Deferred();
 
         function _onGpsChecked(isEnabled) {
-            console.log("gps is " + isEnabled);
+            console.log('gps is ' + isEnabled);
 
             if (!isEnabled) {
                 deferred.reject();
@@ -513,7 +513,7 @@ EC.Utils = ( function () {
 
         var i;
         var args = Array.prototype.slice.call(arguments).splice(2);
-        var namespaces = functionName.split(".");
+        var namespaces = functionName.split('.');
         var func = namespaces.pop();
         for (i = 0; i < namespaces.length; i++) {
             context = context[namespaces[i]];
@@ -532,7 +532,7 @@ EC.Utils = ( function () {
      * the jump for RADIO and DROPDOWN
      * for CHECKBOX, the even element is  bizzarely the VALUE that trigger
      * the jump (not the INDEX). Go figure
-     * the "!" will define the jump logic (is/is not)
+     * the '!' will define the jump logic (is/is not)
      * END means the end off the form
      * ALL means jump always
      *
@@ -555,7 +555,7 @@ EC.Utils = ( function () {
             //even element is a jump destination, as @ref
             obj.jump_to = raw_jumps[i];
 
-            if (raw_jumps[i + 1].charAt(0) === "!") {
+            if (raw_jumps[i + 1].charAt(0) === '!') {
 
                 obj.jump_when = EC.Const.JUMP_VALUE_IS_NOT;
                 obj.jump_value = raw_jumps[i + 1].substr(1);
@@ -567,12 +567,12 @@ EC.Utils = ( function () {
 
                     case EC.Const.JUMP_ALWAYS:
                         obj.jump_when = EC.Const.JUMP_ALWAYS;
-                        obj.jump_value = "";
+                        obj.jump_value = '';
                         break;
 
                     case EC.Const.JUMP_FIELD_IS_BLANK:
                         obj.jump_when = EC.Const.JUMP_FIELD_IS_BLANK;
-                        obj.jump_value = "";
+                        obj.jump_value = '';
                         break;
 
                     default:
@@ -727,13 +727,9 @@ EC.Utils = ( function () {
         var count = 0;
 
         for (i = 0; i < iLength; i++) {
-
             count += parseInt(forms[i].entries, 10);
-
         }
-
         return count;
-
     };
 
     var getParentFormByChildID = function (the_child_form_id) {
@@ -793,16 +789,16 @@ EC.Utils = ( function () {
 
     var changeHashNavigationDirection = function (the_hash, the_new_direction) {
 
-        var hash = the_hash.split("&");
-        var direction = hash[hash.length - 1].split("=");
+        var hash = the_hash.split('&');
+        var direction = hash[hash.length - 1].split('=');
 
         direction[direction.length - 1] = the_new_direction;
 
-        hash[hash.length - 1] = direction[0] + "=" + direction[1];
+        hash[hash.length - 1] = direction[0] + '=' + direction[1];
 
         console.log(hash);
 
-        return hash.join("&");
+        return hash.join('&');
 
     };
 
@@ -837,7 +833,7 @@ EC.Utils = ( function () {
         var deferred = new $.Deferred();
 
         cordova.getAppVersion(function (the_version_name) {
-            console.log("App version " + the_version_name);
+            console.log('App version ' + the_version_name);
             version_name = the_version_name;
             deferred.resolve(version_name);
         });
@@ -862,16 +858,16 @@ EC.Utils = ( function () {
 
             switch (window.device.platform) {
 
-                case "Android":
+                case 'Android':
 
                     //@debug on: old android platforms need jsHybugger to run
                     // as a service, newer platform do not
                     //check if the phone is running anything less than 4.4.*
                     // KitKat then request pages via the service if needed
-                    console.log("kitkat regex: " + EC.Const.PRE_KITKAT_REGEX.test(window.device.version));
-                    if (EC.Const.DEBUG === 1 && !(EC.Const.PRE_KITKAT_REGEX.test(window.device.version) || EC.Const.LOLLIPOP_REGEX.test(window.device.version) )) {
+                    console.log('kitkat regex: ' + EC.Const.KITKAT_REGEX.test(window.device.version));
+                    if (EC.Const.DEBUG === 1 && !(EC.Const.KITKAT_REGEX.test(window.device.version) || EC.Const.LOLLIPOP_REGEX.test(window.device.version))) {
 
-                        //base_uri = "content://jsHybugger.org/file:///android_asset/www/";
+                        //base_uri = 'content://jsHybugger.org/file:///android_asset/www/';
                         //@debug off
                         base_uri = EC.Const.ANDROID_ASSETS_ABS_PATH;
 
@@ -884,7 +880,7 @@ EC.Utils = ( function () {
 
                     break;
 
-                case "iOS":
+                case 'iOS':
 
                     base_uri = EC.Const.IOS_ASSETS_ABS_PATH;
                     break;
@@ -901,7 +897,7 @@ EC.Utils = ( function () {
         //store validation details in object.
         var validation = {
             is_valid: true,
-            message: ""
+            message: ''
         };
 
         var input = the_input;
@@ -920,17 +916,17 @@ EC.Utils = ( function () {
         if (input.type === EC.Const.INTEGER) {
 
             //check if number value is integer, not float
-            if (parseFloat(value) !== parseInt(value, 10) && value !== "") {
+            if (parseFloat(value) !== parseInt(value, 10) && value !== '') {
 
                 validation.is_valid = false;
-                validation.message = EC.Localise.getTranslation("invalid_integer");
+                validation.message = EC.Localise.getTranslation('invalid_integer');
 
                 return validation;
             }
         }
 
         /** for iOS only: it is currently NOT possible to show a keyboard
-         * with only numbers and the dot "." to input decimal values
+         * with only numbers and the dot '.' to input decimal values
          *  therefore the full keyboard is shown and we need to sanitise the
          * input against wrong chars
          *
@@ -940,9 +936,9 @@ EC.Utils = ( function () {
             //check if value is a decimal value (http://goo.gl/Q4J4cU)
             if (!self.isNumber(value)) {
 
-                if (value !== "") {
+                if (value !== '') {
                     validation.is_valid = false;
-                    validation.message = EC.Localise.getTranslation("invalid_decimal");
+                    validation.message = EC.Localise.getTranslation('invalid_decimal');
 
                     return validation;
                 }
@@ -955,19 +951,19 @@ EC.Utils = ( function () {
         if (input.is_primary_key === 1 && value.indexOf(EC.Const.ENTRY_ROOT_PATH_SEPARATOR) !== -1) {
 
             validation.is_valid = false;
-            validation.message = EC.Localise.getTranslation("pk_reserved_char") + EC.Const.ENTRY_ROOT_PATH_SEPARATOR;
+            validation.message = EC.Localise.getTranslation('pk_reserved_char') + EC.Const.ENTRY_ROOT_PATH_SEPARATOR;
 
             return validation;
 
         }
 
         //check if the input needs to match a regular expression
-        if (input.regex !== "") {
+        if (input.regex !== '') {
 
             if (!value.match(input.regex)) {
 
                 validation.is_valid = false;
-                validation.message = EC.Localise.getTranslation("invalid_regex") + input.regex;
+                validation.message = EC.Localise.getTranslation('invalid_regex') + input.regex;
 
                 return validation;
             }
@@ -980,33 +976,33 @@ EC.Utils = ( function () {
             if (value !== clone_value) {
 
                 validation.is_valid = false;
-                validation.message = EC.Localise.getTranslation("values_unmatched");
+                validation.message = EC.Localise.getTranslation('values_unmatched');
 
                 return validation;
             }
         }
 
         //check if the value is within the max range
-        if (input.max_range !== "") {
+        if (input.max_range !== '') {
 
             //use parseFloat as it can be an integer or a decimal value
             if (parseFloat(value) > parseFloat(input.max_range)) {
 
                 validation.is_valid = false;
-                validation.message = EC.Localise.getTranslation("out_of_range");
+                validation.message = EC.Localise.getTranslation('out_of_range');
 
                 return validation;
             }
         }
 
         //check if the value is within the min range
-        if (input.min_range !== "") {
+        if (input.min_range !== '') {
 
             //use parseFloat as it can be an integer or a decimal value
             if (parseFloat(value) < parseFloat(input.min_range)) {
 
                 validation.is_valid = false;
-                validation.message = EC.Localise.getTranslation("out_of_range");
+                validation.message = EC.Localise.getTranslation('out_of_range');
 
                 return validation;
             }
@@ -1016,7 +1012,7 @@ EC.Utils = ( function () {
         if (input.value === EC.Const.SKIPPED) {
 
             validation.is_valid = false;
-            validation.message = EC.Localise.getTranslation("reserved_keyword");
+            validation.message = EC.Localise.getTranslation('reserved_keyword');
 
             return validation;
 
@@ -1032,7 +1028,7 @@ EC.Utils = ( function () {
                 if (value === EC.Const.NO_OPTION_SELECTED) {
 
                     validation.is_valid = false;
-                    validation.message = EC.Localise.getTranslation("field_required");
+                    validation.message = EC.Localise.getTranslation('field_required');
 
                     return validation;
                 }
@@ -1040,10 +1036,10 @@ EC.Utils = ( function () {
             }
             else {
 
-                if (value === "") {
+                if (value === '') {
 
                     validation.is_valid = false;
-                    validation.message = EC.Localise.getTranslation("field_required");
+                    validation.message = EC.Localise.getTranslation('field_required');
 
                     return validation;
                 }
@@ -1067,11 +1063,11 @@ EC.Utils = ( function () {
 
                 documents_path = fileSystem.toURL();
 
-                EC.Const.IOS_ASSETS_ABS_PATH = documents_path.replace("file:////", "file:///private/");
+                EC.Const.IOS_ASSETS_ABS_PATH = documents_path.replace('file:////', 'file:///private/');
 
-                EC.Const.IOS_ASSETS_ABS_PATH += "www/";
+                EC.Const.IOS_ASSETS_ABS_PATH += 'www/';
 
-                console.log("iOS 8+ root www - " + EC.Const.IOS_ASSETS_ABS_PATH);
+                console.log('iOS 8+ root www - ' + EC.Const.IOS_ASSETS_ABS_PATH);
 
             }
             else {
@@ -1084,12 +1080,12 @@ EC.Utils = ( function () {
 
                 documents_path = fileSystem.root.nativeURL;
 
-                documents_path = documents_path.replace("Documents/", "");
+                documents_path = documents_path.replace('Documents/', '');
 
-                //IOS_ASSETS_ABS_PATH : "Epicollect5 64bit.app/www/" -> we ned to append this
+                //IOS_ASSETS_ABS_PATH : 'Epicollect5 64bit.app/www/' -> we ned to append this
                 EC.Const.IOS_ASSETS_ABS_PATH = documents_path + EC.Const.IOS_ASSETS_ABS_PATH;
 
-                console.log("iOS root www - " + EC.Const.IOS_ASSETS_ABS_PATH);
+                console.log('iOS root www - ' + EC.Const.IOS_ASSETS_ABS_PATH);
 
             }
 
@@ -1118,14 +1114,14 @@ EC.Utils = ( function () {
 
             EC.Const.IOS_APP_PRIVATE_URI = fileSystem.root.nativeURL;
 
-            /*remove "file://" from path: images from iOS application folder
-             * will need the "file://"
+            /*remove 'file://' from path: images from iOS application folder
+             * will need the 'file://'
              * to be loaded, but audio and video files will not:
              * http://stackoverflow.com/questions/24205331/mp3-audio-playback-not-working-with-cordova-3-5-on-ios
              */
             EC.Const.IOS_APP_PRIVATE_URI = EC.Const.IOS_APP_PRIVATE_URI.slice(7);
 
-            console.log("iOS Documents path - " + EC.Const.IOS_APP_PRIVATE_URI);
+            console.log('iOS Documents path - ' + EC.Const.IOS_APP_PRIVATE_URI);
         }
 
         function onError(error) {
@@ -1141,14 +1137,14 @@ EC.Utils = ( function () {
         switch (window.device.platform) {
 
             case EC.Const.ANDROID:
-                EC.Const.PHOTO_DIR = "/files/images/";
-                EC.Const.AUDIO_DIR = "/files/audios/";
-                EC.Const.VIDEO_DIR = "/files/videos/";
+                EC.Const.PHOTO_DIR = '/files/images/';
+                EC.Const.AUDIO_DIR = '/files/audios/';
+                EC.Const.VIDEO_DIR = '/files/videos/';
                 break;
             case EC.Const.IOS:
-                EC.Const.PHOTO_DIR = "images/";
-                EC.Const.AUDIO_DIR = "audios/";
-                EC.Const.VIDEO_DIR = "videos/";
+                EC.Const.PHOTO_DIR = 'images/';
+                EC.Const.AUDIO_DIR = 'audios/';
+                EC.Const.VIDEO_DIR = 'videos/';
                 break;
 
         }
@@ -1188,10 +1184,10 @@ EC.Utils = ( function () {
     }
 
     function getParameterByName(name) {
-        name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
-        var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+        var regex = new RegExp('[\\?&]' + name + '=([^&#]*)'),
             results = regex.exec(location.search);
-        return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
+        return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
     }
 
     var mapLabelToValue = function (the_value, the_inputs) {
@@ -1306,14 +1302,14 @@ EC.Utils = ( function () {
             case EC.Const.ANDROID:
                 //build filename timestamp + mp4 (Cordova 2.9 sources have been modified manually
                 // to record high quality audio)
-                filename = EC.Utils.getTimestamp() + ".mp4";
+                filename = EC.Utils.getTimestamp() + '.mp4';
                 break;
 
             case EC.Const.IOS:
 
                 //build filename timestamp + wav (iOS only records to files of type .wav and
                 // returns an error if the file name extension is not correct.)
-                filename = EC.Utils.getTimestamp() + ".wav";
+                filename = EC.Utils.getTimestamp() + '.wav';
                 break;
 
         }

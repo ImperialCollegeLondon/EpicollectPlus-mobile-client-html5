@@ -148,7 +148,7 @@ EC.Const = (function () {
         ITALIAN: 'it',
 
         //minimum Android version NOT to run jsHybugger (regEx) 4.4.*
-        PRE_KITKAT_REGEX: /^4.4.\d{1}$/,
+        KITKAT_REGEX: /^4.4.\d{1}$/,
 
         //Lollipop regex
         LOLLIPOP_REGEX: /^5.\d{1}$/
