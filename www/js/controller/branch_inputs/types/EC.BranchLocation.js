@@ -37,7 +37,7 @@ EC.BranchInputTypes = (function (module) {
 
         function _showAcquiredLocation() {
 
-           // clearAllRequests();
+            // clearAllRequests();
 
             $(accuracy_result).find('span').text(Math.floor(location.accuracy));
             $(accuracy_result).removeClass('not-shown');
@@ -88,7 +88,7 @@ EC.BranchInputTypes = (function (module) {
 
                     console.log('setTimeout called');
                 },
-                13000 //stop checking after 13 seconds (value is milliseconds)
+                3000 //stop checking after 3 seconds (value is milliseconds)
             );
 
         }
@@ -107,7 +107,10 @@ EC.BranchInputTypes = (function (module) {
 
                 //On Android, mostly on old devices, halt the execution to solve loader spinner not hiding after a gps lock
                 if (window.device.platform === EC.Const.ANDROID) {
-                    EC.Utils.sleep(2000);
+                    //if the device is older than KitKat I assume it is slow to hide the spinning loader and I need the execution halt to clear race conditions
+                    if (!(EC.Const.PRE_KITKAT_REGEX.test(window.device.version) || EC.Const.LOLLIPOP_REGEX.test(window.device.version))) {
+                        EC.Utils.sleep(2000);
+                    }
                 }
 
                 requestPosition();
@@ -172,7 +175,7 @@ EC.BranchInputTypes = (function (module) {
 
             window.navigator.geolocation.clearWatch(geolocation_request);
 
-           // clearAllRequests();
+            // clearAllRequests();
 
             EC.Notification.hideProgressDialog();
 
