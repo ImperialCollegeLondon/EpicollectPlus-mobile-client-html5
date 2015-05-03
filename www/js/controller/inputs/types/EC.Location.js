@@ -15,6 +15,7 @@ EC.InputTypes = (function (module) {
         var attempts = 10;
         var requests = [];
         var geolocation_request;
+        var is_first_attempt = true;
 
         //update label text
         span_label.text(input.label);
@@ -69,31 +70,38 @@ EC.InputTypes = (function (module) {
 
             console.log('requestPosition called');
 
-            //get location using watchPosition for more accurate results, It is called automatically when movement is detected,
-            //not only when requesting it
-            //requests.push(navigator.geolocation.watchPosition(onGCPSuccess, onGCPError, {
-            //    maximumAge: 0,
-            //    timeout: 30000,
-            //    enableHighAccuracy: true
-            //}));
+            //on first attempt, get a quick and rough location just to get started
+            //We do not use getCurrentPosition as it tends to give back a cached position when is it called, not looking for a new one each time
+            if (is_first_attempt) {
+                geolocation_request = navigator.geolocation.watchPosition(onGCPSuccess, onGCPError, {
+                    maximumAge: 0,
+                    timeout: 30000,
+                    enableHighAccuracy: true
+                });
+            }
+            else {
 
-            geolocation_request = navigator.geolocation.watchPosition(onGCPSuccess, onGCPError, {
-                maximumAge: 0,
-                timeout: 30000,
-                enableHighAccuracy: true
-            });
+              /*
+               on subsequent calls, check position for 3 secs and return.
+               this will improve cases when watchPositionretunr immediately with the same value, as it might return more than once during the 3 secs period
+               */
+                window.setTimeout(function () {
+                        //be safe in case after 3 secs we still do not have a location
+                        window.navigator.geolocation.clearWatch(geolocation_request);
+                        _showAcquiredLocation();
+                        console.log('setTimeout called with location');
+                    },
+                    3000 //stop checking after 3 seconds (value is milliseconds)
+                );
 
-
-            window.setTimeout(function () {
-                    window.navigator.geolocation.clearWatch(geolocation_request);
-
-                    _showAcquiredLocation();
-
-                    console.log('setTimeout called');
-                },
-                3000 //stop checking after 3 seconds (value is milliseconds)
-            );
-
+                //get location using watchPosition for more accurate results, It is called automatically when movement is detected,
+                //not only when requesting it. Do thjis when user wants to improve location
+                geolocation_request = navigator.geolocation.watchPosition(onGCPSuccess, onGCPError, {
+                    maximumAge: 0,
+                    timeout: 30000,
+                    enableHighAccuracy: true
+                });
+            }
         }
 
         var _getLocation = function () {
@@ -135,25 +143,9 @@ EC.InputTypes = (function (module) {
 
         };
 
-        //function clearAllRequests() {
-        //
-        //    var i;
-        //    var iLength = requests.length;
-        //
-        //    for (i = 0; i < iLength; i++) {
-        //        window.navigator.geolocation.clearWatch(requests[i]);
-        //    }
-        //
-        //}
-
-
         var onGCPSuccess = function (position) {
 
             console.log('onGCPSuccess called, accuracy: ' + position.coords.accuracy);
-            console.log('Attempt: ' + attempts);
-
-
-            //if (attempts === 0) {
 
             //get HTML5 geolocation component values replacing null with '' for not available components
             location.latitude = (position.coords.latitude === null) ? '' : position.coords.latitude;
@@ -163,12 +155,12 @@ EC.InputTypes = (function (module) {
             location.altitude_accuracy = (position.coords.altitudeAccuracy === null) ? '' : position.coords.altitudeAccuracy;
             location.heading = (position.coords.heading === null) ? '' : position.coords.heading;
 
-            //     _showAcquiredLocation();
-            //   }
-            //   else {
-            //      attempts--;
-            //      requestPosition();
-            //   }
+
+            if (is_first_attempt) {
+                is_first_attempt = !is_first_attempt;
+                window.navigator.geolocation.clearWatch(geolocation_request);
+                _showAcquiredLocation();
+            }
         };
 
         // onError Callback receives a PositionError object
@@ -215,4 +207,6 @@ EC.InputTypes = (function (module) {
 
     return module;
 
-}(EC.InputTypes));
+}(EC.InputTypes)
+)
+;
