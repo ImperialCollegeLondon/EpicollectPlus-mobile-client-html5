@@ -22,17 +22,10 @@
     <preference
             name="loadUrlTimeoutValue"
             value="120000"/>
-    <!-- Fix status bar on ios 7+ -->
-    <preference
-            name="StatusBarOverlaysWebView"
-            value="false"/>
-    <preference
-            name="StatusBarStyle"
-            value="default"/>
-    <preference
-            name="StatusBarBackgroundColor"
-            value="#FFFFFF"/>
+
     <platform name="ios">
+
+        <hook src="hooks/adjust_ios_deployment_target.js" type="after_platform_add"/>
         <!-- iOS 8.0+ -->
         <!-- iPhone 6 Plus  -->
         <icon src="res/ios/icons/icon-60@3x.png" width="180" height="180"/>
@@ -84,6 +77,10 @@
         <preference
                 name="DisallowOverscroll"
                 value="true"/>
+
+        <!-- Status bar -->
+        <preference name="StatusBarOverlaysWebView" value="false"/>
+        <preference name="StatusBarStyle" value="default"/>
     </platform>
     <platform name="android">
         <!-- Automatically install plugin dependencies (this will also install them for iOS) -->

@@ -31,7 +31,7 @@ var pluginlist = [
 //App Version
     'https://github.com/whiteoctober/cordova-plugin-app-version.git', //
 //status bar in ios7 -> currently causing problems, so I modified the MainViewController directly
-//'org.apache.cordova.statusbar',
+'org.apache.cordova.statusbar',
 //video player plugin android
     'https://github.com/macdonst/VideoPlayer',
 //diagnostic plugin
@@ -40,7 +40,6 @@ var pluginlist = [
     'https://github.com/VitaliiBlagodir/cordova-plugin-datepicker',
 //email plugin
     'de.appplant.cordova.plugin.email-composer@0.8.1',
-
     //since Cordova Android 4.0.0 this needs to be installed otherwise ajax requests resolve to 404
     'https://github.com/apache/cordova-plugin-whitelist.git',
 
@@ -60,6 +59,7 @@ function installPlugin() {
 
     var plugin = pluginlist.pop();
     console.log('Installing plugin from: ' + plugin);
+
     exec('cordova plugin add ' + plugin, function(error, stdout, stderr) {
         console.log(stdout);
         if (pluginlist.length > 0) {

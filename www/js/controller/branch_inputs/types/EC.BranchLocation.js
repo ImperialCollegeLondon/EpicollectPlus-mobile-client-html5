@@ -11,9 +11,13 @@ EC.BranchInputTypes = (function (module) {
         var span_label = $('span.label');
         var value = the_value;
         var input = the_input;
-        var attempts = 10;
         var requests = [];
         var geolocation_request;
+
+        var is_first_attempt = true;
+        //set unlimited timeout for watch position to avoid timeout error on iOS when the device does not move
+        // see http://goo.gl/tYsBSC, http://goo.gl/jYQhgr, http://goo.gl/8oR1g2
+        var timeout = (window.device.platform === EC.Const.IOS) ? Infinity : 30000;
 
         //update label text
         span_label.text(input.label);
@@ -65,39 +69,46 @@ EC.BranchInputTypes = (function (module) {
         function requestPosition() {
 
             console.log('requestPosition called');
+//on first attempt, get a quick and rough location just to get started
+            //We do not use getCurrentPosition as it tends to give back a cached position when is it called, not looking for a new one each time
+            if (is_first_attempt) {
+                geolocation_request = navigator.geolocation.watchPosition(onGCPSuccess, onGCPError, {
+                    maximumAge: 0,
+                    timeout: timeout,
+                    enableHighAccuracy: true
+                });
+            }
+            else {
 
-            //get location using watchPosition for more accurate results, It is called automatically when movement is detected,
-            //not only when requesting it
-            //requests.push(navigator.geolocation.watchPosition(onGCPSuccess, onGCPError, {
-            //    maximumAge: 0,
-            //    timeout: 30000,
-            //    enableHighAccuracy: true
-            //}));
+                /*
+                 on subsequent calls, check position for 3 secs and return.
+                 this will improve cases when watchPositionretunr immediately with the same value, as it might return more than once during the 3 secs period
+                 */
 
-            geolocation_request = navigator.geolocation.watchPosition(onGCPSuccess, onGCPError, {
-                maximumAge: 0,
-                timeout: 30000,
-                enableHighAccuracy: true
-            });
+                geolocation_request = navigator.geolocation.watchPosition(onGCPSuccess, onGCPError, {
+                    maximumAge: 0,
+                    timeout: timeout,
+                    enableHighAccuracy: true
+                });
 
 
-            window.setTimeout(function () {
-                    window.navigator.geolocation.clearWatch(geolocation_request);
+                window.setTimeout(function () {
+                        window.navigator.geolocation.clearWatch(geolocation_request);
 
-                    _showAcquiredLocation();
+                        _showAcquiredLocation();
 
-                    console.log('setTimeout called');
-                },
-                3000 //stop checking after 3 seconds (value is milliseconds)
-            );
-
+                        console.log('setTimeout called');
+                    },
+                    3000 //stop checking after 3 seconds (value is milliseconds)
+                );
+            }
         }
 
         var _getLocation = function () {
 
             set_location_btn.off('vclick');
             requests = [];
-            attempts = 10;
+
 
             //check id GPS is enabled on the device
             $.when(EC.Utils.isGPSEnabled()).then(function () {
@@ -131,25 +142,9 @@ EC.BranchInputTypes = (function (module) {
 
         };
 
-        //function clearAllRequests() {
-        //
-        //    var i;
-        //    var iLength = requests.length;
-        //
-        //    for (i = 0; i < iLength; i++) {
-        //        window.navigator.geolocation.clearWatch(requests[i]);
-        //    }
-        //
-        //}
-
         var onGCPSuccess = function (position) {
 
             console.log('onGCPSuccess called, accuracy: ' + position.coords.accuracy);
-            console.log('Attempt: ' + attempts);
-
-
-            //if (attempts === 0) {
-
             //get HTML5 geolocation component values replacing null with '' for not available components
             location.latitude = (position.coords.latitude === null) ? '' : position.coords.latitude;
             location.longitude = (position.coords.longitude === null) ? '' : position.coords.longitude;
@@ -158,12 +153,6 @@ EC.BranchInputTypes = (function (module) {
             location.altitude_accuracy = (position.coords.altitudeAccuracy === null) ? '' : position.coords.altitudeAccuracy;
             location.heading = (position.coords.heading === null) ? '' : position.coords.heading;
 
-            //     _showAcquiredLocation();
-            //   }
-            //   else {
-            //      attempts--;
-            //      requestPosition();
-            //   }
 
         };
 

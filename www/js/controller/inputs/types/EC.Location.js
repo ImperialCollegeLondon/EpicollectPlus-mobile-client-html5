@@ -16,6 +16,9 @@ EC.InputTypes = (function (module) {
         var requests = [];
         var geolocation_request;
         var is_first_attempt = true;
+        //set unlimited timeout for watch position to avoid timeout error on iOS when the device does not move
+        // see http://goo.gl/tYsBSC, http://goo.gl/jYQhgr, http://goo.gl/8oR1g2
+        var timeout = (window.device.platform === EC.Const.IOS) ? Infinity : 30000;
 
         //update label text
         span_label.text(input.label);
@@ -75,16 +78,16 @@ EC.InputTypes = (function (module) {
             if (is_first_attempt) {
                 geolocation_request = navigator.geolocation.watchPosition(onGCPSuccess, onGCPError, {
                     maximumAge: 0,
-                    timeout: 30000,
+                    timeout: timeout,
                     enableHighAccuracy: true
                 });
             }
             else {
 
-              /*
-               on subsequent calls, check position for 3 secs and return.
-               this will improve cases when watchPositionretunr immediately with the same value, as it might return more than once during the 3 secs period
-               */
+                /*
+                 on subsequent calls, check position for 3 secs and return.
+                 this will improve cases when watchPositionretunr immediately with the same value, as it might return more than once during the 3 secs period
+                 */
                 window.setTimeout(function () {
                         //be safe in case after 3 secs we still do not have a location
                         window.navigator.geolocation.clearWatch(geolocation_request);
@@ -98,7 +101,7 @@ EC.InputTypes = (function (module) {
                 //not only when requesting it. Do thjis when user wants to improve location
                 geolocation_request = navigator.geolocation.watchPosition(onGCPSuccess, onGCPError, {
                     maximumAge: 0,
-                    timeout: 30000,
+                    timeout: timeout,
                     enableHighAccuracy: true
                 });
             }
@@ -108,7 +111,7 @@ EC.InputTypes = (function (module) {
 
             set_location_btn.off('vclick');
             requests = [];
-            attempts = 10;
+
 
             //check id GPS is enabled on the device
             $.when(EC.Utils.isGPSEnabled()).then(function () {
@@ -129,16 +132,9 @@ EC.InputTypes = (function (module) {
 
             }, function () {
                 console.log('gps NOT enabled');
-
                 //no gps...do we have at least an internet connection?
                 //TODO: replace with location services network
-                //if (!EC.Utils.hasConnection()) {
-
-                //console.log('No internet connection');
-
                 EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('gps_disabled'));
-
-                //  }
             });
 
         };
@@ -207,6 +203,4 @@ EC.InputTypes = (function (module) {
 
     return module;
 
-}(EC.InputTypes)
-)
-;
+}(EC.InputTypes));
