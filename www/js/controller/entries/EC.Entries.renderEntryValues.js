@@ -185,7 +185,7 @@ EC.Entries = (function (module) {
 
 
             //do we have at least a title field? If so, show the first title field value as active key
-            if (parseInt(values[i].is_title, 10) === 1 && active_key !== entry_key) {
+            if (parseInt(values[i].is_title, 10) === 1 && active_key === entry_key) {
                 active_key = values[i].value;
             }
 
