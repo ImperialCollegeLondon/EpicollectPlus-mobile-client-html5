@@ -1,4 +1,3 @@
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery, cordova, device*/
 /**
  * @module EC
@@ -6,8 +5,8 @@
  */
 var EC = EC || {};
 EC.Entries = EC.Entries || {};
-EC.Entries = ( function (module) {
-    "use strict";
+EC.Entries = (function (module) {
+    'use strict';
 
     /**
      * @method renderEntryValues Render a list of all the values for a single
@@ -35,35 +34,35 @@ EC.Entries = ( function (module) {
 
     var _bindActionBarBtns = function () {
 
-        var nav_drawer_btn = $("div#entry-values div[data-role='header'] div[data-href='entry-values-nav-btn']");
-        var home_btn = $("div#entry-values div[data-role='header'] div[data-href='home']");
+        var nav_drawer_btn = $('div#entry-values div[data-role="header"] div[data-href="entry-values-nav-btn"]');
+        var home_btn = $('div#entry-values div[data-role="header"] div[data-href="home"]');
         var settings_btn = $('div#entry-values div[data-role="header"] div#entry-values-nav-drawer ul li div[data-href="settings"]');
-        var ctx_menu_btn = $("div#entry-values div[data-role='header'] div.ui-btn-right[data-href='entry-values-options']");
-        var delete_entry_btn = $("div#entry-values div.entry-values-options ul li#delete-entry");
+        var ctx_menu_btn = $('div#entry-values div[data-role="header"] div.ui-btn-right[data-href="entry-values-options"]');
+        var delete_entry_btn = $('div#entry-values div.entry-values-options ul li#delete-entry');
         var inactive_tab = $('div#entry-values div[data-role="header"] div[data-role="navbar"] ul li.inactive-tab');
         var entry_value_btn = $('div#entry-values div#entry-values-list ul');
         var input_page_href = window.localStorage.input_page_href;
 
         //get hold of unsync button
-        unsync_entry_btn = $("div#entry-values div.entry-values-options ul li#unsync-entry");
+        unsync_entry_btn = $('div#entry-values div.entry-values-options ul li#unsync-entry');
 
         //bind left sidebar open/close
         nav_drawer_btn.off().on('vclick', function (e) {
 
-            var panel = $("#entry-values-nav-drawer");
+            var panel = $('#entry-values-nav-drawer');
 
-            panel.panel("open");
+            panel.panel('open');
 
             home_btn.off().one('vclick', function (e) {
 
                 //trigger a pgae refresh when navigating back to project list
-                wls.back_nav_url = "#refresh";
+                wls.back_nav_url = '#refresh';
                 EC.Routing.changePage(EC.Const.INDEX_VIEW);
             });
 
             // //bind add project button (action bar)
             settings_btn.off().one('vclick', function (e) {
-                window.localStorage.reached_settings_view_from = $.mobile.activePage.attr("id");
+                window.localStorage.reached_settings_view_from = $.mobile.activePage.attr('id');
                 EC.Routing.changePage(EC.Const.SETTINGS_VIEW);
             });
 
@@ -77,24 +76,24 @@ EC.Entries = ( function (module) {
 
         inactive_tab.off().on('vclick', function (e) {
             //get url from data-hef attribute
-            var page = $('div#entry-values div[data-role="header"] div[data-role="navbar"] ul li.inactive-tab i').attr("data-href");
+            var page = $('div#entry-values div[data-role="header"] div[data-role="navbar"] ul li.inactive-tab i').attr('data-href');
             EC.Routing.changePage(page);
 
             //window.history.back(-1);
 
         });
 
-        entry_value_btn.off().on('vclick', "i", function (e) {
+        entry_value_btn.off().on('vclick', 'i', function (e) {
 
-            var hash = $(e.target).parent().attr("data-href");
-            var edit_position = parseInt(hash.replace("?position=", ""), 10);
+            var hash = $(e.target).parent().attr('data-href');
+            var edit_position = parseInt(hash.replace('?position=', ''), 10);
 
             window.localStorage.edit_position = edit_position;
             window.localStorage.edit_mode = 1;
 
             //cache back_nav_hash, to be used for navigate back after an edit
             // action
-            window.localStorage.back_nav_url = $('div#entry-values div[data-role="header"] div[data-role="navbar"] ul li.inactive-tab i').attr("data-href");
+            window.localStorage.back_nav_url = $('div#entry-values div[data-role="header"] div[data-role="navbar"] ul li.inactive-tab i').attr('data-href');
 
             //open inputs page at the right input position
             EC.Entries.addEntry();
@@ -105,18 +104,18 @@ EC.Entries = ( function (module) {
 
         //attach event to context menu to button unsync this entry
         unsync_entry_btn.off().on('vclick', function (e) {
-            EC.Notification.askConfirm(EC.Localise.getTranslation("unsync_entry"), EC.Localise.getTranslation("unsync_entry_confirm"), "EC.Entries.unsyncEntry");
+            EC.Notification.askConfirm(EC.Localise.getTranslation('unsync_entry'), EC.Localise.getTranslation('unsync_entry_confirm'), 'EC.Entries.unsyncEntry');
         });
 
         delete_entry_btn.off().on('vclick', function (e) {
-            EC.Notification.askConfirm(EC.Localise.getTranslation("delete_entry"), EC.Localise.getTranslation("delete_entry_with_children_confirm"), "EC.Entries.deleteEntry");
+            EC.Notification.askConfirm(EC.Localise.getTranslation('delete_entry'), EC.Localise.getTranslation('delete_entry_with_children_confirm'), 'EC.Entries.deleteEntry');
         });
 
         ctx_menu_btn.off().on('vclick', function (e) {
 
-            var panel = $(".entry-values-options");
+            var panel = $('.entry-values-options');
 
-            panel.panel("open");
+            panel.panel('open');
 
 
             //Closing panel globally: there is bug (panel does not close tapping off the panel) using the built in jqm methods, so this hack is needed
@@ -130,7 +129,7 @@ EC.Entries = ( function (module) {
     module.renderEntryValues = function (the_values) {
 
         //build HTML
-        var HTML = "";
+        var HTML = '';
         var back_href;
         var back_children;
         var i;
@@ -140,8 +139,8 @@ EC.Entries = ( function (module) {
         var inputs_trail = [];
         var dom_list = $('div#entry-values-list ul');
         var page = $('#entry-values');
-        var header = $("div#entry-values div[data-role='header'] div[data-href='entry-values-nav-btn'] span.project-name");
-        var active_key = "";
+        var header = $('div#entry-values div[data-role="header"] div[data-href="entry-values-nav-btn"] span.project-name');
+        var active_key = '';
         var entry_key = window.localStorage.entry_key;
         var active_tab_label = $('div#entry-values div[data-role="header"] div[data-role="navbar"] ul li.active-tab span');
         var inactive_tab = $('div#entry-value div[data-role="header"] div[data-role="navbar"] ul li.inactive-tab');
@@ -170,7 +169,7 @@ EC.Entries = ( function (module) {
         //bind buttons
         _bindActionBarBtns();
 
-        //Add selected entry key value as the active key
+        //Add selected entry key value as the active key (it is the default if no title specified)
         active_key = entry_key;
 
         //empty current list
@@ -183,6 +182,12 @@ EC.Entries = ( function (module) {
             //check if the current value is a primary key (it is onlt when
             // entry_key === value)
             is_primary_key = (values[i].value === values[i].entry_key) ? 1 : 0;
+
+
+            //do we have at least a title field? If so, show the first title field value as active key
+            if (parseInt(values[i].is_title, 10) === 1 && active_key !== entry_key) {
+                active_key = values[i].value;
+            }
 
             /*
              * Build input_values array. by default a value is a single value
@@ -202,20 +207,20 @@ EC.Entries = ( function (module) {
                     inputs_values.push({
                         _id: values[i]._id,
                         type: values[i].type,
-                        value: values[i].value.split(","),
+                        value: values[i].value.split(','),
                         position: values[i].position,
                         is_primary_key: is_primary_key
                     });
                     break;
 
-                //Media files values need to be in the form {cached: "",
+                //Media files values need to be in the form {cached: '',
                 // stored: <the_filename>}
                 case EC.Const.PHOTO :
                     inputs_values.push({
                         _id: values[i]._id,
                         type: values[i].type,
                         value: {
-                            cached: "",
+                            cached: '',
                             stored: values[i].value
                         },
                         position: values[i].position,
@@ -223,14 +228,14 @@ EC.Entries = ( function (module) {
                     });
                     break;
 
-                //Media files values need to be in the form {cached: "",
+                //Media files values need to be in the form {cached: '',
                 // stored: <the_filename>}
                 case EC.Const.AUDIO :
                     inputs_values.push({
                         _id: values[i]._id,
                         type: values[i].type,
                         value: {
-                            cached: "",
+                            cached: '',
                             stored: values[i].value
                         },
                         position: values[i].position,
@@ -238,14 +243,14 @@ EC.Entries = ( function (module) {
                     });
                     break;
 
-                //Media files values need to be in the form {cached: "",
+                //Media files values need to be in the form {cached: '',
                 // stored: <the_filename>}
                 case EC.Const.VIDEO :
                     inputs_values.push({
                         _id: values[i]._id,
                         type: values[i].type,
                         value: {
-                            cached: "",
+                            cached: '',
                             stored: values[i].value
                         },
                         position: values[i].position,
@@ -255,7 +260,7 @@ EC.Entries = ( function (module) {
 
                 case EC.Const.BRANCH:
 
-                    branch_values = values[i].value.split(",");
+                    branch_values = values[i].value.split(',');
                     inputs_values.push({
                         _id: values[i]._id,
                         type: values[i].type,
@@ -310,7 +315,7 @@ EC.Entries = ( function (module) {
                     // values
                     case EC.Const.CHECKBOX:
 
-                        console.log("CHECKBOX");
+                        console.log('CHECKBOX');
                         console.log(values[i]);
 
                         labels = EC.Utils.mapLabelToValue(values[i], inputs);
@@ -320,14 +325,14 @@ EC.Entries = ( function (module) {
 
                     case EC.Const.DROPDOWN:
 
-                        console.log("DROPDOWN");
+                        console.log('DROPDOWN');
                         console.log(values[i]);
 
-                        if (values[i].value !== "0") {
+                        if (values[i].value !== '0') {
                             dropdown_label = EC.Utils.mapLabelToValue(values[i], inputs);
                         }
                         else {
-                            dropdown_label = "";
+                            dropdown_label = '';
                         }
 
                         HTML += '<span class="h-entry-value-label">' + dropdown_label + '</span>';
@@ -336,14 +341,14 @@ EC.Entries = ( function (module) {
 
                     case EC.Const.RADIO:
 
-                        console.log("RADIO");
+                        console.log('RADIO');
                         console.log(values[i]);
 
-                        if (values[i].value !== "") {
+                        if (values[i].value !== '') {
                             radio_label = EC.Utils.mapLabelToValue(values[i], inputs);
                         }
                         else {
-                            radio_label = "";
+                            radio_label = '';
                         }
 
 
@@ -354,7 +359,7 @@ EC.Entries = ( function (module) {
                     case EC.Const.LOCATION:
 
                         var location = values[i].value;
-                        location = location.split(",");
+                        location = location.split(',');
 
                         var j;
                         var jLength = location.length;
@@ -376,7 +381,7 @@ EC.Entries = ( function (module) {
 
                     case EC.Const.PHOTO:
 
-                        if (values[i].value !== "") {
+                        if (values[i].value !== '') {
                             HTML += '<span class="h-entry-value-label">' + EC.Localise.getTranslation(EC.Const.PHOTO_AVAILABLE_LABEL) + '</span>';
                         } else {
                             HTML += '<span class="h-entry-value-label">' + EC.Localise.getTranslation(EC.Const.PHOTO_NOT_AVAILABLE_LABEL) + '</span>';
@@ -386,7 +391,7 @@ EC.Entries = ( function (module) {
 
                     case EC.Const.AUDIO:
 
-                        if (values[i].value !== "") {
+                        if (values[i].value !== '') {
                             HTML += '<span class="h-entry-value-label">' + EC.Localise.getTranslation(EC.Const.AUDIO_AVAILABLE_LABEL) + '</span>';
                         } else {
                             HTML += '<span class="h-entry-value-label">' + EC.Localise.getTranslation(EC.Const.AUDIO_NOT_AVAILABLE_LABEL) + '</span>';
@@ -396,7 +401,7 @@ EC.Entries = ( function (module) {
 
                     case EC.Const.VIDEO:
 
-                        if (values[i].value !== "") {
+                        if (values[i].value !== '') {
                             HTML += '<span class="h-entry-value-label">' + EC.Localise.getTranslation(EC.Const.VIDEO_AVAILABLE_LABEL) + '</span>';
                         } else {
                             HTML += '<span class="h-entry-value-label">' + EC.Localise.getTranslation(EC.Const.VIDEO_NOT_AVAILABLE_LABEL) + '</span>';
@@ -415,7 +420,7 @@ EC.Entries = ( function (module) {
                 // editable
                 if (values[i].is_remote === 1) {
 
-                    if (allow_download_edits === "1") {
+                    if (allow_download_edits === '1') {
                         HTML += '<i class="fa fa-edit  fa-fw fa-ep-entry-value-embedded-btn"></i>';
                     } else {
                         HTML += '<i class="fa fa-edit  fa-fw fa-ep-entry-value-embedded-btn ui-disabled"></i>';
@@ -450,7 +455,7 @@ EC.Entries = ( function (module) {
         //check if this form is at the top of the tree so the back button
         // will go back to the form page (#forms)
         if (form_tree.parent === 0) {
-            entry_key = "";
+            entry_key = '';
         } else {
 
             //this is a nested form, so we need to go back to the previous
@@ -470,7 +475,7 @@ EC.Entries = ( function (module) {
          * going back
          The direction will be VIEW as we are viewing(listing) the current
          form entries */
-        back_href = "";
+        back_href = '';
         back_href += 'entries-list.html?form=' + form_id;
         back_href += '&name=' + form_name;
         back_href += '&entry_key=' + entry_key;
@@ -490,7 +495,7 @@ EC.Entries = ( function (module) {
 
         //update inactive tab with back navigation href
         inactive_tab_label.text(form_name);
-        inactive_tab_hash.attr("data-href", back_href);
+        inactive_tab_hash.attr('data-href', back_href);
 
         //console.log(HTML);
         dom_list.append(HTML);
@@ -502,12 +507,12 @@ EC.Entries = ( function (module) {
         //set a flag as any time we go back from entry value list page we
         // need to show the list of entries for the previous selected entry
         //if entry_key is undefined, it is because we are coming back from a
-        // "Store Edit" action
+        // 'Store Edit' action
         if (entry_key !== undefined) {
             window.localStorage.back_nav_url = back_href;
         }
 
-        //Set "editing mode" flag
+        //Set 'editing mode' flag
         window.localStorage.edit_mode = 1;
 
         EC.Notification.hideProgressDialog();

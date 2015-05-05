@@ -1,4 +1,3 @@
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery, cordova, device*/
 
 /**
