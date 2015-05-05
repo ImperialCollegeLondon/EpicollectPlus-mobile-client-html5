@@ -1,4 +1,3 @@
-/*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
 /**
  * @module EC
@@ -8,18 +7,18 @@
 var EC = EC || {};
 EC.Entries = EC.Entries || {};
 EC.Entries = (function (module) {
-    "use strict";
+    'use strict';
 
     /**
      *  Bind Action Bar buttons tap events
      */
     var _bindBackBtn = function () {
 
-        var back_btn = $("div[data-role='header'] div[data-href='back-btn']");
-        var back_btn_label = $("div[data-role='header'] div[data-href='back-btn'] span.form-name");
+        var back_btn = $('div[data-role="header"] div[data-href="back-btn"]');
+        var back_btn_label = $('div[data-role="header"] div[data-href="back-btn"] span.form-name');
         var form_name = window.localStorage.form_name;
 
-        back_btn_label.text("Back to " + form_name.trunc(EC.Const.FORM_NAME_MAX_LENGTH));
+        back_btn_label.text('Back to ' + form_name.trunc(EC.Const.FORM_NAME_MAX_LENGTH));
 
         back_btn.off().one('vclick', function (e) {
             window.localStorage.back_from_branch = 1;
@@ -34,12 +33,12 @@ EC.Entries = (function (module) {
         var entries = the_entries;
         var i;
         var iLength = entries.length;
-        var HTML = "";
+        var HTML = '';
 
         for (i = 0; i < iLength; i++) {
 
             //if no title set, use value of primary key as title
-            entries[i].full_title = (entries[i].full_title === "") ? entries[i].entry_key : entries[i].full_title;
+            entries[i].full_title = (entries[i].full_title === '') ? entries[i].entry_key : entries[i].full_title;
 
             HTML += '<li data-icon="false">';
             HTML += '<a href="branch-entry-values.html?branch_form_name=' + branch_form_name + '&entry_key=' + entries[i].entry_key + '">';
@@ -54,21 +53,16 @@ EC.Entries = (function (module) {
 
     module.renderBranchEntriesList = function (the_entries) {
 
-        var HTML = "";
-        var i;
-        var iLength;
+        var self = this;
         var entries = the_entries;
         var dom_list = $('div#branch-entries-list ul');
-        var form_id = parseInt(window.localStorage.form_id, 10);
         var branch_form = JSON.parse(window.localStorage.branch_form);
-        var project_name = window.localStorage.project_name;
         var load_more_btn = $('div#branch-entries div#branch-entries-list div.more-items-btn');
         var load_more_spinner = $('div#branch-entries div#branch-entries-list div.more-items-btn-spinner');
-        var self = this;
         var offset = parseInt(window.localStorage.QUERY_ENTRIES_OFFSET, 10);
         var limit = parseInt(window.localStorage.QUERY_LIMIT, 10);
         var current_entries_total;
-        var totals;
+        var HTML;
 
         //reset entries offset
         window.localStorage.QUERY_ENTRIES_OFFSET = 0;
@@ -79,14 +73,14 @@ EC.Entries = (function (module) {
         //show branch form name in the top bar
         $('div.branch-form-name div.ui-block-a span.ui-btn-active span.ui-btn-inner').text(branch_form.name);
 
-        //show "Show more" button if we have more entries to display
+        //show 'Show more' button if we have more entries to display
         if (current_entries_total > (offset + limit)) {
             load_more_btn.removeClass('not-shown');
         } else {
             load_more_btn.addClass('not-shown');
         }
 
-        //bind "show more button"
+        //bind 'show more button'
         load_more_btn.off().on('vclick', function (e) {
 
             //hide button and show loader
@@ -131,11 +125,7 @@ EC.Entries = (function (module) {
         var dom_list = $('div#entries-list ul');
         var entries = the_entries;
         var form_id = parseInt(window.localStorage.form_id, 10);
-        var form_name = window.localStorage.form_name;
-        var form_tree = JSON.parse(window.localStorage.form_tree);
-        var project_name = window.localStorage.project_name;
-        var load_more_btn = $('div#entries-list .more-items-btn');
-        var HTML = "";
+        var HTML;
         var offset = parseInt(window.localStorage.QUERY_ENTRIES_OFFSET, 10);
         var limit = parseInt(window.localStorage.QUERY_LIMIT, 10);
         var totals;
@@ -148,8 +138,8 @@ EC.Entries = (function (module) {
         HTML = _buildList(form_id, entries);
 
         dom_list.append(HTML);
-        dom_list.listview("refresh");
-        dom_list.trigger("updatelayout");
+        dom_list.listview('refresh');
+        dom_list.trigger('updatelayout');
 
         //show button and hide loader
         $('div#entries div#entries-list div.more-items-btn-spinner').addClass('not-shown');

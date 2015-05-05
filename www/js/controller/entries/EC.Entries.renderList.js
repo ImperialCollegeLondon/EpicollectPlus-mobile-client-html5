@@ -1,4 +1,3 @@
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery, cordova, device*/
 /**
  * @module EC
@@ -6,19 +5,19 @@
  */
 
 var EC = EC || {};
-EC.Entries = ( function (module) {
-    "use strict";
+EC.Entries = (function (module) {
+    'use strict';
 
     /**
      * @method renderList
      * Update the UI listing all the entries for a form. What is listed is all the
-     * field values flagged as "title"
+     * field values flagged as 'title'
      * If no title field is found, the value of the primary key of that form is shown
      * instead
      *
      * @param {array} the_entries Array with all the entries for a form.
-     * Each element is like {children: 1, entry_key: "Kingston", full_title:
-		 * "Kingston, KI6475746856"}
+     * Each element is like {children: 1, entry_key: 'Kingston', full_title:
+		 * 'Kingston, KI6475746856'}
      * -children- is the number of child entries belonging to each parent entry (if
      * any)
      * -entry_key- value of the primary key for that form
@@ -33,31 +32,31 @@ EC.Entries = ( function (module) {
      */
     var _bindActionBarBtns = function () {
 
-        var nav_drawer_btn = $("div#entries div[data-role='header'] div[data-href='entries-nav-btn']");
-        var home_btn = $("div#entries div[data-role='header'] div[data-href='home']");
+        var nav_drawer_btn = $('div#entries div[data-role="header"] div[data-href="entries-nav-btn"]');
+        var home_btn = $('div#entries div[data-role="header"] div[data-href="home"]');
         var settings_btn = $('div#entries div[data-role="header"] div#entries-nav-drawer ul li div[data-href="settings"]');
-        var add_entry_btn = $("div#entries div[data-role='header'] i[data-href='add-entry']");
+        var add_entry_btn = $('div#entries div[data-role="header"] i[data-href="add-entry"]');
         var inactive_tab = $('div#entries div[data-role="header"] div[data-role="navbar"] ul li.inactive-tab');
 
         //bind left sidebar open/close
         nav_drawer_btn.off().on('vclick', function (e) {
 
-            var panel = $("#entries-nav-drawer");
+            var panel = $('#entries-nav-drawer');
 
-            panel.panel("open");
+            panel.panel('open');
 
             home_btn.off().one('vclick', function (e) {
                 //reset offset, as when going back we make a new request for the first entries
                 wls.QUERY_ENTRIES_OFFSET = 0;
 
                 //trigger a pgae refresh when navigating back to project list
-                wls.back_nav_url = "#refresh";
+                wls.back_nav_url = '#refresh';
                 EC.Routing.changePage(EC.Const.INDEX_VIEW);
             });
 
             // //bind add project button (action bar)
             settings_btn.off().one('vclick', function (e) {
-                wls.reached_settings_view_from = $.mobile.activePage.attr("id");
+                wls.reached_settings_view_from = $.mobile.activePage.attr('id');
                 EC.Routing.changePage(EC.Const.SETTINGS_VIEW);
             });
 
@@ -80,7 +79,7 @@ EC.Entries = ( function (module) {
             var project_name = wls.project_name;
 
             //get url from data-hef attribute
-            var page = $('div#entries div[data-role="header"] div[data-role="navbar"] ul li.inactive-tab i').attr("data-href");
+            var page = $('div#entries div[data-role="header"] div[data-role="navbar"] ul li.inactive-tab i').attr('data-href');
 
             EC.Routing.changePage(page);
 
@@ -95,7 +94,7 @@ EC.Entries = ( function (module) {
         var entries = the_entries;
         var i;
         var iLength = entries.length;
-        var HTML = "";
+        var HTML = '';
 
         //if it is the last form, show single list view row with no nested children (no
         // right button)
@@ -103,13 +102,13 @@ EC.Entries = ( function (module) {
             for (i = 0; i < iLength; i++) {
 
                 //if no title set, use value of primary key as title
-                entries[i].full_title = (entries[i].full_title === "") ? entries[i].entry_key : entries[i].full_title;
+                entries[i].full_title = (entries[i].full_title === '') ? entries[i].entry_key : entries[i].full_title;
 
                 HTML += '<li data-icon="false">';
                 HTML += '<a href="entry-values.html?form=' + form_id + '&entry_key=' + entries[i].entry_key + '&direction=' + EC.Const.FORWARD + '">';
 
                 //show full entries title removing last comma if any
-                HTML += entries[i].full_title.replace(/,\s*$/, "");
+                HTML += entries[i].full_title.replace(/,\s*$/, '');
                 HTML += '</a>';
                 HTML += '</li>';
             }//for
@@ -123,7 +122,7 @@ EC.Entries = ( function (module) {
                      iLength = entries.length; i < iLength; i++) {
 
                 //if no title set, use value of primary key as title
-                entries[i].full_title = (entries[i].full_title === "") ? entries[i].entry_key : entries[i].full_title;
+                entries[i].full_title = (entries[i].full_title === '') ? entries[i].entry_key : entries[i].full_title;
 
                 //render entry as a button to view the entry (direction =  VIEW)
                 HTML += '<li data-icon="ep-next-page">';
@@ -133,7 +132,7 @@ EC.Entries = ( function (module) {
                 HTML += '">';
 
                 //show full entries title removing last comma if any
-                HTML += entries[i].full_title.replace(/,\s*$/, "");
+                HTML += entries[i].full_title.replace(/,\s*$/, '');
                 HTML += '</a>';
 
                 //render button to go to children entries for that entry (direction = FORWARD)
@@ -158,19 +157,19 @@ EC.Entries = ( function (module) {
     module.renderList = function (the_entries) {
 
         //build HTML
-        var HTML = "";
-        var back_href = "";
+        var HTML = '';
+        var back_href = '';
         var back_children;
         var i;
         var iLength;
         var entries = the_entries;
         var dom_list = $('div#entries-list ul');
-        var empty_entries_list = $("div#entries div#entries-list div#empty-entries-list");
-        var empty_entries_list_form_name = $("div#entries div#entries-list div#empty-entries-list p span.form-name");
+        var empty_entries_list = $('div#entries div#entries-list div#empty-entries-list');
+        var empty_entries_list_form_name = $('div#entries div#entries-list div#empty-entries-list p span.form-name');
         var page = $('#entries');
         var header = $('div#entries div[data-role="header"] div[data-href="entries-nav-btn"] span.project-name');
         var trail;
-        var inactive_label = "";
+        var inactive_label = '';
         var dom_back_home_btn = $('div#entries a.back-home');
         var action_bar_btn = $('div#entries div#entries-actionbar');
         var active_tab = $('div#entries div[data-role="header"] div[data-role="navbar"] ul li.active-tab span');
@@ -216,7 +215,7 @@ EC.Entries = ( function (module) {
         //show action bar buttons
         action_bar_btn.show();
 
-        //show "Show more" button if we have more entries to display
+        //show 'Show more' button if we have more entries to display
         if (current_entries_total > (offset + limit)) {
             load_more_btn.removeClass('not-shown');
         }
@@ -224,7 +223,7 @@ EC.Entries = ( function (module) {
             load_more_btn.addClass('not-shown');
         }
 
-        //bind "show more button"
+        //bind 'show more button'
         load_more_btn.off().on('vclick', function (e) {
 
             /**
@@ -283,10 +282,10 @@ EC.Entries = ( function (module) {
         // the form page (#forms)
         if (form_tree.parent === 0) {
 
-            inactive_label = "Forms";
+            inactive_label = 'Forms';
 
             //build url
-            back_href = "forms.html?project=" + wls.project_id + "&name=" + wls.project_name;
+            back_href = 'forms.html?project=' + wls.project_id + '&name=' + wls.project_name;
 
         }
         else {
@@ -296,7 +295,10 @@ EC.Entries = ( function (module) {
             trail = JSON.parse(wls.breadcrumbs);
 
             //breadcrumb label will indicate form and last element of the breadcrumb trail
-            inactive_label = form_tree.pname + ": " + trail[trail.length - 1];
+            //todo we remove the entry key from being displayed (as 99% of the time is autogenerated and not human readable)
+            //tofdo we should cjeck for auto gen key and display the entry in the navigation only when the ky is entered by the user
+            //inactive_label = form_tree.pname + ': ' + trail[trail.length - 1];
+            inactive_label = form_tree.pname;
 
             //back button will have parent form and parent entry key (which is the next to
             // last element in the breadcrumb trail)
@@ -313,7 +315,7 @@ EC.Entries = ( function (module) {
 
         //update inactive tab
         inactive_tab_label.text(inactive_label);
-        inactive_tab_hash.attr("data-href", back_href);
+        inactive_tab_hash.attr('data-href', back_href);
 
         if (entries.length > 0) {
             dom_list.append(HTML);
@@ -325,20 +327,20 @@ EC.Entries = ( function (module) {
         wls.form_id = form_id;
 
         //remove navigation objects
-        wls.removeItem("inputs_values");
-        wls.removeItem("inputs_trail");
-        wls.removeItem("current_position");
-        wls.removeItem("back_edit_nav_url");
+        wls.removeItem('inputs_values');
+        wls.removeItem('inputs_trail');
+        wls.removeItem('current_position');
+        wls.removeItem('back_edit_nav_url');
 
-        //reset "editing mode" flags
-        wls.removeItem("edit_mode");
-        wls.removeItem("edit_position");
-        wls.removeItem("edit_type");
-        wls.removeItem("edit_id");
+        //reset 'editing mode' flags
+        wls.removeItem('edit_mode');
+        wls.removeItem('edit_position');
+        wls.removeItem('edit_type');
+        wls.removeItem('edit_id');
 
         //handle tap on list item: cache Y position from top of screen, to silently
         // scroll to position when navigating back from single entry values
-        $("div#entries-list ul li").off().on('vclick', function () {
+        $('div#entries-list ul li').off().on('vclick', function () {
             console.log($(this).position().top);
             //window.localStorage.previous_tapped_entry_Y = $(this).offset().top;
             window.localStorage.previous_tapped_entry_Y = $(this).position().top;
@@ -375,7 +377,7 @@ EC.Entries = ( function (module) {
         var form_tree = JSON.parse(wls.form_tree);
         var project_name = wls.project_name;
         var load_more_btn = $('div#entries-list .more-items-btn');
-        var HTML = "";
+        var HTML = '';
         var offset = parseInt(wls.QUERY_ENTRIES_OFFSET, 10);
         var limit = parseInt(wls.QUERY_LIMIT, 10);
         var totals;
@@ -389,12 +391,12 @@ EC.Entries = ( function (module) {
         HTML = _buildList(form_id, form_tree, entries);
 
         dom_list.append(HTML);
-        dom_list.listview("refresh");
-        dom_list.trigger("updatelayout");
+        dom_list.listview('refresh');
+        dom_list.trigger('updatelayout');
 
         //handle tap on list item: cache Y position from top of screen, to silently
         // scroll to position when navigating back from single entry values
-        $("div#entries-list ul li").off().on('vclick', function () {
+        $('div#entries-list ul li').off().on('vclick', function () {
             console.log($(this).position().top);
             //window.localStorage.previous_tapped_entry_Y = $(this).offset().top;
             window.localStorage.previous_tapped_entry_Y = $(this).position().top;

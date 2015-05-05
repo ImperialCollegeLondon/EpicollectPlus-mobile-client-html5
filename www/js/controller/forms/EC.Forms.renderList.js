@@ -1,31 +1,30 @@
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery, cordova, device*/
 
 var EC = EC || {};
 EC.Forms = EC.Forms || {};
-EC.Forms = ( function (module) {
-    "use strict";
+EC.Forms = (function (module) {
+    'use strict';
 
     var _bindActionBarBtns = function () {
 
-        var home_btn = $("div#forms div[data-role='header'] div[data-href='home']");
-        var nav_drawer_btn = $("div#forms div[data-role='header'] div[data-href='form-nav-btn']");
-        var upload_btn = $("div#forms  div[data-role='header'] div.ui-btn-right[data-href='upload']");
-        var ctx_menu_btn = $("div#forms div[data-role='header'] div.ui-btn-right[data-href='project-options']");
+        var home_btn = $('div#forms div[data-role="header"] div[data-href="home"]');
+        var nav_drawer_btn = $('div#forms div[data-role="header"] div[data-href="form-nav-btn"]');
+        var upload_btn = $('div#forms  div[data-role="header"] div.ui-btn-right[data-href="upload"]');
+        var ctx_menu_btn = $('div#forms div[data-role="header"] div.ui-btn-right[data-href="project-options"]');
         var inactive_tab = $('div#forms div[data-role="header"] div[data-role="navbar"] ul li.inactive-tab');
         var settings_btn = $('div#forms div[data-role="header"] div#form-nav-drawer ul li div[data-href="settings"]');
 
         //bind left sidebar open/close
         nav_drawer_btn.off().on('vclick', function (e) {
 
-            var panel = $("#form-nav-drawer");
+            var panel = $('#form-nav-drawer');
 
-            panel.panel("open");
+            panel.panel('open');
 
             home_btn.off().one('vclick', function (e) {
                 //reload index page TODO: try a better way: if the page is in the dom do not reload: History API
-                window.localStorage.back_nav_url = "#refresh";
-                EC.Routing.changePage(EC.Const.INDEX_VIEW, "../");
+                window.localStorage.back_nav_url = '#refresh';
+                EC.Routing.changePage(EC.Const.INDEX_VIEW, '../');
             });
 
             // //bind add project button (action bar)
@@ -58,15 +57,15 @@ EC.Forms = ( function (module) {
         inactive_tab.off().one('vclick', function (e) {
 
             //reload index page TODO: try a better way: if the page is in the dom do not reload: History API
-            window.localStorage.back_nav_url = "#refresh";
-            EC.Routing.changePage(EC.Const.INDEX_VIEW, "../");
+            window.localStorage.back_nav_url = '#refresh';
+            EC.Routing.changePage(EC.Const.INDEX_VIEW, '../');
         });
     };
 
     module.renderList = function (the_forms, the_button_states) {
 
         //build HTML
-        var HTML = "";
+        var HTML = '';
         var i;
         var iLength;
         var forms = the_forms;
@@ -74,7 +73,6 @@ EC.Forms = ( function (module) {
         var page = $('#forms');
         var header = $('div#forms div[data-role="header"] div[data-href="form-nav-btn"] span.project-name');
         var navbar_label = $('a.ui-btn-active span.ui-btn-inner');
-        var back_to_project_btn = $("a#back-to-projects");
         var email_backup_btn = $('div#forms div#project-options ul li#email-backup');
         var download_remote_data_btn = $('div#forms div#project-options ul li#download-remote-data');
         var unsync_all_entries_btn = $('div#forms div#project-options ul li#unsync-all-data');
@@ -100,7 +98,7 @@ EC.Forms = ( function (module) {
 
                 HTML += '<li data-icon="false">';
                 HTML += '<a href="entries-list.html?form=' + forms[i]._id + '&name=' + forms[i].name + '&entry_key=&direction=forward" class="ui-disabled">' + forms[i].name;
-                HTML += '<p>' + forms[i].total_inputs + EC.Localise.getTranslation("questions") + '</p>';
+                HTML += '<p>' + forms[i].total_inputs + EC.Localise.getTranslation('questions') + '</p>';
                 HTML += '</a>';
                 HTML += '</li>';
 
@@ -111,7 +109,7 @@ EC.Forms = ( function (module) {
                 HTML += '<a href="entries-list.html?form=' + forms[i]._id + '&name=' + forms[i].name + '&entry_key=&direction=forward&children=' + forms[i].entries + '">' + forms[i].name;
                 HTML += '<span class="ui-li-count">' + forms[i].entries;
                 HTML += '</span>';
-                HTML += '<p>' + forms[i].total_inputs + EC.Localise.getTranslation("questions") + '</p>';
+                HTML += '<p>' + forms[i].total_inputs + EC.Localise.getTranslation('questions') + '</p>';
                 HTML += '</a>';
                 HTML += '</li>';
             }
@@ -136,8 +134,8 @@ EC.Forms = ( function (module) {
         EC.Utils.setForms(forms);
 
         //remove form details from localStorage if any
-        window.localStorage.form_name = "";
-        window.localStorage.form_id = "";
+        window.localStorage.form_name = '';
+        window.localStorage.form_id = '';
         window.localStorage.removeItem('primary_keys');
         window.localStorage.removeItem('parent_path');
 
@@ -156,12 +154,12 @@ EC.Forms = ( function (module) {
             unsync_all_entries_btn.removeClass('ui-disabled');
         }
         unsync_all_entries_btn.off().on('vclick', function (e) {
-            EC.Notification.askConfirm(EC.Localise.getTranslation("unsync_all_data"), EC.Localise.getTranslation("unsync_all_data"), "EC.Entries.unsyncAllEntries");
+            EC.Notification.askConfirm(EC.Localise.getTranslation('unsync_all_data'), EC.Localise.getTranslation('unsync_all_data'), 'EC.Entries.unsyncAllEntries');
         });
 
         //handler to delete project
         delete_project_btn.off().on('vclick', function (e) {
-            EC.Notification.askConfirm(EC.Localise.getTranslation("delete_project"), EC.Localise.getTranslation("delete_project_confirm"), "EC.Project.deleteProject");
+            EC.Notification.askConfirm(EC.Localise.getTranslation('delete_project'), EC.Localise.getTranslation('delete_project_confirm'), 'EC.Project.deleteProject');
         });
 
         //handler to delete all entries (if any, otherwise show as disabled)
@@ -172,7 +170,7 @@ EC.Forms = ( function (module) {
         }
         delete_all_entries_btn.off().on('vclick', function (e) {
 
-            EC.Notification.askConfirm(EC.Localise.getTranslation("delete_all_entries"), EC.Localise.getTranslation("delete_all_entries_confirm"), "EC.Entries.deleteAllEntries");
+            EC.Notification.askConfirm(EC.Localise.getTranslation('delete_all_entries'), EC.Localise.getTranslation('delete_all_entries_confirm'), 'EC.Entries.deleteAllEntries');
 
         });
 
@@ -184,7 +182,7 @@ EC.Forms = ( function (module) {
         }
         delete_media_files_btn.off().on('vclick', function (e) {
 
-            EC.Notification.askConfirm(EC.Localise.getTranslation("delete_all_media"), EC.Localise.getTranslation("delete_all_media_confirm"), "EC.Entries.deleteAllMedia");
+            EC.Notification.askConfirm(EC.Localise.getTranslation('delete_all_media'), EC.Localise.getTranslation('delete_all_media_confirm'), 'EC.Entries.deleteAllMedia');
 
         });
 
@@ -196,7 +194,7 @@ EC.Forms = ( function (module) {
         }
         delete_synced_entries_btn.off().on('vclick', function (e) {
 
-            EC.Notification.askConfirm(EC.Localise.getTranslation("delete_all_synced"), EC.Localise.getTranslation("delete_all_synced_confirm"), "EC.Entries.deleteAllSynced");
+            EC.Notification.askConfirm(EC.Localise.getTranslation('delete_all_synced'), EC.Localise.getTranslation('delete_all_synced_confirm'), 'EC.Entries.deleteAllSynced');
 
         });
 
@@ -208,7 +206,7 @@ EC.Forms = ( function (module) {
         }
 
         backup_project_data_btn.off().on('vclick', function (e) {
-            EC.Notification.askConfirm(EC.Localise.getTranslation("backup_data"), EC.Localise.getTranslation("backup_data_confirm"), "EC.Project.backupCurrentProject");
+            EC.Notification.askConfirm(EC.Localise.getTranslation('backup_data'), EC.Localise.getTranslation('backup_data_confirm'), 'EC.Project.backupCurrentProject');
         });
 
         //enable -restore from backup- and -mail backup- buttons only if a backup file exists
@@ -221,16 +219,16 @@ EC.Forms = ( function (module) {
         }
 
         restore_from_backup_btn.off().on('vclick', function (e) {
-            EC.Notification.askConfirm(EC.Localise.getTranslation("restore_data"), EC.Localise.getTranslation("restore_data_confirm"), "EC.Project.restoreFromBackup");
+            EC.Notification.askConfirm(EC.Localise.getTranslation('restore_data'), EC.Localise.getTranslation('restore_data_confirm'), 'EC.Project.restoreFromBackup');
         });
 
         //hide restore backup buttons on IOS as redundant (backups on device are managed via iTunes)
         //we still mail backups in some situations where it is not possible to upload data via wifi or mobile network
         if (window.device.platform === EC.Const.IOS) {
 
-            restore_from_backup_btn.addClass("not-shown");
-            //email_backup_btn.addClass("not-shown");
-            //backup_project_data_btn.addClass("not-shown");
+            restore_from_backup_btn.addClass('not-shown');
+            //email_backup_btn.addClass('not-shown');
+            //backup_project_data_btn.addClass('not-shown');
         }
 
         //Localise
