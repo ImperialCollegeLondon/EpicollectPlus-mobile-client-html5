@@ -31,11 +31,13 @@ var pluginlist = [
 //App Version
     'https://github.com/whiteoctober/cordova-plugin-app-version.git', //
 //status bar in ios7 -> currently causing problems, so I modified the MainViewController directly
-'org.apache.cordova.statusbar',
+    'org.apache.cordova.statusbar',
 //video player plugin android
     'https://github.com/macdonst/VideoPlayer',
 //diagnostic plugin
     'https://github.com/mablack/cordova-diagnostic-plugin.git',
+    //open external links in system browser
+    'org.apache.cordova.inappbrowser',
 //native date picker for android
     'https://github.com/VitaliiBlagodir/cordova-plugin-datepicker',
 //email plugin
@@ -60,7 +62,7 @@ function installPlugin() {
     var plugin = pluginlist.pop();
     console.log('Installing plugin from: ' + plugin);
 
-    exec('cordova plugin add ' + plugin, function(error, stdout, stderr) {
+    exec('cordova plugin add ' + plugin, function (error, stdout, stderr) {
         console.log(stdout);
         if (pluginlist.length > 0) {
             installPlugin();

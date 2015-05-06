@@ -31,7 +31,6 @@ EC.Entries = (function (module) {
 
     var unsync_entry_btn;
     var wls;
-
     var _bindActionBarBtns = function () {
 
         var nav_drawer_btn = $('div#entry-values div[data-role="header"] div[data-href="entry-values-nav-btn"]');

@@ -9,7 +9,7 @@ EC.Const = (function () {
 
     return {
         //debug on/off
-        DEBUG: 1,
+        DEBUG: 0,
 
         //platforms
         ANDROID: 'Android',
