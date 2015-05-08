@@ -224,11 +224,13 @@ EC.Forms = (function (module) {
 
         //hide restore backup buttons on IOS as redundant (backups on device are managed via iTunes)
         //we still mail backups in some situations where it is not possible to upload data via wifi or mobile network
-        if (window.device.platform === EC.Const.IOS) {
+        if (window.device) {
+            if (window.device.platform === EC.Const.IOS) {
 
-            restore_from_backup_btn.addClass('not-shown');
-            //email_backup_btn.addClass('not-shown');
-            //backup_project_data_btn.addClass('not-shown');
+                restore_from_backup_btn.addClass('not-shown');
+                //email_backup_btn.addClass('not-shown');
+                //backup_project_data_btn.addClass('not-shown');
+            }
         }
 
         //Localise
