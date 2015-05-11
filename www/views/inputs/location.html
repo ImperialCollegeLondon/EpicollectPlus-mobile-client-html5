@@ -43,14 +43,13 @@
             <i class="fa fa-map-marker  fa-fw fa-ep-embedded-btn"></i>
             <span class="v-nav-item-label" data-i10n="set_location">Set Location</span>
         </div>
-        <!--<textarea id="set-location-result" type="text" disabled="disabled" rows="7"></textarea>-->
+        <textarea id="set-location-result" type="text" disabled="disabled" rows="7" class="not-shown"></textarea>
         <div class="current-accuracy-result not-shown">Accurate to <span></span> meters</div>
         <div class="location-accuracy-tip not-shown">Tap button again to improve</div>
-
         <div id="map-canvas"></div>
 
     </div><!-- /content -->
-    <div class="autocomplete-spinner-loader">
+    <div id="map-progress-spinner-loader" class="not-shown">
         <i class="fa fa-spinner fa-fw v-nav-item-icon fa-spin"></i>
     </div>
 </div><!-- /text -->
