@@ -307,10 +307,10 @@ EC.Entries = (function () {
 
         EC.Notification.showProgressDialog();
 
-        $.when(EC.Select.getInputs(form_id)).then(function (inputs, has_jumps) {
+        $.when(EC.Select.getInputs(form_id)).then(function (inputs, has_jumps, has_location) {
 
             //set inputs in memory
-            EC.Inputs.setInputs(inputs, has_jumps);
+            EC.Inputs.setInputs(inputs, has_jumps, has_location);
 
             //render first input on the list or the selected position (-1) if
             // we are editing
