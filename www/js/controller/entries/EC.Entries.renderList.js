@@ -198,10 +198,12 @@ EC.Entries = (function (module) {
 
         //reset entries offset if we are not using the cached entries
         if (!window.localStorage.cached_entries_list) {
-
             wls.QUERY_ENTRIES_OFFSET = 0;
-
         }
+
+        //stop background watch position if any
+        window.navigator.geolocation.clearWatch(window.localStorage.watch_position);
+        window.localStorage.form_has_location = 0;
 
         //request pagination when going back
         totals = JSON.parse(wls.entries_totals);

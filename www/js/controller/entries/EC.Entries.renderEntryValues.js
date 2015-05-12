@@ -49,17 +49,15 @@ EC.Entries = (function (module) {
         nav_drawer_btn.off().on('vclick', function (e) {
 
             var panel = $('#entry-values-nav-drawer');
-
             panel.panel('open');
 
             home_btn.off().one('vclick', function (e) {
-
                 //trigger a pgae refresh when navigating back to project list
                 wls.back_nav_url = '#refresh';
                 EC.Routing.changePage(EC.Const.INDEX_VIEW);
             });
 
-            // //bind add project button (action bar)
+            //bind add project button (action bar)
             settings_btn.off().one('vclick', function (e) {
                 window.localStorage.reached_settings_view_from = $.mobile.activePage.attr('id');
                 EC.Routing.changePage(EC.Const.SETTINGS_VIEW);
@@ -77,9 +75,7 @@ EC.Entries = (function (module) {
             //get url from data-hef attribute
             var page = $('div#entry-values div[data-role="header"] div[data-role="navbar"] ul li.inactive-tab i').attr('data-href');
             EC.Routing.changePage(page);
-
             //window.history.back(-1);
-
         });
 
         entry_value_btn.off().on('vclick', 'i', function (e) {
@@ -164,6 +160,10 @@ EC.Entries = (function (module) {
         var radio_label;
 
         wls = window.localStorage;
+
+        //stop background watch position if any
+        window.navigator.geolocation.clearWatch(wls.watch_position);
+        window.localStorage.form_has_location = 0;
 
         //bind buttons
         _bindActionBarBtns();
