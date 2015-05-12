@@ -43,14 +43,14 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 			$('div#branch-input-decimal input').removeAttr('disabled');
 
 			//hide elements not needed
-			clone.addClass('not-shown');
-			min_range.addClass('not-shown');
-			max_range.addClass('not-shown');
+			clone.addClass('hidden');
+			min_range.addClass('hidden');
+			max_range.addClass('hidden');
 
 			if (double_entry) {
 
 				//duplicate textarea input
-				clone.removeClass('not-shown');
+				clone.removeClass('hidden');
 				$('div.clone input').val(value);
 
 				//if in editing mode, do not allow changes either if the field is a primary key or it triggers a jump
@@ -64,7 +64,7 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 			//show min range if any
 			if (input.min_range !== "") {
 
-				min_range.removeClass('not-shown');
+				min_range.removeClass('hidden');
 				min_range.text('Min: ' + input.min_range);
 
 			}
@@ -72,7 +72,7 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 			//show max range if any
 			if (input.max_range !== "") {
 
-				max_range.removeClass('not-shown');
+				max_range.removeClass('hidden');
 				max_range.text('Max: ' + input.max_range);
 
 			}
@@ -82,10 +82,10 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 			//if in editing mode, do not allow changes either if the field is a primary key
 			if (window.localStorage.branch_edit_mode && input.is_primary_key === 1) {
 				$('div#branch-input-decimal input').attr('disabled', 'disabled');
-					$('div#branch-input-decimal p.primary-key-not-editable').removeClass("not-shown");
+					$('div#branch-input-decimal p.primary-key-not-editable').removeClass("hidden");
 			} else {
 				
-				$('div#branch-input-decimal p.primary-key-not-editable').addClass("not-shown");
+				$('div#branch-input-decimal p.primary-key-not-editable').addClass("hidden");
 			}
 
 		};

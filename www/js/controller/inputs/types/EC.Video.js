@@ -29,7 +29,7 @@ EC.InputTypes = (function (module) {
 
         //hide play button on ios, also hide video wrapper
         if (window.device.platform === EC.Const.IOS) {
-            $(play_video_btn, ios_video_player_wrapper).addClass('not-shown');
+            $(play_video_btn, ios_video_player_wrapper).addClass('hidden');
 
         }
 
@@ -114,13 +114,13 @@ EC.InputTypes = (function (module) {
                         }
 
                         //show video player wrapper
-                        ios_video_player_wrapper.removeClass('not-shown');
+                        ios_video_player_wrapper.removeClass('hidden');
                         break;
                 }
             }
             else {
                 play_video_btn.addClass('ui-disabled');
-                ios_video_player_wrapper.addClass('not-shown');
+                ios_video_player_wrapper.addClass('hidden');
             }
 
         }
@@ -134,7 +134,7 @@ EC.InputTypes = (function (module) {
                     break;
 
                 case EC.Const.IOS:
-                    ios_video_player_wrapper.removeClass('not-shown');
+                    ios_video_player_wrapper.removeClass('hidden');
                     break;
 
             }
@@ -186,7 +186,7 @@ EC.InputTypes = (function (module) {
 
                 if (window.device.platform === EC.Const.IOS) {
 
-                    ios_video_player_wrapper.removeClass('not-shown');
+                    ios_video_player_wrapper.removeClass('hidden');
 
                     //request temporary folder from file system
                     window.requestFileSystem(LocalFileSystem.TEMPORARY, 0, function (the_file_system) {

@@ -48,7 +48,7 @@ EC.Upload = ( function(module) {
 				self.upload_data_btn.removeClass("ui-disabled");
 
 				//hide all synced message
-				self.all_synced_message.addClass('not-shown');
+				self.all_synced_message.addClass('hidden');
 			}
 
 			//callback when no hierarchy un-synced entries are found upon first page load
@@ -73,7 +73,7 @@ EC.Upload = ( function(module) {
 
 						//enable upload data button
 						self.upload_data_btn.removeClass("ui-disabled");
-						self.all_synced_message.addClass('not-shown');
+						self.all_synced_message.addClass('hidden');
 					};
 
 					var _onOneBranchEntryNotFound = function() {

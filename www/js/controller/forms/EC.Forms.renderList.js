@@ -227,9 +227,9 @@ EC.Forms = (function (module) {
         if (window.device) {
             if (window.device.platform === EC.Const.IOS) {
 
-                restore_from_backup_btn.addClass('not-shown');
-                //email_backup_btn.addClass('not-shown');
-                //backup_project_data_btn.addClass('not-shown');
+                restore_from_backup_btn.addClass('hidden');
+                //email_backup_btn.addClass('hidden');
+                //backup_project_data_btn.addClass('hidden');
             }
         }
 

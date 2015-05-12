@@ -110,7 +110,7 @@ div#entries-list > ul a {
     visibility: hidden !important;
 }
 
-.not-shown {
+.hidden {
     display: none !important;
 }
 
@@ -508,13 +508,6 @@ div.current-accuracy-result span{
 div.location-accuracy-tip {
     text-align: center;
 }
-#map-canvas, #map-progress-spinner-loader {
+#map-canvas {
     height:300px;
-}
-#map-progress-spinner-loader {
-    text-align: center;
-}
-/* Use this hack as google maps shows a grey tile using display:none*/
-.map-hide {
-    margin-right: 9999px;
 }

@@ -33,8 +33,8 @@ EC.BranchInputTypes = (function (module) {
         var accuracy_tip = $('div#branch-location  div#branch-input-location div.location-accuracy-tip');
 
         //hide feedback when showing the view the first time
-        $(accuracy_result).addClass('not-shown');
-        $(accuracy_tip).addClass('not-shown');
+        $(accuracy_result).addClass('hidden');
+        $(accuracy_tip).addClass('hidden');
 
         //set previous location value if any
         set_location_result.val(value);
@@ -44,8 +44,8 @@ EC.BranchInputTypes = (function (module) {
             // clearAllRequests();
 
             $(accuracy_result).find('span').text(Math.floor(location.accuracy));
-            $(accuracy_result).removeClass('not-shown');
-            $(accuracy_tip).removeClass('not-shown');
+            $(accuracy_result).removeClass('hidden');
+            $(accuracy_tip).removeClass('hidden');
 
             EC.Notification.hideProgressDialog();
 

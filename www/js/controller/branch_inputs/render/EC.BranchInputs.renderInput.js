@@ -153,7 +153,7 @@ EC.BranchInputs = ( function(module) {"use strict";
 				//show store edit button if we are in "editing mode" and bind it to callback
 				if (wls.branch_edit_mode) {
 
-					$('div.store-edit').removeClass('not-shown');
+					$('div.store-edit').removeClass('hidden');
 
 					if (branch_input.has_jump === 1) {
 

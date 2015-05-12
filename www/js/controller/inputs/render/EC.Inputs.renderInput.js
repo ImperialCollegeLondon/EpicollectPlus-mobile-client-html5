@@ -162,7 +162,7 @@ EC.Inputs = ( function (module) {
         //show store edit button if we are in "editing mode" and bind it to callback
         if (wls.edit_mode) {
 
-            $('div.store-edit').removeClass('not-shown');
+            $('div.store-edit').removeClass('hidden');
 
             /* Disable store edit button when a new jump sequence was triggered
              * by the user making a change to a input field with a jump
@@ -217,7 +217,7 @@ EC.Inputs = ( function (module) {
 
         }
         else {
-            $('div.store-edit').addClass('not-shown');
+            $('div.store-edit').addClass('hidden');
         }
 
         //update completion percentage and bar for this form

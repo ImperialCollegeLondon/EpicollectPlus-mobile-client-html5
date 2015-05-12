@@ -75,17 +75,17 @@ EC.Entries = (function (module) {
 
         //show 'Show more' button if we have more entries to display
         if (current_entries_total > (offset + limit)) {
-            load_more_btn.removeClass('not-shown');
+            load_more_btn.removeClass('hidden');
         } else {
-            load_more_btn.addClass('not-shown');
+            load_more_btn.addClass('hidden');
         }
 
         //bind 'show more button'
         load_more_btn.off().on('vclick', function (e) {
 
             //hide button and show loader
-            $(this).addClass('not-shown');
-            load_more_spinner.removeClass('not-shown');
+            $(this).addClass('hidden');
+            load_more_spinner.removeClass('hidden');
 
             //increase offset
             offset = parseInt(window.localStorage.QUERY_ENTRIES_OFFSET, 10);
@@ -142,10 +142,10 @@ EC.Entries = (function (module) {
         dom_list.trigger('updatelayout');
 
         //show button and hide loader
-        $('div#entries div#entries-list div.more-items-btn-spinner').addClass('not-shown');
+        $('div#entries div#entries-list div.more-items-btn-spinner').addClass('hidden');
 
         if (current_entries_total > (offset + limit)) {
-            $('div#entries div#entries-list div.more-items-btn').removeClass('not-shown');
+            $('div#entries div#entries-list div.more-items-btn').removeClass('hidden');
         }
     };
 

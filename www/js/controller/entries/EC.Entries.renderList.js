@@ -219,10 +219,10 @@ EC.Entries = (function (module) {
 
         //show 'Show more' button if we have more entries to display
         if (current_entries_total > (offset + limit)) {
-            load_more_btn.removeClass('not-shown');
+            load_more_btn.removeClass('hidden');
         }
         else {
-            load_more_btn.addClass('not-shown');
+            load_more_btn.addClass('hidden');
         }
 
         //bind 'show more button'
@@ -234,8 +234,8 @@ EC.Entries = (function (module) {
 
             if (window.device.platform === EC.Const.IOS) {
                 //hide button and show loader
-                $(this).addClass('not-shown');
-                load_more_spinner.removeClass('not-shown');
+                $(this).addClass('hidden');
+                load_more_spinner.removeClass('hidden');
             }
 
             if (window.device.platform === EC.Const.ANDROID) {
@@ -259,8 +259,8 @@ EC.Entries = (function (module) {
         if (entries.length > 0) {
 
             //hide empty list message (no entries found)
-            empty_entries_list.addClass('not-shown');
-            dom_list.removeClass('not-shown');
+            empty_entries_list.addClass('hidden');
+            dom_list.removeClass('hidden');
 
             //build list of entries markup
             HTML = _buildList(form_id, form_tree, entries);
@@ -270,8 +270,8 @@ EC.Entries = (function (module) {
 
             //no entries found
             //hide empty list message (no entries found)
-            empty_entries_list.removeClass('not-shown');
-            dom_list.addClass('not-shown');
+            empty_entries_list.removeClass('hidden');
+            dom_list.addClass('hidden');
 
             empty_entries_list_form_name.text(form_name);
 
@@ -407,14 +407,14 @@ EC.Entries = (function (module) {
 
         //show button and hide loader
         if (window.device.platform === EC.Const.IOS) {
-            $('div#entries div#entries-list div.more-items-btn-spinner').addClass('not-shown');
+            $('div#entries div#entries-list div.more-items-btn-spinner').addClass('hidden');
         }
         if (window.device.platform === EC.Const.ANDROID) {
             EC.Notification.hideProgressDialog();
         }
 
         if (current_entries_total > (offset + limit)) {
-            $('div#entries div#entries-list div.more-items-btn').removeClass('not-shown');
+            $('div#entries div#entries-list div.more-items-btn').removeClass('hidden');
         }
 
         //cache new entries

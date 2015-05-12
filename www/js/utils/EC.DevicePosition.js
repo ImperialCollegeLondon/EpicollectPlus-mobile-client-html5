@@ -8,7 +8,10 @@ EC.DevicePosition = (function () {
 
         map: {},
         marker: {},
+        circle: {},
         coords: {},
+        current_position: {},
+        map_options: {},
         timeout: 30000,
         is_first_attempt: true,
         watchTimeout: function () {
@@ -21,32 +24,10 @@ EC.DevicePosition = (function () {
             var deferred = new $.Deferred();
             var self = this;
 
-            //attach event handler to resolve when map is loaded
+            //resolve passing position to caller
             function onSuccess(position) {
-
-                var current_position = new google.maps.LatLng(position.coords.latitude, position.coords.longitude);
-                var mapOptions = {
-                    center: {lat: position.coords.latitude, lng: position.coords.longitude},
-                    zoom: 20,
-                    disableDefaultUI: true
-                };
-
-
-                EC.DevicePosition.map = new google.maps.Map(document.getElementById('map-canvas'), mapOptions);
-                //add current user position
-                EC.DevicePosition.marker = new google.maps.Marker({
-                    position: current_position,
-                    map: self.map,
-                    draggable: true
-                });
-
-                //let's use 'idle' event and a 2 secs timeout, to play it safe
-                // 'tilesloaded' could not be fire if there are network problems
-                google.maps.event.addListenerOnce(EC.DevicePosition.map, 'idle', function () {
-                    window.setTimeout(function () {
-                        deferred.resolve();
-                    }, 2000);
-                });
+                self.setCoords(position);
+                deferred.resolve();
             }
 
             function onError(error) {
@@ -67,23 +48,16 @@ EC.DevicePosition = (function () {
             var deferred = new $.Deferred();
             var geolocation_request;
             var timeout = EC.DevicePosition.watchTimeout();
-
+            var self = this;
 
             function onWatchSuccess(position) {
 
                 console.log('onWatchSuccess called, accuracy: ' + position.coords.accuracy);
 
                 //get HTML5 geolocation coords values replacing null with '' for not available values
-                EC.DevicePosition.coords.latitude = (position.coords.latitude === null) ? '' : position.coords.latitude;
-                EC.DevicePosition.coords.longitude = (position.coords.longitude === null) ? '' : position.coords.longitude;
-                EC.DevicePosition.coords.altitude = (position.coords.altitude === null) ? '' : position.coords.altitude;
-                EC.DevicePosition.coords.accuracy = (position.coords.accuracy === null) ? '' : position.coords.accuracy;
-                EC.DevicePosition.coords.altitude_accuracy = (position.coords.altitudeAccuracy === null) ? '' : position.coords.altitudeAccuracy;
-                EC.DevicePosition.coords.heading = (position.coords.heading === null) ? '' : position.coords.heading;
-
+                self.setCoords(position);
                 //clear the current watch
                 window.navigator.geolocation.clearWatch(geolocation_request);
-
                 deferred.resolve(true);
             }
 
@@ -132,8 +106,6 @@ EC.DevicePosition = (function () {
                     console.log('setTimeout called without location');
                 }, 30000);
 
-                //stop checking after 30 seconds (value is milliseconds));
-
                 //get location using watchPosition for more accurate results, It is called automatically when movement is detected,
                 //not only when requesting it. Do thjis when user wants to improve location
                 geolocation_request = navigator.geolocation.watchPosition(onWatchSuccess, onWatchError, {
@@ -144,6 +116,33 @@ EC.DevicePosition = (function () {
             }
 
             return deferred.promise();
+        },
+        setCoords: function (position) {
+
+            var self = this;
+            //get HTML5 geolocation coords values replacing null with '' for not available values
+            self.coords = {
+                latitude: (position.coords.latitude === null) ? '' : position.coords.latitude,
+                longitude: (position.coords.longitude === null) ? '' : position.coords.longitude,
+                altitude: (position.coords.altitude === null) ? '' : position.coords.altitude,
+                accuracy: (position.coords.accuracy === null) ? '' : position.coords.accuracy,
+                altitude_accuracy: (position.coords.altitudeAccuracy === null) ? '' : position.coords.altitudeAccuracy,
+                heading: (position.coords.heading === null) ? '' : position.coords.heading
+            };
+        },
+        getCoordsFormattedText: function () {
+
+            return 'Latitude: ' + this.coords.latitude + ',\n' + //
+                'Longitude: ' + this.coords.longitude + ',\n' + //
+                'Altitude: ' + this.coords.altitude + ',\n' + //
+                'Accuracy: ' + this.coords.accuracy + ',\n' + //
+                'Altitude Accuracy: ' + this.coords.altitude_accuracy + ',\n' + //
+                'Bearing: ' + this.coords.heading + '\n';
+
+        },
+        getCoordsEmptyText: function () {
+            return 'Latitude: ,\n' + 'Longitude: ,\n' + 'Altitude: ,\n' + 'Accuracy: ,\n' + 'Altitude Accuracy: ,\n' + 'Bearing: \n';
         }
+
     };
 }());

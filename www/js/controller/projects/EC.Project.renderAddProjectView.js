@@ -86,7 +86,7 @@ EC.Project = ( function(module) {"use strict";
 				//trigger request with more than 2 chars
 				if (value && value.length > 2) {
 
-				    autocomplete_spinning_loader.removeClass("not-shown");
+				    autocomplete_spinning_loader.removeClass("hidden");
 
 					$ul.html('<li class="autocomplete-spinner"><i class="fa fa-spinner fa-spin"></i></li>');
 					$ul.listview("refresh");
@@ -105,7 +105,7 @@ EC.Project = ( function(module) {"use strict";
 							crossDomain : true,
 							success : function(response) {
 
-							    autocomplete_spinning_loader.addClass("not-shown");
+							    autocomplete_spinning_loader.addClass("hidden");
 
 								$.each(response, function(i) {
 									html += "<li class='h-nav-item'>" + response[i].name + "</li>";
@@ -116,7 +116,7 @@ EC.Project = ( function(module) {"use strict";
 
 							},
 							error : function(request, status, error) {
-							     autocomplete_spinning_loader.addClass("not-shown");
+							     autocomplete_spinning_loader.addClass("hidden");
 							}
 						});
 

@@ -55,16 +55,16 @@ EC.BranchInputTypes = ( function(module) {
 
 				//disable scan button
 				scanner.addClass('ui-disabled');
-				$('div#branch-input-barcode p.primary-key-not-editable').removeClass("not-shown");
+				$('div#branch-input-barcode p.primary-key-not-editable').removeClass("hidden");
 			}
 			else {
-				$('div#branch-input-barcode p.primary-key-not-editable').addClass("not-shown");
+				$('div#branch-input-barcode p.primary-key-not-editable').addClass("hidden");
 			}
 
 			if (double_entry) {
 
 				//duplicate text input
-				clone.removeClass('not-shown');
+				clone.removeClass('hidden');
 				scan_result_confirm.val(value);
 
 				if (window.localStorage.branch_edit_mode && input.is_primary_key === 1) {
@@ -94,8 +94,8 @@ EC.BranchInputTypes = ( function(module) {
 			}
 			else {
 
-				//add not-shown class if missing
-				clone.addClass('not-shown');
+				//add hidden class if missing
+				clone.addClass('hidden');
 			}
 
 			//set handlers for scan button
