@@ -12,10 +12,10 @@ EC.InputTypes = (function (module) {
         var span_label = $('span.label');
         var value = the_value;
         var input = the_input;
-        var attempts = 10;
         var requests = [];
         var geolocation_request;
         var is_first_attempt = true;
+
         //set unlimited timeout for watch position to avoid timeout error on iOS when the device does not move
         // see http://goo.gl/tYsBSC, http://goo.gl/jYQhgr, http://goo.gl/8oR1g2
         var timeout = (window.device.platform === EC.Const.IOS) ? Infinity : 30000;
@@ -42,8 +42,6 @@ EC.InputTypes = (function (module) {
 
         function _showAcquiredLocation() {
 
-            //clearAllRequests();
-
             $(accuracy_result).find('span').text(Math.floor(location.accuracy));
             $(accuracy_result).removeClass('not-shown');
             $(accuracy_tip).removeClass('not-shown');
@@ -53,18 +51,15 @@ EC.InputTypes = (function (module) {
             set_location_result.val(//
                 'Latitude: ' + location.latitude + ',\n' + //
                 'Longitude: ' + location.longitude + ',\n' + //
-                'Altitude: ' + location.altitude + ',\n' + //
-                'Accuracy: ' + location.accuracy + ',\n' + //
-                'Altitude Accuracy: ' + location.altitude_accuracy + ',\n' + //
-                'Bearing: ' + location.heading + '\n');
-            //
+                'Altitude: ' + Math.floor(location.altitude) + ',\n' + //
+                'Accuracy: ' + Math.floor(location.accuracy) + ',\n' + //
+                'Altitude Accuracy: ' + Math.floor(location.altitude_accuracy) + ',\n' + //
+                'Bearing: ' + isNaN(location.heading) ? '' : location.heading + '\n');
 
             if (!EC.Utils.isChrome()) {
                 EC.Notification.showToast(EC.Localise.getTranslation('location_acquired'), 'short');
             }
             set_location_btn.one('vclick', _getLocation);
-
-
         }
 
         //request position
