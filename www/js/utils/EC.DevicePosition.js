@@ -14,6 +14,11 @@ EC.DevicePosition = (function () {
         map_options: {},
         timeout: 30000,
         is_first_attempt: true,
+        is_api_loaded: false,
+        //the 'is_enhanced_map_on' flag changes a lot, if the device loses connection and stuff, so it is a good idea to always request it via a function
+        is_enhanced_map_on: function() {
+            return parseInt(window.localStorage.is_enhanced_map_on, 10) === 1;
+        },
         watchTimeout: function () {
             //set unlimited timeout for watch position to avoid timeout error on iOS when the device does not move
             // see http://goo.gl/tYsBSC, http://goo.gl/jYQhgr, http://goo.gl/8oR1g2
@@ -137,11 +142,11 @@ EC.DevicePosition = (function () {
                 'Altitude: ' + this.coords.altitude + ',\n' + //
                 'Accuracy: ' + this.coords.accuracy + ',\n' + //
                 'Altitude Accuracy: ' + this.coords.altitude_accuracy + ',\n' + //
-                'Bearing: ' + this.coords.heading + '\n';
+                'Heading: ' + this.coords.heading + '\n';
 
         },
         getCoordsEmptyText: function () {
-            return 'Latitude: ,\n' + 'Longitude: ,\n' + 'Altitude: ,\n' + 'Accuracy: ,\n' + 'Altitude Accuracy: ,\n' + 'Bearing: \n';
+            return 'Latitude: ,\n' + 'Longitude: ,\n' + 'Altitude: ,\n' + 'Accuracy: ,\n' + 'Altitude Accuracy: ,\n' + 'Heading: \n';
         }
 
     };

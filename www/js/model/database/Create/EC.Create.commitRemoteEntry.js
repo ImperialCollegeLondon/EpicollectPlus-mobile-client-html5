@@ -44,7 +44,7 @@ EC.Create = ( function(module) {"use strict";
 				'Altitude: ' + altitude + ',\n' + //
 				'Accuracy: ' + accuracy + ',\n' + //
 				'Altitude Accuracy: ' + " " + ',\n' + //
-				'Bearing: ' + bearing + '\n');
+				'Heading: ' + bearing + '\n');
 			//
 		}
 

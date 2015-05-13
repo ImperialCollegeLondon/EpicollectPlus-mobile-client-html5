@@ -4,10 +4,12 @@ EC.DevicePosition = EC.DevicePosition || {};
 EC.DevicePosition = (function (module) {
     'use strict';
 
-    module.initGoogleMap = function () {
+    module.updateGoogleMap = function () {
 
         var self = this;
         var deferred = new $.Deferred();
+
+        //get info from map on the dom: if the details are the same, we are navigation to an existing map on the dom, no need to update
 
         self.current_position = new google.maps.LatLng(self.coords.latitude, self.coords.longitude);
         self.map_options = {

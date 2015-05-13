@@ -51,9 +51,9 @@ EC.Settings = (function () {
         //bind save button
         save_btn.off().one('vclick', function (e) {
 
+            //cache user preferences todo better user a native storage for this a slocalStorage is not 100% reliable
             window.localStorage.project_server_url = project_server_url_holder.val();
-
-            window.localStorage.use_enhanced_map = (enhance_map_checkbox.is(':checked')) ? 1 : 0;
+            window.localStorage.is_enhanced_map_on = (enhance_map_checkbox.is(':checked')) ? 1 : 0;
 
             //get the checked pagination radio
             pagination_radio_btns.each(function (index) {

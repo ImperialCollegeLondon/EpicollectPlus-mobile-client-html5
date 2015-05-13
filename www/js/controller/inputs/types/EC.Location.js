@@ -1,4 +1,3 @@
-/*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
 var EC = EC || {};
 EC.InputTypes = EC.InputTypes || {};
@@ -13,13 +12,13 @@ EC.InputTypes = (function (module) {
         var value = the_value;
         var input = the_input;
         var set_location_btn = $('div#location div#input-location div#set-location');
-        var set_location_result = $('textarea#set-location-result');
+        var textarea_coords = $('textarea#coords');
         var accuracy_result = $('div#location  div#input-location div.current-accuracy-result');
         var accuracy_tip = $('div#location  div#input-location div.location-accuracy-tip');
-        var map_progress_loader = $('div#location div#map-progress-spinner-loader');
         var map_canvas = $('div#location div#input-location div#map-canvas');
-        self = this;
+        var cached_coords = [];
 
+        self = this;
         //update label text
         span_label.text(input.label);
 
@@ -29,10 +28,9 @@ EC.InputTypes = (function (module) {
         }
 
         //hide feedback when showing the view the first time
-        $(accuracy_result).addClass('hidden');
-        $(accuracy_tip).addClass('hidden');
-        $(map_canvas).addClass('map-hide');
-        $(map_progress_loader).removeClass('hidden');
+        accuracy_result.addClass('hidden');
+        accuracy_tip.addClass('hidden');
+        map_canvas.addClass('hidden');
 
         //get a rough location when the view is first loaded (no value set yet)
         if (value === '') {
@@ -44,54 +42,103 @@ EC.InputTypes = (function (module) {
                 $(accuracy_tip).removeClass('hidden');
 
                 //if the user wants to use the enhanced map, load Google Maps APi (it returns immediately if already loaded on app cold start)
-                if (parseInt(window.localStorage.use_enhanced_map, 10) === 1) {
-                    $.when(self.loadGoogleMapsApi()).then(function () {
-                        $.when(self.initGoogleMap()).then(function () {
+                if (EC.DevicePosition.is_enhanced_map_on()) {
+
+                    map_canvas.removeClass('hidden');
+                    textarea_coords.addClass('hidden');
+
+                    $.when(EC.DevicePosition.loadGoogleMapsApi()).then(function () {
+                        $.when(EC.DevicePosition.initGoogleMap()).then(function () {
                             EC.Notification.hideProgressDialog();
                         });
                     }, function () {
-                        //loading Google Maps Api failed, show standard view
-                        set_location_result.val(EC.DevicePosition.getCoordsFormattedText());
-                        $(set_location_result).removeClass('hidden');
+
+                        //loading Google Maps Api failed, show standard view, warn user and rever back to standard mode
+                        window.localStorage.is_enhanced_map_on = 0;
+
+                        EC.Notification.showAlert('Sorry...', 'Google Maps failed to load, reverting to standard mode');
+                        textarea_coords.val(EC.DevicePosition.getCoordsFormattedText()).removeClass('hidden');
+                        map_canvas.addClass('hidden');
                         EC.Notification.hideProgressDialog();
                     });
                 }
                 else {
                     //show standard view
-                    set_location_result.val(EC.DevicePosition.getCoordsFormattedText());
-                    $(set_location_result).removeClass('hidden');
+                    textarea_coords.val(EC.DevicePosition.getCoordsFormattedText());
+                    $(textarea_coords).removeClass('hidden');
                     EC.Notification.hideProgressDialog();
                 }
-
-
             }, function (error) {
                 EC.Notification.hideProgressDialog();
                 EC.Notification.showToast('Could not locate', 'long');
             });
         }
         else {
+
+            accuracy_result.find('span').text(Math.floor(EC.Utils.parseLocationString(value).accuracy));
+            accuracy_result.removeClass('hidden');
+            accuracy_tip.removeClass('hidden');
+
+
             //set previous location value if any
-            set_location_result.val(value);
-            $(accuracy_result).find('span').text(Math.floor(EC.Utils.parseLocationString(value).Accuracy));
-            $(accuracy_result).removeClass('hidden');
-            $(accuracy_tip).removeClass('hidden');
-            $(set_location_result).removeClass('hidden');
-            EC.Notification.hideProgressDialog();
+            if (EC.DevicePosition.is_enhanced_map_on()) {
+
+                //deal with enhanced maps
+                map_canvas.removeClass('hidden');
+                textarea_coords.addClass('hidden');
+
+                //if the cached coords are the same, the user is navigating back and forth the inputs only, so do not update the map
+
+                //set coords in DevicePosition object to set google maps to that value before initialising map
+                cached_coords = EC.Utils.parseLocationString(value);
+                if (cached_coords.latitude === EC.DevicePosition.coords.latitude && cached_coords.longitude === EC.DevicePosition.coords.longitude) {
+
+                    //todo: same position, do not update. If we are editing, create a map and set position
+                }
+                else {
+
+                    //todo different position, update marker, circle and bounds using existing map object if any, or create it
+                    console.log('map needs to be updated');
+                }
+
+
+                //$.when(EC.DevicePosition.loadGoogleMapsApi()).then(function () {
+                //    $.when(EC.DevicePosition.initGoogleMap()).then(function () {
+                //        window.google.maps.event.trigger(EC.DevicePosition.map, 'resize');
+                //        EC.DevicePosition.map.setZoom(EC.DevicePosition.map.getZoom());
+                //        EC.Notification.hideProgressDialog();
+                //    });
+                //}, function () {
+                //    //loading Google Maps Api failed, show standard view
+                //    //todo alert user google maps failed to load
+                //    textarea_coords.val(EC.DevicePosition.getCoordsFormattedText()).removeClass('hidden');
+                //    map_canvas.addClass('hidden');
+                //    EC.Notification.hideProgressDialog();
+                //});
+
+                EC.Notification.hideProgressDialog();
+
+            } else {
+                textarea_coords.val(value);
+                $(textarea_coords).removeClass('hidden');
+                EC.Notification.hideProgressDialog();
+            }
         }
 
         //todo strings need to be translated
         function _showAcquiredLocation(has_got_location) {
 
-            $(accuracy_result).removeClass('hidden');
-            $(accuracy_tip).removeClass('hidden');
-            $(map_canvas).removeClass('hidden');
-
+            accuracy_result.removeClass('hidden');
+            accuracy_tip.removeClass('hidden');
 
             if (has_got_location) {
 
                 $(accuracy_result).find('span').text(Math.floor(EC.DevicePosition.coords.accuracy));
 
-                if (parseInt(window.localStorage.use_enhanced_map, 10) === 1) {
+                if (EC.DevicePosition.is_enhanced_map_on()) {
+
+                    map_canvas.removeClass('hidden');
+                    textarea_coords.addClass('hidden');
 
                     //update enhanced view
                     EC.DevicePosition.current_position = new google.maps.LatLng(EC.DevicePosition.coords.latitude, EC.DevicePosition.coords.longitude);
@@ -107,13 +154,19 @@ EC.InputTypes = (function (module) {
                 }
                 else {
                     //standar view
-                    set_location_result.val(EC.DevicePosition.getCoordsFormattedText());
+                    textarea_coords.val(EC.DevicePosition.getCoordsFormattedText());
                 }
             }
             else {
                 //set location object to empty values
-                //todo what about google maps?
-                set_location_result.val(EC.DevicePosition.getCoordsEmptyText());
+                if (EC.DevicePosition.is_enhanced_map_on()) {
+
+                    //todo what about google maps -> hide map canvas?
+                }
+                else {
+                    textarea_coords.val(EC.DevicePosition.getCoordsEmptyText());
+                }
+
             }
 
             if (!EC.Utils.isChrome()) {
@@ -142,6 +195,12 @@ EC.InputTypes = (function (module) {
                         EC.Utils.sleep(2000);
                     }
                 }
+
+                //has the device a good connection?(showing maps and then lost the connection for some reasons? revert to standard view then)
+                if (!EC.Utils.hasGoodConnection()) {
+                    window.localStorage.is_enhanced_map_on = 0;
+                }
+
 
                 $.when(EC.DevicePosition.watchPosition()).then(function (response) {
                     _showAcquiredLocation(response);

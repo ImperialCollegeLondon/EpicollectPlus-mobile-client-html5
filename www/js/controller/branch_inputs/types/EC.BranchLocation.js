@@ -55,7 +55,7 @@ EC.BranchInputTypes = (function (module) {
                 'Altitude: ' + location.altitude + ',\n' + //
                 'Accuracy: ' + location.accuracy + ',\n' + //
                 'Altitude Accuracy: ' + location.altitude_accuracy + ',\n' + //
-                'Bearing: ' + location.heading + '\n');
+                'Heading: ' + location.heading + '\n');
             //
 
             if (!EC.Utils.isChrome()) {
@@ -69,7 +69,7 @@ EC.BranchInputTypes = (function (module) {
         function requestPosition() {
 
             console.log('requestPosition called');
-//on first attempt, get a quick and rough location just to get started
+            //on first attempt, get a quick and rough location just to get started
             //We do not use getCurrentPosition as it tends to give back a cached position when is it called, not looking for a new one each time
             if (is_first_attempt) {
                 geolocation_request = navigator.geolocation.watchPosition(onGCPSuccess, onGCPError, {
@@ -189,7 +189,7 @@ EC.BranchInputTypes = (function (module) {
                 'Altitude: ' + empty + ',\n' + //
                 'Accuracy: ' + empty + ',\n' + //
                 'Altitude Accuracy: ' + empty + ',\n' + //
-                'Bearing: ' + empty + '\n');
+                'Heading: ' + empty + '\n');
             //
 
             set_location_btn.one('vclick', _getLocation);

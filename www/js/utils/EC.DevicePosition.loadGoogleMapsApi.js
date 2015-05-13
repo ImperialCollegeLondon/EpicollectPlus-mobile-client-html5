@@ -1,54 +1,55 @@
 /*global $, jQuery, cordova, device, ActivityIndicator, Connection*/
 var EC = EC || {};
 EC.DevicePosition = EC.DevicePosition || {};
-EC.DevicePosition = (function (module) {
+EC.DevicePosition.loadGoogleMapsApi = function () {
     'use strict';
 
-    module.loadGoogleMapsApi = function () {
+    var deferred = new $.Deferred();
 
-        var deferred = new $.Deferred();
-
-        //is the Api already loaded?
-        if (window.google !== undefined && window.google.maps) {
-
-            // api is cached already
-            console.log('Maps API cached already');
-            deferred.resolve();
-        }
-
-
-        //if no connection, exit and warn user
-        if (navigator.connection.type === Connection.NONE || navigator.connection.type === Connection.UNKNOWN) {
-            console.log('no internet connection');
-            deferred.reject();
-            return;
-        }
-
-        if (navigator.connection.type === Connection.CELL_2G || navigator.connection.type === Connection.CELL) {
-            console.log('connection too weak');
-            deferred.reject();
-            return;
-        }
-
-        //this function is called as a callback when Google Maps Api is ready to be used
-        function mapIsLoaded() {
-            deferred.resolve();
-        }
-
-        $.getScript('https://maps.googleapis.com/maps/api/js?sensor=true&callback=mapIsLoaded')
-            .done(function (script, textStatus) {
-                console.log(textStatus);
-            })
-            .fail(function (jqxhr, settings, exception) {
-                console.log(jqxhr + exception);
-                deferred.reject();
-            });
-
-        return deferred.promise();
-
+    //callback from Google Maps API needs to be in the global scope
+    window.mapIsLoaded = function () {
+        // EC.DevicePosition.is_api_loaded = true;
+        deferred.resolve();
     };
 
-    return module;
+    //is the Api already loaded?
+    if (window.google !== undefined && window.google.maps) {
+        console.log('Maps API cached already');
+        //if no connection, exit and warn user todo
+        if (EC.Utils.hasGoodConnection()) {
+            //load API from server
+            //connection looks good, try to load tiles
+            deferred.resolve();
+        }
+        else {
+            //could not load API
+            deferred.reject();
+        }
+    }
+    else {
+
+        if (EC.Utils.hasGoodConnection()) {
+
+            $.getScript('https://maps.googleapis.com/maps/api/js?sensor=true&callback=mapIsLoaded')
+                .done(function (script, textStatus) {
+                    console.log(textStatus);
+                })
+                .fail(function (jqxhr, settings, exception) {
+                    console.log(jqxhr + exception);
+                    deferred.reject();
+                });
+        }
+        else {
+            //could not load API
+            deferred.reject();
+        }
+    }
+
+    return deferred.promise();
+};
 
 
-}(EC.DevicePosition));
+
+
+
+
