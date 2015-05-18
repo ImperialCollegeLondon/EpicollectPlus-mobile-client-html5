@@ -319,6 +319,18 @@ EC.Entries = (function () {
         });
     };
 
+    var exportAllEntriesToCSV = function () {
+
+        var project_id = window.localStorage.project_id;
+        var forms = JSON.parse(window.localStorage.forms);
+
+        EC.Notification.showProgressDialog();
+        $.when(EC.Export.saveProjectDataToCSV(project_id, forms)).then(function (response) {
+            EC.Notification.showToast(EC.Localise.getTranslation('data_exported_to_csv'), 'short');
+            EC.Notification.hideProgressDialog();
+        });
+    };
+
     return {
         addEntry: addEntry,
         unsyncEntry: unsyncEntry,
@@ -326,6 +338,7 @@ EC.Entries = (function () {
         deleteEntry: deleteEntry,
         deleteBranchEntry: deleteBranchEntry,
         deleteAllEntries: deleteAllEntries,
+        exportAllEntriesToCSV: exportAllEntriesToCSV,
         deleteAllMedia: deleteAllMedia,
         deleteAllSynced: deleteAllSynced,
         allEntriesDeletedFeedback: allEntriesDeletedFeedback,

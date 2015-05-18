@@ -1,5 +1,3 @@
-/*global $, jQuery, cordova, device*/
-
 var EC = EC || {};
 EC.Forms = EC.Forms || {};
 EC.Forms = (function (module) {
@@ -82,6 +80,7 @@ EC.Forms = (function (module) {
         var delete_media_files_btn = $('div#forms div#project-options ul li#delete-media-files');
         var backup_project_data_btn = $('div#forms div#project-options ul li#backup-project-data');
         var restore_from_backup_btn = $('div#forms div#project-options ul li#restore-data-from-backup');
+        var export_data_to_csv_btn = $('div#forms div#project-options ul li#export-project-data-to-csv');
         var btn_states = the_button_states;
         var has_backup = window.localStorage.has_backup;
         var project_name = window.localStorage.project_name;
@@ -162,16 +161,22 @@ EC.Forms = (function (module) {
             EC.Notification.askConfirm(EC.Localise.getTranslation('delete_project'), EC.Localise.getTranslation('delete_project_confirm'), 'EC.Project.deleteProject');
         });
 
-        //handler to delete all entries (if any, otherwise show as disabled)
+        //handler to delete/save all entries (if any, otherwise show as disabled)
         if (btn_states.delete_all_entries === 0) {
             delete_all_entries_btn.addClass('ui-disabled');
+            export_data_to_csv_btn.addClass('ui-disabled');
         } else {
             delete_all_entries_btn.removeClass('ui-disabled');
+            export_data_to_csv_btn.removeClass('ui-disabled');
         }
         delete_all_entries_btn.off().on('vclick', function (e) {
 
             EC.Notification.askConfirm(EC.Localise.getTranslation('delete_all_entries'), EC.Localise.getTranslation('delete_all_entries_confirm'), 'EC.Entries.deleteAllEntries');
 
+        });
+
+        export_data_to_csv_btn.off().on('vclick', function (e) {
+            EC.Notification.askConfirm(EC.Localise.getTranslation('export_all_entries_to_csv'), EC.Localise.getTranslation('export_all_entries_to_csv_confirm'), 'EC.Entries.exportAllEntriesToCSV');
         });
 
         //handler to delete all the media files for this project (if any, otherwise disable)

@@ -499,11 +499,8 @@ EC.Utils = (function () {
                     break;
 
             }
-
         }
-
         return deferred.promise();
-
     };
 
     //execute a function passing its full namespaced name (and window as
@@ -1079,16 +1076,13 @@ EC.Utils = (function () {
                 console.log(fileSystem);
 
                 documents_path = fileSystem.root.nativeURL;
-
                 documents_path = documents_path.replace('Documents/', '');
 
                 //IOS_ASSETS_ABS_PATH : 'Epicollect5 64bit.app/www/' -> we ned to append this
                 EC.Const.IOS_ASSETS_ABS_PATH = documents_path + EC.Const.IOS_ASSETS_ABS_PATH;
 
                 console.log('iOS root www - ' + EC.Const.IOS_ASSETS_ABS_PATH);
-
             }
-
         }
 
         function onError(error) {
@@ -1123,12 +1117,9 @@ EC.Utils = (function () {
 
             console.log('iOS Documents path - ' + EC.Const.IOS_APP_PRIVATE_URI);
         }
-
         function onError(error) {
             console.log(JSON.stringify(error));
         }
-
-
         window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, onSuccess, onError);
     };
 
