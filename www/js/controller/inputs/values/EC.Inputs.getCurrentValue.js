@@ -1,3 +1,4 @@
+/*global $, jQuery*/
 /**
  *
  * @module EC
@@ -137,7 +138,9 @@ EC.Inputs = (function (module) {
                 break;
 
             case EC.Const.LOCATION:
-                current_value = $('div#input-location textarea#set-location-result').val();
+
+                //store location as csv string
+                current_value = EC.DevicePosition.getCoordsFormattedText();
                 values.push(current_value);
                 //console.log('location current value is: ' + current_value);
                 got_value = values[0];

@@ -155,8 +155,8 @@ EC.BranchInputTypes = (function (module) {
             stop_btn.removeClass('ui-disabled');
             stop_btn.one('vclick', stopRecordAudio);
             record_btn.addClass('ui-disabled');
-            play_btn.addClass('not-shown');
-            ongoing_recording_spinner.removeClass('not-shown');
+            play_btn.addClass('hidden');
+            ongoing_recording_spinner.removeClass('hidden');
 
             switch (window.device.platform) {
 
@@ -215,8 +215,8 @@ EC.BranchInputTypes = (function (module) {
             //enable player buttons
             stop_btn.addClass('ui-disabled');
             record_btn.removeClass('ui-disabled');
-            play_btn.removeClass('not-shown ui-disabled');
-            ongoing_recording_spinner.addClass('not-shown');
+            play_btn.removeClass('hidden ui-disabled');
+            ongoing_recording_spinner.addClass('hidden');
 
             record_btn.one('vclick', recordAudio);
 

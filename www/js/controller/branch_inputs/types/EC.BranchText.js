@@ -37,7 +37,7 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 			if (double_entry) {
 
 				//duplicate text input
-				clone.removeClass('not-shown');
+				clone.removeClass('hidden');
 				$('div.clone input').val(value);
 
 				//if in editing mode, do not allow changes  if the field is a primary key
@@ -51,8 +51,8 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 
 			} else {
 
-				//add not-shown class if missing
-				clone.addClass('not-shown');
+				//add hidden class if missing
+				clone.addClass('hidden');
 
 			}
 
@@ -69,10 +69,10 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 			//if in branch editing mode, do not allow changes if the field is a primary key 
 			if (window.localStorage.branch_edit_mode && input.is_primary_key === 1) {
 				$('div#branch-input-text input').attr('disabled', 'disabled');
-				$('div#branch-input-text p.primary-key-not-editable').removeClass("not-shown");
+				$('div#branch-input-text p.primary-key-not-editable').removeClass("hidden");
 			} else {
 				
-				$('div#branch-input-text p.primary-key-not-editable').addClass("not-shown");
+				$('div#branch-input-text p.primary-key-not-editable').addClass("hidden");
 			}
 
 		};

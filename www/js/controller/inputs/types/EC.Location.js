@@ -1,114 +1,188 @@
-/*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
 var EC = EC || {};
 EC.InputTypes = EC.InputTypes || {};
 EC.InputTypes = (function (module) {
     'use strict';
 
+    var self;
+
     module.location = function (the_value, the_input) {
 
-        //to cache dom lookups
-        var location = {};
         var span_label = $('span.label');
         var value = the_value;
         var input = the_input;
-        var requests = [];
-        var geolocation_request;
-        var is_first_attempt = true;
+        var set_location_btn = $('div#location div#input-location div#set-location');
+        var textarea_coords = $('textarea#coords');
+        var accuracy_result = $('div#location  div#input-location div.current-accuracy-result');
+        var accuracy_tip = $('div#location  div#input-location div.location-accuracy-tip');
+        var map_canvas = $('div#location div#input-location div#map-canvas');
+        var cached_coords = [];
 
-        //set unlimited timeout for watch position to avoid timeout error on iOS when the device does not move
-        // see http://goo.gl/tYsBSC, http://goo.gl/jYQhgr, http://goo.gl/8oR1g2
-        var timeout = (window.device.platform === EC.Const.IOS) ? Infinity : 30000;
-
+        self = this;
         //update label text
         span_label.text(input.label);
 
-        //Localise
+        //Localise text
         if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
             EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
         }
 
-        var set_location_btn = $('div#location div#input-location div#set-location');
-        var set_location_result = $('textarea#set-location-result');
-        var accuracy_result = $('div#location  div#input-location div.current-accuracy-result');
-        var accuracy_tip = $('div#location  div#input-location div.location-accuracy-tip');
-
         //hide feedback when showing the view the first time
-        $(accuracy_result).addClass('not-shown');
-        $(accuracy_tip).addClass('not-shown');
+        accuracy_result.addClass('hidden');
+        accuracy_tip.addClass('hidden');
+        map_canvas.addClass('hidden');
 
-        //set previous location value if any
-        set_location_result.val(value);
+        //get a rough location when the view is first loaded (no value set yet)
+        if (value === '') {
+            EC.Notification.showProgressDialog('Wait', 'Locating...');
+            $.when(EC.DevicePosition.getCurrentPosition()).then(function () {
 
-        function _showAcquiredLocation() {
+                $(accuracy_result).find('span').text(Math.floor(EC.DevicePosition.coords.accuracy));
+                $(accuracy_result).removeClass('hidden');
+                $(accuracy_tip).removeClass('hidden');
 
-            $(accuracy_result).find('span').text(Math.floor(location.accuracy));
-            $(accuracy_result).removeClass('not-shown');
-            $(accuracy_tip).removeClass('not-shown');
+                //if the user wants to use the enhanced map, load Google Maps APi (it returns immediately if already loaded on app cold start)
+                if (EC.DevicePosition.is_enhanced_map_on()) {
 
-            EC.Notification.hideProgressDialog();
+                    map_canvas.removeClass('hidden');
+                    textarea_coords.addClass('hidden');
 
-            set_location_result.val(//
-                'Latitude: ' + location.latitude + ',\n' + //
-                'Longitude: ' + location.longitude + ',\n' + //
-                'Altitude: ' + Math.floor(location.altitude) + ',\n' + //
-                'Accuracy: ' + Math.floor(location.accuracy) + ',\n' + //
-                'Altitude Accuracy: ' + Math.floor(location.altitude_accuracy) + ',\n' + //
-                'Bearing: ' + isNaN(location.heading) ? '' : location.heading + '\n');
+                    $.when(EC.DevicePosition.loadGoogleMapsApi()).then(function () {
+                        $.when(EC.DevicePosition.initGoogleMap()).then(function () {
+                            EC.Notification.hideProgressDialog();
+                        });
+                    }, function () {
+
+                        //loading Google Maps Api failed, show standard view, warn user and rever back to standard mode
+                        window.localStorage.is_enhanced_map_on = 0;
+
+                        EC.Notification.showAlert('Sorry...', 'Google Maps failed to load, reverting to standard mode');
+                        textarea_coords.val(EC.DevicePosition.getCoordsFormattedText()).removeClass('hidden');
+                        map_canvas.addClass('hidden');
+                        EC.Notification.hideProgressDialog();
+                    });
+                }
+                else {
+                    //show standard view
+                    textarea_coords.val(EC.DevicePosition.getCoordsFormattedText());
+                    $(textarea_coords).removeClass('hidden');
+                    EC.Notification.hideProgressDialog();
+                }
+            }, function (error) {
+                EC.Notification.hideProgressDialog();
+                EC.Notification.showToast('Could not locate', 'long');
+            });
+        }
+        else {
+
+            accuracy_result.find('span').text(Math.floor(EC.Utils.parseLocationString(value).accuracy));
+            accuracy_result.removeClass('hidden');
+            accuracy_tip.removeClass('hidden');
+
+
+            //set previous location value if any
+            if (EC.DevicePosition.is_enhanced_map_on()) {
+
+                //deal with enhanced maps
+                map_canvas.removeClass('hidden');
+                textarea_coords.addClass('hidden');
+
+                //if the cached coords are the same, the user is navigating back and forth the inputs only, so do not update the map
+
+                //set coords in DevicePosition object to set google maps to that value before initialising map
+                cached_coords = EC.Utils.parseLocationString(value);
+                if (cached_coords.latitude === EC.DevicePosition.coords.latitude && cached_coords.longitude === EC.DevicePosition.coords.longitude) {
+
+                    //todo: same position, do not update. If we are editing, create a map and set position
+                }
+                else {
+
+                    //todo different position, update marker, circle and bounds using existing map object if any, or create it
+                    console.log('map needs to be updated');
+                }
+
+
+                //$.when(EC.DevicePosition.loadGoogleMapsApi()).then(function () {
+                //    $.when(EC.DevicePosition.initGoogleMap()).then(function () {
+                //        window.google.maps.event.trigger(EC.DevicePosition.map, 'resize');
+                //        EC.DevicePosition.map.setZoom(EC.DevicePosition.map.getZoom());
+                //        EC.Notification.hideProgressDialog();
+                //    });
+                //}, function () {
+                //    //loading Google Maps Api failed, show standard view
+                //    //todo alert user google maps failed to load
+                //    textarea_coords.val(EC.DevicePosition.getCoordsFormattedText()).removeClass('hidden');
+                //    map_canvas.addClass('hidden');
+                //    EC.Notification.hideProgressDialog();
+                //});
+
+                EC.Notification.hideProgressDialog();
+
+            } else {
+                textarea_coords.val(value);
+                $(textarea_coords).removeClass('hidden');
+                EC.Notification.hideProgressDialog();
+            }
+        }
+
+        //todo strings need to be translated
+        function _showAcquiredLocation(has_got_location) {
+
+            accuracy_result.removeClass('hidden');
+            accuracy_tip.removeClass('hidden');
+
+            if (has_got_location) {
+
+                $(accuracy_result).find('span').text(Math.floor(EC.DevicePosition.coords.accuracy));
+
+                if (EC.DevicePosition.is_enhanced_map_on()) {
+
+                    map_canvas.removeClass('hidden');
+                    textarea_coords.addClass('hidden');
+
+                    //update enhanced view
+                    EC.DevicePosition.current_position = new google.maps.LatLng(EC.DevicePosition.coords.latitude, EC.DevicePosition.coords.longitude);
+
+                    //update marker position
+                    EC.DevicePosition.marker.setPosition(EC.DevicePosition.current_position);
+
+                    //update accuracy circle
+                    EC.DevicePosition.circle.setOptions({
+                        center: EC.DevicePosition.current_position,
+                        radius: EC.DevicePosition.coords.accuracy
+                    });
+                }
+                else {
+                    //standar view
+                    textarea_coords.val(EC.DevicePosition.getCoordsFormattedText());
+                }
+            }
+            else {
+                //set location object to empty values
+                if (EC.DevicePosition.is_enhanced_map_on()) {
+
+                    //todo what about google maps -> hide map canvas?
+                }
+                else {
+                    textarea_coords.val(EC.DevicePosition.getCoordsEmptyText());
+                }
+
+            }
 
             if (!EC.Utils.isChrome()) {
                 EC.Notification.showToast(EC.Localise.getTranslation('location_acquired'), 'short');
             }
-            set_location_btn.one('vclick', _getLocation);
+
+            set_location_btn.one('vclick', _handleSetLocation);
+            EC.Notification.hideProgressDialog();
         }
 
-        //request position
-        //todo this can be improved firing watchPosition when starting the form with a location so the first location is already accurate enough
-        function requestPosition() {
-
-            console.log('requestPosition called');
-
-            //on first attempt, get a quick and rough location just to get started
-            //We do not use getCurrentPosition as it tends to give back a cached position when is it called, not looking for a new one each time
-            if (is_first_attempt) {
-                geolocation_request = navigator.geolocation.watchPosition(onGCPSuccess, onGCPError, {
-                    maximumAge: 0,
-                    timeout: timeout,
-                    enableHighAccuracy: true
-                });
-            }
-            else {
-
-                /*
-                 on subsequent calls, check position for 3 secs and return.
-                 this will improve cases when watchPositionretunr immediately with the same value, as it might return more than once during the 3 secs period
-                 */
-                window.setTimeout(function () {
-                        //be safe in case after 3 secs we still do not have a location
-                        window.navigator.geolocation.clearWatch(geolocation_request);
-                        _showAcquiredLocation();
-                        console.log('setTimeout called with location');
-                    },
-                    3000 //stop checking after 3 seconds (value is milliseconds)
-                );
-
-                //get location using watchPosition for more accurate results, It is called automatically when movement is detected,
-                //not only when requesting it. Do thjis when user wants to improve location
-                geolocation_request = navigator.geolocation.watchPosition(onGCPSuccess, onGCPError, {
-                    maximumAge: 0,
-                    timeout: timeout,
-                    enableHighAccuracy: true
-                });
-            }
-        }
-
-        var _getLocation = function () {
+        var _handleSetLocation = function () {
 
             set_location_btn.off('vclick');
-            requests = [];
-
 
             //check id GPS is enabled on the device
+            //todo check if it on when we start watch position
             $.when(EC.Utils.isGPSEnabled()).then(function () {
 
                 //gps is on
@@ -116,14 +190,21 @@ EC.InputTypes = (function (module) {
 
                 //On Android, mostly on old devices, halt the execution to solve loader spinner not hiding after a gps lock
                 if (window.device.platform === EC.Const.ANDROID) {
-
                     //if the device is older than KitKat I assume it is slow to hide the spinning loader and I need the execution halt to clear race conditions
                     if (!(EC.Const.KITKAT_REGEX.test(window.device.version) || EC.Const.LOLLIPOP_REGEX)) {
                         EC.Utils.sleep(2000);
                     }
                 }
 
-                requestPosition();
+                //has the device a good connection?(showing maps and then lost the connection for some reasons? revert to standard view then)
+                if (!EC.Utils.hasGoodConnection()) {
+                    window.localStorage.is_enhanced_map_on = 0;
+                }
+
+
+                $.when(EC.DevicePosition.watchPosition()).then(function (response) {
+                    _showAcquiredLocation(response);
+                });
 
             }, function () {
                 console.log('gps NOT enabled');
@@ -134,65 +215,8 @@ EC.InputTypes = (function (module) {
 
         };
 
-        var onGCPSuccess = function (position) {
-
-            console.log('onGCPSuccess called, accuracy: ' + position.coords.accuracy);
-
-            //get HTML5 geolocation component values replacing null with '' for not available components
-            location.latitude = (position.coords.latitude === null) ? '' : position.coords.latitude;
-            location.longitude = (position.coords.longitude === null) ? '' : position.coords.longitude;
-            location.altitude = (position.coords.altitude === null) ? '' : position.coords.altitude;
-            location.accuracy = (position.coords.accuracy === null) ? '' : position.coords.accuracy;
-            location.altitude_accuracy = (position.coords.altitudeAccuracy === null) ? '' : position.coords.altitudeAccuracy;
-            location.heading = (position.coords.heading === null) ? '' : position.coords.heading;
-
-
-            if (is_first_attempt) {
-                is_first_attempt = !is_first_attempt;
-                window.navigator.geolocation.clearWatch(geolocation_request);
-                _showAcquiredLocation();
-            }
-        };
-
-        // onError Callback receives a PositionError object
-        var onGCPError = function (error) {
-
-            var empty = '';
-
-            window.navigator.geolocation.clearWatch(geolocation_request);
-
-            EC.Notification.hideProgressDialog();
-
-            console.log(JSON.stringify(error));
-
-            if (error.code === 3) {
-                EC.Notification.showAlert(EC.Localise.getTranslation('error'), error.message + EC.Localise.getTranslation('location_fail'));
-
-            } else if (error.code === 1) {
-
-                if (window.device.platform === EC.Const.IOS) {
-                    EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('location_service_fail'));
-                }
-            } else {
-                EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('unknow_error'));
-            }
-
-            //set location object to empty values
-            set_location_result.val(//
-                'Latitude: ' + empty + ',\n' + //
-                'Longitude: ' + empty + ',\n' + //
-                'Altitude: ' + empty + ',\n' + //
-                'Accuracy: ' + empty + ',\n' + //
-                'Altitude Accuracy: ' + empty + ',\n' + //
-                'Bearing: ' + empty + '\n');
-            //
-
-            set_location_btn.one('vclick', _getLocation);
-
-        };
-
         //bind set location button
-        set_location_btn.off().one('vclick', _getLocation);
+        set_location_btn.off().one('vclick', _handleSetLocation);
 
     };
 

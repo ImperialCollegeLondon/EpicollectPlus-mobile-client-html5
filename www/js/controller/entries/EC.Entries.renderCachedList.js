@@ -130,9 +130,9 @@ EC.Entries = ( function (module) {
 
         //show "Show more" button if we have more entries to display
         if (current_entries_total > (offset + limit)) {
-            load_more_btn.removeClass('not-shown');
+            load_more_btn.removeClass('hidden');
         } else {
-            load_more_btn.addClass('not-shown');
+            load_more_btn.addClass('hidden');
         }
 
         //bind "show more button"
@@ -144,8 +144,8 @@ EC.Entries = ( function (module) {
 
             if (window.device.platform === EC.Const.IOS) {
                 //hide button and show loader
-                $(this).addClass('not-shown');
-                load_more_spinner.removeClass('not-shown');
+                $(this).addClass('hidden');
+                load_more_spinner.removeClass('hidden');
             }
 
             if (window.device.platform === EC.Const.ANDROID) {

@@ -110,7 +110,7 @@ div#entries-list > ul a {
     visibility: hidden !important;
 }
 
-.not-shown {
+.hidden {
     display: none !important;
 }
 
@@ -138,7 +138,7 @@ div#input-photo, div#input-audio, div#branch-input-photo, div#branch-input-audio
     text-align: center;
 }
 
-canvas {
+#photo canvas, #branch-photo canvas {
     background: #ffffff;
     padding: 8px;
     border: 1px solid #cccccc;
@@ -507,4 +507,7 @@ div.current-accuracy-result span{
 }
 div.location-accuracy-tip {
     text-align: center;
+}
+#map-canvas {
+    height:300px;
 }

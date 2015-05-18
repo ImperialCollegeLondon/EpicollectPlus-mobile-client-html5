@@ -55,10 +55,10 @@ EC.Upload = ( function(module) {
 							
 							//if all sync show message
 							if (!(self.audio_synced && self.photo_synced && self.video_synced)) {
-								all_synced_message.addClass('not-shown');
+								all_synced_message.addClass('hidden');
 							}
 							else {
-								all_synced_message.removeClass('not-shown');
+								all_synced_message.removeClass('hidden');
 							}
 
 							//notify user all data were uploaded successfully
@@ -103,10 +103,10 @@ EC.Upload = ( function(module) {
 							
 							//if all sync show message
 							if (!(self.audio_synced && self.photo_synced && self.video_synced)) {
-								all_synced_message.addClass('not-shown');
+								all_synced_message.addClass('hidden');
 							}
 							else {
-								all_synced_message.removeClass('not-shown');
+								all_synced_message.removeClass('hidden');
 							}
 
 							//notify user all data were uploaded successfully
@@ -149,10 +149,10 @@ EC.Upload = ( function(module) {
 							
 							//if all sync show message
 							if (!(self.audio_synced && self.photo_synced && self.video_synced)) {
-								all_synced_message.addClass('not-shown');
+								all_synced_message.addClass('hidden');
 							}
 							else {
-								all_synced_message.removeClass('not-shown');
+								all_synced_message.removeClass('hidden');
 							}
 
 							//notify user all data were uploaded successfully

@@ -42,7 +42,7 @@ EC.InputTypes = ( function(module) {"use strict";
 			if (double_entry) {
 
 				//duplicate textarea input
-				clone.removeClass('not-shown');
+				clone.removeClass('hidden');
 				$('div.clone textarea').val(value);
 
 				//if in editing mode, do not allow changes  if the field is a primary key
@@ -53,8 +53,8 @@ EC.InputTypes = ( function(module) {"use strict";
 
 			} else {
 
-				//add not-shown class if missing
-				clone.addClass('not-shown');
+				//add hidden class if missing
+				clone.addClass('hidden');
 
 			}
 
@@ -65,10 +65,10 @@ EC.InputTypes = ( function(module) {"use strict";
 			if (window.localStorage.edit_mode && input.is_primary_key === 1) {
 
 				$('div#input-textarea textarea').attr('disabled', 'disabled');
-				$('div#input-textarea p.primary-key-not-editable').removeClass("not-shown");
+				$('div#input-textarea p.primary-key-not-editable').removeClass("hidden");
 			}
 			else{
-				$('div#input-textarea p.primary-key-not-editable').addClass("not-shown");
+				$('div#input-textarea p.primary-key-not-editable').addClass("hidden");
 			}
 			
 			

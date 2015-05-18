@@ -24,7 +24,7 @@ EC.Upload = ( function(module) {
 
 					//disable data upload button as no data to upload any more
 					self.upload_data_btn.addClass('ui-disabled');
-					self.all_synced_message.removeClass('not-shown');
+					self.all_synced_message.removeClass('hidden');
 
 					EC.Notification.showToast(EC.Localise.getTranslation("data_upload_success"), "short");
 

@@ -263,7 +263,7 @@ EC.Project = ( function () {
         }
 
         window.setTimeout(function () {
-            $("body").removeClass("not-shown");
+            $("body").removeClass("hidden");
         }, 500);
 
         console.log("Language set to " + window.localStorage.DEVICE_LANGUAGE);
@@ -289,7 +289,7 @@ EC.Project = ( function () {
         $('div#index div#empty-list').show();
 
         window.setTimeout(function () {
-            $("body").removeClass("not-shown");
+            $("body").removeClass("hidden");
         }, 500);
 
         //load a project from custom URL scheme?

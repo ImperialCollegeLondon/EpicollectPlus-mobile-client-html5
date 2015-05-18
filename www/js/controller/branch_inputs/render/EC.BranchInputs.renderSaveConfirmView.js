@@ -39,7 +39,7 @@ EC.BranchInputs = ( function(module) {"use strict";
 				store_btn.hide();
 
 				//enable store edit button (if the form has jumps it got disabled) and show it
-				store_edit_btn.removeClass('ui-disabled not-shown');
+				store_edit_btn.removeClass('ui-disabled hidden');
 
 				//bind event with one() to enforce a single submit
 				store_edit_btn.off().one('vclick', function(e) {
@@ -51,7 +51,7 @@ EC.BranchInputs = ( function(module) {"use strict";
 				store_btn.show();
 
 				//hide store edit button
-				$('div.store-edit').addClass('not-shown');
+				$('div.store-edit').addClass('hidden');
 
 				//bind event with one() to enforce a single submit
 				store_btn.off().one('vclick', function(e) {

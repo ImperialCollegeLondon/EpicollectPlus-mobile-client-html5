@@ -226,17 +226,17 @@ EC.Entries = ( function (module) {
         //show "Show more" button if we have more entries to display
         entries_total = EC.Utils.getFormByID(form_id).entries;
         if (entries_total > (children_offset + wls.QUERY_LIMIT)) {
-            load_more_btn.removeClass('not-shown');
+            load_more_btn.removeClass('hidden');
         } else {
-            load_more_btn.addClass('not-shown');
+            load_more_btn.addClass('hidden');
         }
 
         //bind "show more button"
         load_more_btn.off().on('vclick', function (e) {
 
             //hide button and show loader
-            $(this).addClass('not-shown');
-            load_more_spinner.removeClass('not-shown');
+            $(this).addClass('hidden');
+            load_more_spinner.removeClass('hidden');
 
             //increase offset
             children_offset = parseInt(wls.QUERY_CHILD_ENTRIES_OFFSET, 10);
@@ -401,9 +401,9 @@ EC.Entries = ( function (module) {
         dom_list.trigger("updatelayout");
 
         //show button and hide loader (if there are more entries to show)
-        $('div#entries div#entries-list div.more-items-btn-spinner').addClass('not-shown');
+        $('div#entries div#entries-list div.more-items-btn-spinner').addClass('hidden');
         if (entries_total > (children_offset + query_limit)) {
-            $('div#entries div#entries-list div.more-items-btn').removeClass('not-shown');
+            $('div#entries div#entries-list div.more-items-btn').removeClass('hidden');
         }
 
     };

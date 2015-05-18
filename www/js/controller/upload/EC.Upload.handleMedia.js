@@ -145,10 +145,10 @@ EC.Upload = ( function(module) {
 				//if all media are synced, show all synced message
 				$.when(_photoCheck(self.current_image_file), _audioCheck(self.current_audio_file), _videoCheck(self.current_video_file)).then(function() {
 					if (!(self.audio_synced && self.photo_synced && self.video_synced)) {
-						self.all_synced_message.addClass('not-shown');
+						self.all_synced_message.addClass('hidden');
 					}
 					else {
-						self.all_synced_message.removeClass('not-shown');
+						self.all_synced_message.removeClass('hidden');
 					}
 				});
 
@@ -156,7 +156,7 @@ EC.Upload = ( function(module) {
 
 				//TODO: no media found (image, audio, video are ALL empty)
 				//do nothing yet
-				self.all_synced_message.removeClass('not-shown');
+				self.all_synced_message.removeClass('hidden');
 			});
 		};
 

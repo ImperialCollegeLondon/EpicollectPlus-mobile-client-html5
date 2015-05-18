@@ -1,3 +1,5 @@
+/*global $, jQuery*/
+
 var EC = EC || {};
 EC.Inputs = EC.Inputs || {};
 EC.Inputs = (function (module) {
@@ -157,8 +159,14 @@ EC.Inputs = (function (module) {
         }//switch
 
         //remove progress dialog (triggered when loading inputs.html)
-        EC.Notification.hideProgressDialog();
-
+        //for 'location' inputs, skip this as we are hiding ti from the location view
+        if (input.type !== EC.Const.LOCATION) {
+            if (window.google) {
+                //clear any events related to the google maps object
+                google.maps.event.clearListeners(EC.DevicePosition.map);
+            }
+            EC.Notification.hideProgressDialog();
+        }
     };
 
     return module;

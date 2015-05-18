@@ -51,7 +51,7 @@ EC.Inputs = (function (module) {
             store_btn.hide();
 
             //enable/show store edit button (if the form has jumps it got disabled)
-            $('div.store-edit').removeClass('ui-disabled not-shown');
+            $('div.store-edit').removeClass('ui-disabled hidden');
 
             //bind event with one() to enforce a single submit
             store_edit_btn.off().one('vclick', function (e) {
@@ -65,7 +65,7 @@ EC.Inputs = (function (module) {
             store_btn.show();
 
             //hide store edit button
-            $('div.store-edit').addClass('not-shown');
+            $('div.store-edit').addClass('hidden');
 
             //bind event with one() to enforce a single submit
             store_btn.off().one('vclick', function (e) {

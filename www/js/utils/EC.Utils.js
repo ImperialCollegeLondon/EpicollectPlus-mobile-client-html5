@@ -1,4 +1,3 @@
-/*jslint vars: true, nomen: true devel: true, plusplus: true, bitwise: true*/
 /*global $, jQuery, cordova, Connection, LocalFileSystem*/
 
 var EC = EC || {};
@@ -72,23 +71,7 @@ EC.Utils = (function () {
         return !!window.chrome && !isOpera;
     };
 
-    //check if there is a internet connection
-    var hasConnection = function () {
 
-        var connection_type;
-
-        //return immediately if testing in the Chrome
-        if (EC.Utils.isChrome()) {
-            return true;
-        }
-
-        if (navigator.network) {
-
-            connection_type = navigator.network.connection.type;
-            console.log(JSON.stringify(connection_type));
-            return (connection_type === Connection.NONE || connection_type === Connection.UNKNOWN) ? false : true;
-        }
-    };
 
     var sleep = function (milliseconds) {
 
@@ -424,34 +407,32 @@ EC.Utils = (function () {
     var parseLocationString = function (the_string) {
 
         var string = the_string;
-        var object = {};
+        var coords = {};
         var temp_array = string.split(',');
 
         if (temp_array[0] === EC.Const.SKIPPED) {
-            object.Latitude = '';
-            object.Longitude = '';
-            object.Altitude = '';
-            object.Accuracy = '';
-            object.Bearing = '';
+            coords.latitude = '';
+            coords.longitude = '';
+            coords.altitude = '';
+            coords.accuracy = '';
+            coords.heading = '';
 
         }
         else {
-            object.Latitude = temp_array[0].replace('Latitude: ', '').replace(/(\r\n|\n|\r)/gm, '');
-            object.Longitude = temp_array[1].replace('Longitude: ', '').replace(/(\r\n|\n|\r)/gm, '');
-            object.Altitude = temp_array[2].replace('Altitude: ', '').replace(/(\r\n|\n|\r)/gm, '');
-            object.Accuracy = temp_array[3].replace('Accuracy: ', '').replace(/(\r\n|\n|\r)/gm, '');
-            object.Bearing = temp_array[5].replace('Bearing: ', '').replace(/(\r\n|\n|\r)/gm, '');
+            coords.latitude = parseFloat(temp_array[0].replace('Latitude: ', '').replace(/(\r\n|\n|\r)/gm, ''));
+            coords.longitude = parseFloat(temp_array[1].replace('Longitude: ', '').replace(/(\r\n|\n|\r)/gm, ''));
+            coords.altitude = parseFloat(temp_array[2].replace('Altitude: ', '').replace(/(\r\n|\n|\r)/gm, ''));
+            coords.accuracy = parseFloat(temp_array[3].replace('Accuracy: ', '').replace(/(\r\n|\n|\r)/gm, ''));
+            coords.heading = parseFloat(temp_array[5].replace('Heading: ', '').replace(/(\r\n|\n|\r)/gm, ''));
         }
 
-        return object;
+        return coords;
     };
 
     //test is astring is a valid URL
     var isURL = function (the_string) {
-
         var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/;
         return regexp.test(the_string);
-
     };
 
     var isValidEmail = function (the_email) {
@@ -460,9 +441,7 @@ EC.Utils = (function () {
     };
 
     var getForms = function () {
-
         return this.forms;
-
     };
 
     var isGPSEnabled = function () {
@@ -472,14 +451,12 @@ EC.Utils = (function () {
 
         function _onGpsChecked(isEnabled) {
             console.log('gps is ' + isEnabled);
-
             if (!isEnabled) {
                 deferred.reject();
             }
             else {
                 deferred.resolve();
             }
-
         }
 
         if (!EC.Utils.isChrome()) {
@@ -489,15 +466,12 @@ EC.Utils = (function () {
                 case EC.Const.ANDROID:
                     cordova.plugins.diagnostic.isLocationEnabled(_onGpsChecked);
                     break;
-
                 case EC.Const.IOS:
-
                     //TODO: resolve until we have a way to get this via
                     // Cordova, maybe allowing location at the beginning is
                     // enough
                     deferred.resolve();
                     break;
-
             }
         }
         return deferred.promise();
@@ -891,7 +865,7 @@ EC.Utils = (function () {
 
         var self = this;
 
-        //store validation details in object.
+        //store validation details in coordsheadin.
         var validation = {
             is_valid: true,
             message: ''
@@ -1309,6 +1283,49 @@ EC.Utils = (function () {
 
     }
 
+    //check if there is a internet connection (cordova online and offline events consider Connection.UNKNOWN as online? Better to use this function)
+    var hasConnection = function () {
+        //return immediately if testing on Chrome
+        if (EC.Utils.isChrome()) {
+            return true;
+        }
+        if (navigator.network) {
+            return !(navigator.network.connection.type === Connection.NONE || navigator.network.connection.type === Connection.UNKNOWN);
+        }
+    };
+
+    //check if the connection is good enough to load map tiles (well, CELL network type is not available on iOS so this function is exactly like hasConnection)
+    function hasGoodConnection() {
+
+        var is_good = true;
+
+        switch (navigator.connection.type) {
+
+            case Connection.NONE:
+                console.log('no internet connection');
+                is_good = false;
+                break;
+
+            case Connection.UNKNOWN:
+                console.log('unknown internet connection');
+                is_good = false;
+                break;
+
+            //this would be great but Cell network info are not available on iOS
+            //case Connection.CELL_2G:
+            //    console.log('2G connection too weak');
+            //    is_good = false;
+            //    break;
+            //
+            //case Connection.CELL:
+            //    console.log('Connection too weak');
+            //    is_good = false;
+            //    break;
+        }
+        //I assume the connection is good enough to load the map tiles
+        return is_good;
+    }
+
     return {
 
         setForms: setForms,
@@ -1358,7 +1375,8 @@ EC.Utils = (function () {
         getParameterByName: getParameterByName,
         mapLabelToValue: mapLabelToValue,
         isAudioFileStored: isAudioFileStored,
-        generateAudioFileName: generateAudioFileName
+        generateAudioFileName: generateAudioFileName,
+        hasGoodConnection: hasGoodConnection
     };
 
 }());

@@ -62,14 +62,14 @@ EC.InputTypes = ( function(module) {
             }
 
             //hide elements not needed
-            clone.addClass('not-shown');
-            min_range.addClass('not-shown');
-            max_range.addClass('not-shown');
+            clone.addClass('hidden');
+            min_range.addClass('hidden');
+            max_range.addClass('hidden');
 
             if (double_entry) {
 
                 //duplicate textarea input
-                clone.removeClass('not-shown');
+                clone.removeClass('hidden');
                 $('div.clone input').val(value);
 
                 //if in editing mode, do not allow changes either if the field is
@@ -84,7 +84,7 @@ EC.InputTypes = ( function(module) {
             //show min range if any
             if (input.min_range !== "") {
 
-                min_range.removeClass('not-shown');
+                min_range.removeClass('hidden');
                 min_range.text('Min: ' + input.min_range);
 
             }
@@ -92,7 +92,7 @@ EC.InputTypes = ( function(module) {
             //show max range if any
             if (input.max_range !== "") {
 
-                max_range.removeClass('not-shown');
+                max_range.removeClass('hidden');
                 max_range.text('Max: ' + input.max_range);
 
             }
@@ -104,9 +104,9 @@ EC.InputTypes = ( function(module) {
             if (window.localStorage.edit_mode && input.is_primary_key === 1) {
 
                 $('div#input-decimal input').attr('disabled', 'disabled');
-                $('div#input-decimal p.primary-key-not-editable').removeClass("not-shown");
+                $('div#input-decimal p.primary-key-not-editable').removeClass("hidden");
             } else {
-                $('div#input-decimal p.primary-key-not-editable').addClass("not-shown");
+                $('div#input-decimal p.primary-key-not-editable').addClass("hidden");
             }
 
         };

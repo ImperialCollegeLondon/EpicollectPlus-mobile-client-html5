@@ -147,8 +147,8 @@ EC.InputTypes = (function (module) {
                     canvas = canvas_portrait;
                     thumb_width = 188;
                     thumb_height = 250;
-                    canvas_landscape_dom.addClass('not-shown');
-                    canvas_portrait_dom.removeClass('not-shown');
+                    canvas_landscape_dom.addClass('hidden');
+                    canvas_portrait_dom.removeClass('hidden');
 
                 }
                 else {
@@ -157,8 +157,8 @@ EC.InputTypes = (function (module) {
                     canvas = canvas_landscape;
                     thumb_width = 250;
                     thumb_height = 188;
-                    canvas_portrait_dom.addClass('not-shown');
-                    canvas_landscape_dom.removeClass('not-shown');
+                    canvas_portrait_dom.addClass('hidden');
+                    canvas_landscape_dom.removeClass('hidden');
                 }
 
                 context = canvas.getContext('2d');
@@ -180,8 +180,8 @@ EC.InputTypes = (function (module) {
         };
 
         //hide both canvas
-        canvas_landscape_dom.addClass('not-shown');
-        canvas_portrait_dom.addClass('not-shown');
+        canvas_landscape_dom.addClass('hidden');
+        canvas_portrait_dom.addClass('hidden');
 
         //update label text
         span_label.text(input.label);

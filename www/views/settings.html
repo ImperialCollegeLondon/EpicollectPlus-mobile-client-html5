@@ -1,7 +1,7 @@
 <!-- Settings page, listing all user preferences-->
 <div data-role="page" id="settings" data-theme="a">
 
-    <div data-role="header"  data-id="footer">
+    <div data-role="header" data-id="footer">
         <div data-href="back-btn" class="h-nav-item">
             <i class="fa fa-angle-left fa-ep"></i>
             <span class="project-name"></span>
@@ -17,9 +17,11 @@
                     <span id="settings-list-label" data-i10n="settings">Settings</span>
                 </li>
             </ul>
-        </div><!-- /navbar -->
+        </div>
+        <!-- /navbar -->
 
-    </div><!-- /header -->
+    </div>
+    <!-- /header -->
 
     <!--  List of values for an entry-->
     <div id="settings-values" data-role="content">
@@ -29,6 +31,7 @@
         <input id="project-server-url" type="url" value=""/>
 
         <span class="label" data-i10n="pagination">Pagination: entries listed per page</span>
+
         <form id="pagination-options">
             <fieldset data-role="controlgroup" data-type="horizontal">
                 <input type="radio" name="radio-choice-h-2" id="radio-choice-h-2a" value="10">
@@ -44,8 +47,13 @@
             </fieldset>
         </form>
 
+        <span class="label" data-i10n="pagination">Experimental features</span>
+        <input type="checkbox" name="enhanced-location-google-maps" id="enhanced-location-google-maps">
+        <label for="enhanced-location-google-maps">Enhanced location with Google Maps </label>
+        <p>This option requires a solid data connection and a high end phone. Disable it if it causes problems on your device</p>
         <p id="version-name">
-            <span data-i10n="app_version">App Version: </span>Epicollect+ <span class="version">---</span> (Beta)
+            <span data-i10n="app_version">App Info: </span>Epicollect+ <span class="version">---</span>
         </p>
-    </div><!-- /content -->
+    </div>
+    <!-- /content -->
 </div><!-- /settings -->

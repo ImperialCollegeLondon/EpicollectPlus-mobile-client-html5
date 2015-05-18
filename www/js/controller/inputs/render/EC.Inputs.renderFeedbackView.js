@@ -71,7 +71,7 @@ EC.Inputs = (function (module) {
             add_child_btn.find('span').text(EC.Localise.getTranslation('add') + form_tree.cname + EC.Localise.getTranslation('to') + form_name);
 
             //show add child button
-            add_child_btn.removeClass('not-shown');
+            add_child_btn.removeClass('hidden');
 
             //Add a child entry btn
             add_child_btn.one('vclick', function (e) {
