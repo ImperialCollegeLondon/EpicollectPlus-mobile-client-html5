@@ -72,7 +72,6 @@ EC.Utils = (function () {
     };
 
 
-
     var sleep = function (milliseconds) {
 
         var i;
@@ -410,6 +409,7 @@ EC.Utils = (function () {
         var coords = {};
         var temp_array = string.split(',');
 
+
         if (temp_array[0] === EC.Const.SKIPPED) {
             coords.latitude = '';
             coords.longitude = '';
@@ -424,6 +424,13 @@ EC.Utils = (function () {
             coords.altitude = parseFloat(temp_array[2].replace('Altitude: ', '').replace(/(\r\n|\n|\r)/gm, ''));
             coords.accuracy = parseFloat(temp_array[3].replace('Accuracy: ', '').replace(/(\r\n|\n|\r)/gm, ''));
             coords.heading = parseFloat(temp_array[5].replace('Heading: ', '').replace(/(\r\n|\n|\r)/gm, ''));
+
+            //remove NAN todo better find a new way...
+            coords.latitude = isNaN(coords.latitude) ? '' : coords.latitude;
+            coords.longitude = isNaN(coords.longitude) ? '' : coords.longitude;
+            coords.altitude = isNaN(coords.altitude) ? '' : coords.altitude;
+            coords.accuracy = isNaN(coords.accuracy) ? '' : coords.accuracy;
+            coords.heading = isNaN(coords.heading) ? '' : coords.heading;
         }
 
         return coords;
@@ -1091,9 +1098,11 @@ EC.Utils = (function () {
 
             console.log('iOS Documents path - ' + EC.Const.IOS_APP_PRIVATE_URI);
         }
+
         function onError(error) {
             console.log(JSON.stringify(error));
         }
+
         window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, onSuccess, onError);
     };
 
