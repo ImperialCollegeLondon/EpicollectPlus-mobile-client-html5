@@ -21,9 +21,6 @@ var EC = EC || {};
 EC.Entries = EC.Entries || {};
 EC.Entries = (function () {
     'use strict';
-
-    var trail = [];
-
     /**
      * @method unsyncEntry
      *
@@ -315,7 +312,6 @@ EC.Entries = (function () {
             //render first input on the list or the selected position (-1) if
             // we are editing
             EC.Inputs.prepareFirstInput((window.localStorage.edit_position === undefined) ? inputs[0] : inputs[window.localStorage.edit_position - 1]);
-
         });
     };
 
@@ -326,8 +322,14 @@ EC.Entries = (function () {
 
         EC.Notification.showProgressDialog();
         $.when(EC.Export.saveProjectDataToCSV(project_id, forms)).then(function (response) {
-            EC.Notification.showToast(EC.Localise.getTranslation('data_exported_to_csv'), 'short');
+
+            var filename = response.filename;
+            var folder = response.folder;
+
+            //close panel
+            $('#project-options').panel('close');
             EC.Notification.hideProgressDialog();
+            EC.Notification.showAlert(EC.Localise.getTranslation('success'), filename + ' saved in folder: ' + folder);
         });
     };
 
@@ -344,6 +346,5 @@ EC.Entries = (function () {
         allEntriesDeletedFeedback: allEntriesDeletedFeedback,
         allMediaDeletedFeedback: allMediaDeletedFeedback
     };
-
 }());
 

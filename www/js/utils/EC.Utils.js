@@ -663,6 +663,7 @@ EC.Utils = (function () {
 
     };
 
+    //to keep track of parent-child relationship, we need the 'ref' of the parent form for some features
     var getFormParentPrimaryKeyRef = function (the_form_id) {
 
         var form_id = parseInt(the_form_id, 10);
@@ -671,13 +672,10 @@ EC.Utils = (function () {
         var iLength = forms.length;
 
         for (i = 0; i < iLength; i++) {
-
             if (forms[i]._id === form_id) {
-
                 return forms[i - 1].key;
             }
         }
-
     };
 
     var getFormByID = function (the_form_id) {
@@ -718,13 +716,10 @@ EC.Utils = (function () {
         var iLength = forms.length;
 
         for (i = 0; i < iLength; i++) {
-
             if (forms[i]._id === form_id) {
-
                 return forms[i - 1];
             }
         }
-
     };
 
     var updateFormsObj = function (the_form_id) {
@@ -814,6 +809,38 @@ EC.Utils = (function () {
             console.log('App version ' + the_version_name);
             version_name = the_version_name;
             deferred.resolve(version_name);
+        });
+
+        return deferred.promise();
+
+    };
+
+    var getAppName = function () {
+
+        var app_name;
+        var deferred = new $.Deferred();
+
+        cordova.getAppVersion.getAppName(function (the_app_name) {
+            console.log('App name ' + the_app_name);
+            app_name = the_app_name;
+            deferred.resolve(app_name);
+        });
+
+        return deferred.promise();
+
+    };
+
+    var getExportDirName = function () {
+
+        var dir;
+        var deferred = new $.Deferred();
+
+        cordova.getAppVersion.getAppName(function (the_app_name) {
+
+            //sanitise app name to be used as a directory (remove all special chars with '-')
+            dir = the_app_name.replace(/[^\w\s]/gi, '-')
+            dir += '-export';
+            deferred.resolve(dir);
         });
 
         return deferred.promise();
@@ -1042,11 +1069,8 @@ EC.Utils = (function () {
                 documents_path = fileSystem.toURL();
 
                 EC.Const.IOS_ASSETS_ABS_PATH = documents_path.replace('file:////', 'file:///private/');
-
                 EC.Const.IOS_ASSETS_ABS_PATH += 'www/';
-
                 console.log('iOS 8+ root www - ' + EC.Const.IOS_ASSETS_ABS_PATH);
-
             }
             else {
 
@@ -1375,6 +1399,8 @@ EC.Utils = (function () {
         changeHashNavigationDirection: changeHashNavigationDirection,
         inArray: inArray,
         getVersionName: getVersionName,
+        getAppName:getAppName,
+        getExportDirName: getExportDirName,
         getPageBaseURI: getPageBaseURI,
         isValidValue: isValidValue,
         setIOSRootPath: setIOSRootPath,

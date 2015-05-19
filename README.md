@@ -74,3 +74,6 @@ Custom URL schemes need to be added manually to Android manifest and iOS plist f
 
 ####
 Currently using 4.0.0 on Android, where jsHybugger (debugging tool) does not work. It would work on 3.7.0 but Eclipse does not compile the project (missing .jar). To debug Android <4.4, clone repo, use to 3.7 and debug there. Make the changes to the main repo manually.
+
+####
+For debugging, add ` console.error(_error.message);` to `SQLitePlugin.js` at line 375 as it is catching general errors which have nothing to do with the plugin or database
