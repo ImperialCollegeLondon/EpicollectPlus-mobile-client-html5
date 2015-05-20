@@ -55,7 +55,7 @@ EC.Utils = (function () {
 
         //native implementation via SQLite plugin
         return window.sqlitePlugin.openDatabase({
-            name: 'epicollect'
+            name: 'epicollect.db'
         });
         //return window.sqlitePlugin.openDatabase({name: 'epicollect',
         // bgType: 0});

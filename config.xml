@@ -67,6 +67,10 @@
         <splash src="res/ios/splashscreens/Default-736h.png" width="1242" height="2208"/>
         <splash src="res/ios/splashscreens/Default-Landscape-736h.png" width="2208" height="1242"/>
 
+        <!--iTunes artwork-->
+        <icon src="res/ios/icons/iTunesArtwork" width="512" height="512"/>
+        <icon src="res/ios/icons/iTunesArtwork@2x" width="1024" height="1024"/>
+
         <preference
                 name="MediaPlaybackRequiresUserAction"
                 value="true"/>

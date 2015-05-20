@@ -30,7 +30,18 @@ EC.File = (function (module) {
             }, onCreateDirSuccess, fail);
 
             function onCreateDirSuccess(filesystem) {
-                //inside this function, filesystem is <sdcard>/<app_name>-export with app_name sanitised from special chars
+
+                console.log(filesystem.nativeURL);
+
+                /*
+                 inside this function, filesystem is:
+                     Android:/storage/emulated/0/<app_name>-export/ (path can be different depending on device)
+
+                     iOS : /var/mobile/Containers/Data/Application/<Bundle_ID>/Documents/<app_name>-export/
+
+                 with <app_name> sanitised from special chars
+                 */
+
 
                 function gotFileEntry(fileEntry) {
 
@@ -97,7 +108,14 @@ EC.File = (function (module) {
             zip_content = zip.generate({type: 'blob', compression: 'STORE'});
 
             //start writing zip file to disk
-            window.resolveLocalFileSystemURL(cordova.file.externalRootDirectory, onGotFS, fail);
+            if (window.device.platform === EC.Const.ANDROID) {
+                //on Android, get hold of the public storage roor dir
+                window.resolveLocalFileSystemURL(cordova.file.externalRootDirectory, onGotFS, fail);
+            }
+            else {
+                //on iOS, get hold of 'Documents/' dir
+                window.resolveLocalFileSystemURL(cordova.file.documentsDirectory, onGotFS, fail);
+            }
         });
 
         return deferred.promise();

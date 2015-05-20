@@ -77,3 +77,10 @@ Currently using 4.0.0 on Android, where jsHybugger (debugging tool) does not wor
 
 ####
 For debugging, add ` console.error(_error.message);` to `SQLitePlugin.js` at line 375 as it is catching general errors which have nothing to do with the plugin or database
+
+####
+Enable file sharing on iOS (useful for "Export to CSV" feature to be able to get hold of the csv bundle) adding 
+`<key>UIFileSharingEnabled</key>
+<string>YES</string>`
+
+to `info.plist`

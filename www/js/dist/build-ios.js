@@ -7,9 +7,10 @@ EC.Boot.getProjects = function () {
     'use strict';
 
     //hide splashcreen (timeout so we have time to render the project list, 1 sec will be enough)
-    window.setTimeout(function () {
-        navigator.splashscreen.hide();
-    }, 1000);
+    //todo currently buggy
+    //window.setTimeout(function () {
+    //    navigator.splashscreen.hide();
+    //}, 1000);
 
     //if database already set, just list projects
     if (window.localStorage.is_db_set === EC.Const.SET) {
@@ -1170,7 +1171,7 @@ EC.Utils = (function () {
 
         //native implementation via SQLite plugin
         return window.sqlitePlugin.openDatabase({
-            name: 'epicollect'
+            name: 'epicollect.db'
         });
         //return window.sqlitePlugin.openDatabase({name: 'epicollect',
         // bgType: 0});
@@ -3784,13 +3785,23 @@ EC.Routing.changePage = function (the_view, the_path) {
     var page_uri;
     //TODO: make the function reusable when we want or not want to add a new entry in the browser history
     var page;
+    var transition;
 
     page_uri = EC.Utils.getPageBaseURI();
     page = (view === EC.Const.INDEX_VIEW) ? page_uri + view : page_uri + EC.Const.VIEWS_DIR + view;
 
     console.log('Routing to ---------------------------------> ' + page);
+
+    //remove fade transition on input pages (I find it annoying)
+    if (view.indexOf('inputs/') > -1 || view.indexOf('branch_inputs/') > -1) {
+        transition = 'none';
+    }
+    else {
+        transition = 'fade';
+    }
+
     $.mobile.changePage(page, {
-        transition: 'fade',
+        transition: transition,
         reverse: false,
         changeHash: true,
         allowSamePageTransition: true
@@ -15056,7 +15067,18 @@ EC.File = (function (module) {
             }, onCreateDirSuccess, fail);
 
             function onCreateDirSuccess(filesystem) {
-                //inside this function, filesystem is <sdcard>/<app_name>-export with app_name sanitised from special chars
+
+                console.log(filesystem.nativeURL);
+
+                /*
+                 inside this function, filesystem is:
+                     Android:/storage/emulated/0/<app_name>-export/ (path can be different depending on device)
+
+                     iOS : /var/mobile/Containers/Data/Application/<Bundle_ID>/Documents/<app_name>-export/
+
+                 with <app_name> sanitised from special chars
+                 */
+
 
                 function gotFileEntry(fileEntry) {
 
@@ -15123,7 +15145,14 @@ EC.File = (function (module) {
             zip_content = zip.generate({type: 'blob', compression: 'STORE'});
 
             //start writing zip file to disk
-            window.resolveLocalFileSystemURL(cordova.file.externalRootDirectory, onGotFS, fail);
+            if (window.device.platform === EC.Const.ANDROID) {
+                //on Android, get hold of the public storage roor dir
+                window.resolveLocalFileSystemURL(cordova.file.externalRootDirectory, onGotFS, fail);
+            }
+            else {
+                //on iOS, get hold of 'Documents/' dir
+                window.resolveLocalFileSystemURL(cordova.file.documentsDirectory, onGotFS, fail);
+            }
         });
 
         return deferred.promise();

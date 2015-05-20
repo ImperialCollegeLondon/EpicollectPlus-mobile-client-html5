@@ -8,6 +8,7 @@ var sourcemaps = require('gulp-sourcemaps');
 var vendor_path = './www/js/vendor/';
 var app_modules_path = './www/js/app_modules/';
 //var app_styles_path = './css/';
+var shell = require('gulp-shell');
 
 // Concatenate vendor js files
 gulp.task('vendor-scripts', function () {
@@ -49,10 +50,10 @@ gulp.task('app-modules-android', function () {
             'www/js/app_modules/model/file/**/*.js',
             'www/js/app_modules/controller/**/*.js'
         ], {base: './'}))
-        .pipe(sourcemaps.init())
+     //   .pipe(sourcemaps.init())
         .pipe(concat('build-android.js'))
-        .pipe(uglify())
-        .pipe(sourcemaps.write('./'))
+     //   .pipe(uglify())
+    //    .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest('./www/js/dist/'));
 });
 
@@ -78,10 +79,10 @@ gulp.task('app-modules-ios', function () {
             'www/js/app_modules/model/file/**/*.js',
             'www/js/app_modules/controller/**/*.js'
         ], {base: './'}))
-       // .pipe(sourcemaps.init())
+        //.pipe(sourcemaps.init())
         .pipe(concat('build-ios.js'))
        // .pipe(uglify())
-       // .pipe(sourcemaps.write('./'))
+        ///.pipe(sourcemaps.write('./'))
         .pipe(gulp.dest('./www/js/dist/'));
 });
 
@@ -93,9 +94,6 @@ gulp.task('app-modules-ios', function () {
 //});
 
 // Default Task (re-run manually when adding a vendor)
-gulp.task('default', ['vendor-scripts', 'app-modules-android', 'app-modules-ios'], function () {
-    // watch for JS changes
-    // gulp.watch('./js/**/*.js', ['app-modules']);
-    // watch for CSS changes
-    // gulp.watch('./css/*.css', ['app-styles']);
-});
+gulp.task('default', ['vendor-scripts', 'app-modules-android', 'app-modules-ios'], shell.task([
+    'echo Running cordova prepare...', 'cordova prepare'
+]));
