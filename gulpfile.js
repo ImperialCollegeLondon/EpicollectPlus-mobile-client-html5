@@ -2,8 +2,8 @@
 var gulp = require('gulp');
 var concat = require('gulp-concat');
 var order = require('gulp-order');
-//var uglify = require('gulp-uglify');
-//var sourcemaps = require('gulp-sourcemaps');
+var uglify = require('gulp-uglify');
+var sourcemaps = require('gulp-sourcemaps');
 //var gulpignore = require('gulp-ignore');
 var vendor_path = './www/js/vendor/';
 var app_modules_path = './www/js/app_modules/';
@@ -15,13 +15,13 @@ gulp.task('vendor-scripts', function () {
         // .pipe(gulpignore.exclude('./js/vendor/chance.js'))
         // .pipe(sourcemaps.init())
         .pipe(order([
-            'js/vendor/jquery-1.9.1.min.js',
+            'js/vendor/jquery.min.js',
             'js/vendor/jquery.mobile-1.3.2.min.js',
             'js/vendor/jquery.mobile.config.js',
             'js/vendor/*.js'
         ], {base: './'}))
         .pipe(concat('vendor.js'))
-        // .pipe(uglify())
+        .pipe(uglify())
         // .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest('./www/js/dist/'));
 });
@@ -35,13 +35,24 @@ gulp.task('app-modules-android', function () {
         '!' + app_modules_path + 'model/file/EC.File.moveVideoIOS.js' //
     ])
         .pipe(order([
-            'www/js/app_modules/model/**/*.js',
-            'www/js/app_modules/**/*.js'
+            'www/js/app_modules/boot/**/*.js',
+            'www/js/app_modules/utils/**/*.js',
+            'www/js/app_modules/config/**/*.js',
+            'www/js/app_modules/parsing/**/*.js',
+            'www/js/app_modules/routing/**/*.js',
+            'www/js/app_modules/localisation/**/*.js',
+            'www/js/app_modules/model/database/Structure/**/*.js',
+            'www/js/app_modules/model/database/Select/**/*.js',
+            'www/js/app_modules/model/database/Update/**/*.js',
+            'www/js/app_modules/model/database/Create/**/*.js',
+            'www/js/app_modules/model/database/Delete/**/*.js',
+            'www/js/app_modules/model/file/**/*.js',
+            'www/js/app_modules/controller/**/*.js'
         ], {base: './'}))
-        //  .pipe(sourcemaps.init())
+        .pipe(sourcemaps.init())
         .pipe(concat('build-android.js'))
-        //  .pipe(uglify())
-        //  .pipe(sourcemaps.write('./'))
+        .pipe(uglify())
+        .pipe(sourcemaps.write('./'))
         .pipe(gulp.dest('./www/js/dist/'));
 });
 

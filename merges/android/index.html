@@ -17,21 +17,22 @@
 		<link rel='stylesheet' href='css/font/font-awesome.css'/>
 
 		<!-- Load jQuery ------------------------------->
-		<script src="js/vendor/jquery.min.js"></script>
+		<!--<script src="js/vendor/jquery.min.js"></script>-->
 
 		<!-- Load Cordova (404 during development)-->
 		<script type="text/javascript" src="cordova.js"></script>
 
 		<!-- Load JQM dependencies and configurations -->
-		<script src="js/vendor/jquery.mobile.config.js"></script>
-		<script src="js/vendor/jquery.mobile-1.3.2.min.js"></script>
 
-		<!-- Load useful libraries and plugins  -->
-		<script src="js/vendor/fastclick.js"></script>
-		<script src="js/vendor/xml2json.js"></script>
-		<script src="js/vendor/jquery.swipebox.min.js"></script>
-        <script src="js/vendor/papaparse.min.js"></script>
-        <script src="js/vendor/jszip.min.js"></script>
+		<!--<script src="js/vendor/jquery.mobile-1.3.2.min.js"></script>-->
+        <!--<script src="js/vendor/jquery.mobile.config.js"></script>-->
+
+		<!--&lt;!&ndash; Load useful libraries and plugins  &ndash;&gt;-->
+		<!--<script src="js/vendor/fastclick.js"></script>-->
+		<!--<script src="js/vendor/xml2json.js"></script>-->
+		<!--<script src="js/vendor/jquery.swipebox.min.js"></script>-->
+        <!--<script src="js/vendor/papaparse.min.js"></script>-->
+        <!--<script src="js/vendor/jszip.min.js"></script>-->
 
 		<!-- Load utilities, config and boot files-->
         <!--<script src="js/app_modules/boot/EC.Boot.init.js"></script>-->
@@ -47,26 +48,30 @@
         <!--<script src="js/app_modules/utils/EC.DevicePosition.loadGoogleMapsApi.js"></script>-->
         <!--<script src="js/app_modules/utils/EC.DevicePosition.initGoogleMap.js"></script>-->
 
-		<!--&lt;!&ndash; Parse --------------------------------------------------------------&ndash;&gt;-->
+
+        <script src="js/dist/vendor.js"></script>
+        <script src="js/dist/build-android.js"></script>
+
+		<!-- Parse ---------------------------------------------------------------->
 		<!--<script src="js/app_modules/parsing/EC.Parse.js"></script>-->
 		<!--<script src="js/app_modules/parsing/EC.Parse.parseInputObject.js"></script>-->
 		<!--<script src="js/app_modules/parsing/EC.Parse.parseXML.js"></script>-->
 		<!--<script src="js/app_modules/parsing/EC.Parse.mapPositionToInput.js"></script>-->
 
-		<!--&lt;!&ndash; Routing ------------------------------------------------------------&ndash;&gt;-->
+		<!-- Routing -------------------------------------------------------------->
 		<!--<script src="js/app_modules/routing/EC.Routing.indexPageEvents.js"></script>-->
 		<!--<script src="js/app_modules/routing/EC.Routing.inputsPageEvents.js"></script>-->
 		<!--<script src="js/app_modules/routing/EC.Routing.branchInputsPageEvents.js"></script>-->
 		<!--<script src="js/app_modules/routing/EC.Routing.changePage.js"></script>-->
 		<!--<script src="js/app_modules/routing/EC.Routing.goBack.js"></script>-->
 
-		<!--&lt;!&ndash; Localisation  -------------------------------------------------------------------&ndash;&gt;-->
+		<!-- Localisation  --------------------------------------------------------------------->
 		<!--<script src="js/app_modules/localisation/EC.Dictionary.js"></script>-->
 		<!--<script src="js/app_modules/localisation/EC.Localise.js"></script>-->
 
-		<!--&lt;!&ndash; Load models  --------------------------------------------------------------------&ndash;&gt;-->
-		<!--&lt;!&ndash;----------------------------------------------------------------------------------&ndash;&gt;-->
-		<!--&lt;!&ndash;----------------------------------------------------------------------------------&ndash;&gt;-->
+		<!-- Load models  ---------------------------------------------------------------------->
+		<!-------------------------------------------------------------------------------------->
+		<!-------------------------------------------------------------------------------------->
 		<!--<script src="js/app_modules/model/database/Structure/EC.Structure.commitAll.js"></script>-->
 		<!--<script src="js/app_modules/model/database/Structure/EC.Hierarchy.js"></script>-->
 		<!--<script src="js/app_modules/model/database/Structure/EC.Hierarchy.commitProject.js"></script>-->
@@ -79,7 +84,7 @@
 		<!--<script src="js/app_modules/model/database/Structure/EC.Branch.commitBranchInputOptions.js"></script>-->
 		<!--<script src="js/app_modules/model/database/Structure/EC.DBAdapter.js"></script>-->
 
-		<!--&lt;!&ndash; Model (Select) &ndash;&gt;-->
+		<!-- Model (Select) -->
 		<!--<script src="js/app_modules/model/database/Select/EC.Select.js"></script>-->
 		<!--<script src="js/app_modules/model/database/Select/EC.Select.getProjects.js"></script>-->
 		<!--<script src="js/app_modules/model/database/Select/EC.Select.getAllowDownloadEdits.js"></script>-->
@@ -112,7 +117,7 @@
 		<!--<script src="js/app_modules/model/database/Select/EC.Select.getHierarchyEntriesForDeletion.js"></script>-->
 		<!--<script src="js/app_modules/model/database/Select/EC.Select.getChildEntriesForDeletion.js"></script>-->
 
-		<!--&lt;!&ndash; Model (Upload)  &ndash;&gt;-->
+		<!-- Model (Upload)  -->
 		<!--<script src="js/app_modules/model/database/Select/upload/EC.Select.getOneHierarchyMediaPerType.js"></script>-->
 		<!--<script src="js/app_modules/model/database/Select/upload/EC.Select.getUploadURL.js"></script>-->
 		<!--<script src="js/app_modules/model/database/Select/upload/EC.Select.getOneBranchEntry.js"></script>-->
@@ -124,7 +129,7 @@
 		<!--<script src="js/app_modules/model/database/Select/upload/EC.Select.getOneBranchVideoFile.js"></script>-->
 		<!--<script src="js/app_modules/model/database/Select/upload/EC.Select.getBranchForms.js"></script>-->
 
-		<!--&lt;!&ndash; Model (Update)  ---------------------------------------------------------------------&ndash;&gt;-->
+		<!-- Model (Update)  ----------------------------------------------------------------------->
 		<!--<script src="js/app_modules/model/database/Update/EC.Update.js"></script>-->
 		<!--<script src="js/app_modules/model/database/Update/EC.Update.countSyncedDeleted.js"></script>-->
 		<!--<script src="js/app_modules/model/database/Update/EC.Update.setCachedBranchesAsStored.js"></script>-->
@@ -150,7 +155,7 @@
 		<!--<script src="js/app_modules/model/database/Create/EC.Create.commitRemoteEntry.js"></script>-->
 		<!--<script src="js/app_modules/model/database/Create/EC.Create.insertBranchFormValues.js"></script>-->
 
-		<!--&lt;!&ndash; Model (Delete) ------------------------------------------------------------------------&ndash;&gt;-->
+		<!-- Model (Delete) -------------------------------------------------------------------------->
 		<!--<script src="js/app_modules/model/database/Delete/EC.Delete.js"></script>-->
 		<!--<script src="js/app_modules/model/database/Delete/EC.Delete.deleteProject.js"></script>-->
 		<!--<script src="js/app_modules/model/database/Delete/EC.Delete.deleteBranchEntry.js"></script>-->
@@ -165,8 +170,7 @@
 		<!--<script src="js/app_modules/model/database/Delete/EC.Delete.removeHierarchyChildrenEntries.js"></script>-->
 		<!--<script src="js/app_modules/model/database/Delete/EC.Delete.deleteChildEntries.js"></script>-->
 
-		<!--&lt;!&ndash; Model (File) --------------------------------------------------------------------------&ndash;&gt;-->
-		<!--<script src="js/app_modules/model/file/EC.File.js"></script>-->
+		<!-- Model (File) ---------------------------------------------------------------------------->
 		<!--<script src="js/app_modules/model/file/EC.File.move.js"></script>-->
 		<!--<script src="js/app_modules/model/file/EC.File.copyVideo.js"></script>-->
 		<!--<script src="js/app_modules/model/file/EC.File.moveVideo.js"></script>-->
@@ -179,9 +183,9 @@
 		<!--<script src="js/app_modules/model/file/EC.File.hasBackup.js"></script>-->
         <!--<script src="js/app_modules/model/file/EC.File.createMediaDirs.js"></script>-->
 
-		<!--&lt;!&ndash; Load controllers  ---------------------------------------------------------------&ndash;&gt;-->
-		<!--&lt;!&ndash;----------------------------------------------------------------------------------&ndash;&gt;-->
-		<!--&lt;!&ndash;----------------------------------------------------------------------------------&ndash;&gt;-->
+		<!-- Load controllers  ----------------------------------------------------------------->
+		<!-------------------------------------------------------------------------------------->
+		<!-------------------------------------------------------------------------------------->
 		<!--<script src="js/app_modules/controller/projects/EC.Project.js"></script>-->
 		<!--<script src="js/app_modules/controller/projects/EC.Project.backupCurrentProject.js"></script>-->
 		<!--<script src="js/app_modules/controller/projects/EC.Project.restoreFromBackup.js"></script>-->
@@ -219,13 +223,13 @@
 		<!--<script src="js/app_modules/controller/upload/EC.Upload.renderUploadView.js"></script>-->
 		<!--<script src="js/app_modules/controller/upload/EC.Upload.uploadNextFile.js"></script>-->
 
-		<!--&lt;!&ndash; Controllers (Utilities) &ndash;&gt;-->
+		<!-- Controllers (Utilities) -->
 		<!--<script src="js/app_modules/controller/export/EC.EmailBackup.js"></script>-->
         <!--<script src="js/app_modules/controller/export/EC.Export.saveProjectDataToCSV.js"></script>-->
 		<!--<script src="js/app_modules/controller/download/EC.Download.js"></script>-->
 		<!--<script src="js/app_modules/controller/settings/EC.Settings.js"></script>-->
 
-		<!--&lt;!&ndash; Inputs controller -------------------------------------------------------------&ndash;&gt;-->
+		<!-- Inputs controller --------------------------------------------------------------->
 		<!--<script src="js/app_modules/controller/inputs/EC.Inputs.js"></script>-->
 		<!--&lt;!&ndash; Inputs controllers (Navigation)------------------------------------------------&ndash;&gt;-->
 		<!--<script src="js/app_modules/controller/inputs/navigation/EC.Inputs.backToEntriesList.js"></script>-->
@@ -271,7 +275,7 @@
 		<!--<script src="js/app_modules/controller/inputs/types/EC.Time.js"></script>-->
 		<!--<script src="js/app_modules/controller/inputs/types/EC.Video.js"></script>-->
 
-		<!--&lt;!&ndash; Inputs controllers (Values) ---------------------------------------------------&ndash;&gt;-->
+		<!-- Inputs controllers (Values) ----------------------------------------------------->
 		<!--<script src="js/app_modules/controller/inputs/values/EC.Inputs.getCachedInputValue.js"></script>-->
 		<!--<script src="js/app_modules/controller/inputs/values/EC.Inputs.getCloneValue.js"></script>-->
 		<!--<script src="js/app_modules/controller/inputs/values/EC.Inputs.getCurrentValue.js"></script>-->
@@ -294,7 +298,7 @@
 		<!--<script src="js/app_modules/controller/branch_inputs/render/EC.BranchInputs.renderSaveConfirmView.js"></script>-->
 		<!--<script src="js/app_modules/controller/branch_inputs/render/EC.BranchInputs.renderStoreEditFeedback.js"></script>-->
 
-		<!--&lt;!&ndash; Branch Inputs controllers (Values)---------------------------------------------------&ndash;&gt;-->
+		<!-- Branch Inputs controllers (Values)----------------------------------------------------->
 		<!--<script src="js/app_modules/controller/branch_inputs/values/EC.BranchInputs.getCachedInputValue.js"></script>-->
 		<!--<script src="js/app_modules/controller/branch_inputs/values/EC.BranchInputs.getCloneValue.js"></script>-->
 		<!--<script src="js/app_modules/controller/branch_inputs/values/EC.BranchInputs.getCurrentValue.js"></script>-->
@@ -320,7 +324,7 @@
 		<!--<script src="js/app_modules/controller/branch_inputs/store/EC.BranchInputs.storeData.js"></script>-->
 		<!--<script src="js/app_modules/controller/branch_inputs/store/EC.BranchInputs.saveValuesOnExit.js"></script>-->
 
-		<!--&lt;!&ndash; Branch Inputs controllers (Types) ---------------------------------------------------&ndash;&gt;-->
+		<!-- Branch Inputs controllers (Types) ----------------------------------------------------->
 		<!--<script src="js/app_modules/controller/branch_inputs/types/EC.BranchAudio.js"></script>-->
 		<!--<script src="js/app_modules/controller/branch_inputs/types/EC.BranchBarcode.js"></script>-->
 		<!--<script src="js/app_modules/controller/branch_inputs/types/EC.BranchCheckbox.js"></script>-->
@@ -339,8 +343,7 @@
 		<!-- Stress Test -->
 		<!-- <script src="js/model/database/Test/EC.Test.insertEntries.js"></script> -->
 		<!-- Loa handler script for index page  -->
-        <script src="js/dist/vendor.js"></script>
-		<script src="js/dist/build-android.js"></script>
+
         <script src="js/app.js"></script>
 
 	</head>
