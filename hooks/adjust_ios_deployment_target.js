@@ -27,11 +27,14 @@ function updateDeploymentTarget(xcodeProject, xcodeProjectPath, targetVersion) {
 }
 
 function getProjectName(protoPath) {
-    var cordovaConfigPath = path.join(protoPath, '.cordova', 'config.json'),
-        content = fs.readFileSync(cordovaConfigPath, 'utf-8'),
-        json = JSON.parse(content);
 
-    return json.name;
+    return 'Epicollect+';
+
+    //var cordovaConfigPath = path.join(protoPath, '.cordova', 'config.json'),
+    //    content = fs.readFileSync(cordovaConfigPath, 'utf-8'),
+    //    json = JSON.parse(content);
+    //
+    //return json.name;
 }
 
 /* This is our runner function. It sets up the project paths,

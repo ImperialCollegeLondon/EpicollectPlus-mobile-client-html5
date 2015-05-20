@@ -56,6 +56,35 @@ gulp.task('app-modules-android', function () {
         .pipe(gulp.dest('./www/js/dist/'));
 });
 
+gulp.task('app-modules-ios', function () {
+    return gulp.src([//
+        app_modules_path + '**/*.js',
+        '!' + app_modules_path + 'model/file/EC.File.createMediaDirs.js', //
+        '!' + app_modules_path + 'model/file/EC.File.move.js', //
+        '!' + app_modules_path + 'model/file/EC.File.moveVideo.js' //
+    ])
+        .pipe(order([
+            'www/js/app_modules/boot/**/*.js',
+            'www/js/app_modules/utils/**/*.js',
+            'www/js/app_modules/config/**/*.js',
+            'www/js/app_modules/parsing/**/*.js',
+            'www/js/app_modules/routing/**/*.js',
+            'www/js/app_modules/localisation/**/*.js',
+            'www/js/app_modules/model/database/Structure/**/*.js',
+            'www/js/app_modules/model/database/Select/**/*.js',
+            'www/js/app_modules/model/database/Update/**/*.js',
+            'www/js/app_modules/model/database/Create/**/*.js',
+            'www/js/app_modules/model/database/Delete/**/*.js',
+            'www/js/app_modules/model/file/**/*.js',
+            'www/js/app_modules/controller/**/*.js'
+        ], {base: './'}))
+       // .pipe(sourcemaps.init())
+        .pipe(concat('build-ios.js'))
+       // .pipe(uglify())
+       // .pipe(sourcemaps.write('./'))
+        .pipe(gulp.dest('./www/js/dist/'));
+});
+
 //concatenate css. Use same path as destination not to screw up img and fonts urls
 //gulp.task('app-styles', function () {
 //    return gulp.src(app_styles_path + '*.css')
@@ -64,7 +93,7 @@ gulp.task('app-modules-android', function () {
 //});
 
 // Default Task (re-run manually when adding a vendor)
-gulp.task('default', ['vendor-scripts', 'app-modules-android'], function () {
+gulp.task('default', ['vendor-scripts', 'app-modules-android', 'app-modules-ios'], function () {
     // watch for JS changes
     // gulp.watch('./js/**/*.js', ['app-modules']);
     // watch for CSS changes

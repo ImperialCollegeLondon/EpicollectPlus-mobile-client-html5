@@ -26,7 +26,7 @@
 
     <platform name="ios">
 
-        <hook src="hooks/adjust_ios_deployment_target.js" type="after_platform_add"/>
+        <!--<hook src="hooks/adjust_ios_deployment_target.js" type="after_platform_add"/>-->
         <!-- iOS 8.0+ -->
         <!-- iPhone 6 Plus  -->
         <icon src="res/ios/icons/icon-60@3x.png" width="180" height="180"/>
