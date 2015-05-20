@@ -9,6 +9,8 @@ EC.Boot.onDeviceReady = function () {
 
     if (!EC.Utils.isChrome()) {
 
+
+
         console.log('OS version: ' + window.device.version);
 
         //set media dir paths based on platform

@@ -18,6 +18,7 @@
     <access origin="*" subdomains="true"/>
 
     <preference name="SplashScreenDelay" value="5000"/>
+    <preference name="FadeSplashScreen" value="true" />
     <!-- increase load timeout to 2 minutes, because initial instrumentation takes time -->
     <preference
             name="loadUrlTimeoutValue"
