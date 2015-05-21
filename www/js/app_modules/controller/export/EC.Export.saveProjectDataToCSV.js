@@ -102,7 +102,6 @@ EC.Export.saveProjectDataToCSV = function (the_project_id, the_forms) {
         var i;
         var iLength = data.length;
 
-
         parsed_forms_json = [];
 
         //per each form parse all the entries, also set form mane and list headers

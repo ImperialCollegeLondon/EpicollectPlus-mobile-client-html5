@@ -27,6 +27,7 @@ EC.Select = (function (module) {
             tx.executeSql(select_query, [forms[i]._id], _getAllProjectEntriesSQLSuccessCB, EC.Select.errorCB);
         }
 
+        //get any branches
         if (has_branches) {
             branch_data_rows = [];
             branch_form_names = [];
@@ -36,24 +37,7 @@ EC.Select = (function (module) {
 
     };
 
-    var _getAllProjectEntriesSuccessCB = function () {
 
-        //if we have any branch data, append them to the end of entries array
-        if (branch_data_rows.length > 0) {
-            entries.push({
-                has_branches: true,
-                branch_data_rows: branch_data_rows,
-                branch_form_names: branch_form_names
-            });
-        }
-
-        //return entries to backup controller
-        deferred.resolve(entries.slice(0));
-
-        entries.length = 0;
-        branch_data_rows.length = 0;
-        forms.length = 0;
-    };
 
     var _getAllProjectEntriesSQLSuccessCB = function (the_tx, the_result) {
 
@@ -105,6 +89,25 @@ EC.Select = (function (module) {
             }
         }
 
+    };
+
+    var _getAllProjectEntriesSuccessCB = function () {
+
+        //if we have any branch data, append them to the end of entries array
+        if (branch_data_rows.length > 0) {
+            entries.push({
+                has_branches: true,
+                branch_data_rows: branch_data_rows,
+                branch_form_names: branch_form_names
+            });
+        }
+
+        //return entries to backup controller
+        deferred.resolve(entries.slice(0));
+
+        entries.length = 0;
+        branch_data_rows.length = 0;
+        forms.length = 0;
     };
 
     /**

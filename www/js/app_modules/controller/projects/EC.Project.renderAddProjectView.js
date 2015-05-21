@@ -1,153 +1,147 @@
-/*jslint vars: true , nomen: true, devel: true, plusplus:true*/
-/*global $, jQuery*/
-/**
- * @module EC
- * @submodule Project
- */
-
 var EC = EC || {};
 EC.Project = EC.Project || {};
-EC.Project = ( function(module) {"use strict";
+EC.Project = (function (module) {
+    'use strict';
 
-		var load_project_btn;
-		var back_btn;
-		var input_value;
-		var autocomplete_spinning_loader;
-		var project_url;
+    var load_project_btn;
+    var back_btn;
+    var input_value;
+    var autocomplete_spinning_loader;
+    var project_url;
 
-		var _load = function() {
+    var _load = function () {
 
-			if (EC.Utils.hasConnection()) {
-				_loadProjectFromXML();
-			} else {
-				EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("no_internet"));
-				//load_project_btn.off().one('vclick', _load);
-			}
-		};
+        if (EC.Utils.hasConnection()) {
+            _loadProjectFromXML();
+        } else {
+            EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('no_internet'));
+            //load_project_btn.off().one('vclick', _load);
+        }
+    };
 
-		//Load the specified project via Ajax
-		var _loadProjectFromXML = function() {
+    //Load the specified project via Ajax
+    var _loadProjectFromXML = function () {
 
-			var project_name = input_value.val();
+        var project_name = input_value.val();
 
-			//empty project name
-			if (project_name === "") {
-				EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("project_empty_not_allowed"));
-				load_project_btn.off().one('vclick', _load);
-				return;
-			}
+        //empty project name
+        if (project_name === '') {
+            EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('project_empty_not_allowed'));
+            load_project_btn.off().one('vclick', _load);
+            return;
+        }
 
-			// It has any kind of whitespace
-			if (/\s/.test(project_name)) {
-				EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("project_no_spaces_allowed"));
-				load_project_btn.off().one('vclick', _load);
-				return;
-			}
+        // It has any kind of whitespace
+        if (/\s/.test(project_name)) {
+            EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('project_no_spaces_allowed'));
+            load_project_btn.off().one('vclick', _load);
+            return;
+        }
 
-			//load project from remote XML
-			EC.Project.loadRemoteXML(project_name);
+        //load project from remote XML
+        EC.Project.loadRemoteXML(project_name);
 
-		};
-		//loadProjectFromXML
+    };
+    //loadProjectFromXML
 
-		module.renderAddProjectView = function() {
+    module.renderAddProjectView = function () {
 
-			var dom_list = $("div#add-project-content ul#projects-autocomplete");
-			var request_timeout;
+        var dom_list = $('div#add-project-content ul#projects-autocomplete');
+        var request_timeout;
 
-			load_project_btn = $("div#add-project div[data-role='header'] div.ui-btn-right[data-href='load-project-confirm']");
-			back_btn = $("div#add-project div[data-role='header'] div[data-href='back-btn']");
-			input_value = $("div#add-project-content form div input[data-type='search']");
-			autocomplete_spinning_loader = $(".autocomplete-spinner-loader");
-			project_url = window.localStorage.project_server_url;
+        load_project_btn = $('div#add-project div[data-role="header"] div.ui-btn-right[data-href="load-project-confirm"]');
+        back_btn = $('div#add-project div[data-role="header"] div[data-href="back-btn"]');
+        input_value = $('div#add-project-content form div input[data-type="search"]');
+        autocomplete_spinning_loader = $('.autocomplete-spinner-loader');
+        project_url = window.localStorage.project_server_url;
 
-			//Localise
-			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
-				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
-			}
+        //Localise
+        if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
+            EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
+        }
 
-			input_value.val("");
+        input_value.val('');
 
-            //populate lists with autocomplete suggestions based on project names on the server
-			dom_list.on("listviewbeforefilter", function(e, data) {
+        //populate lists with autocomplete suggestions based on project names on the server
+        dom_list.on('listviewbeforefilter', function (e, data) {
 
-			    console.log("typing");
+            console.log('typing');
 
-				var $ul = $(this);
-				var $input = $(data.input);
-				var value = $input.val();
-				var html = "";
+            var $ul = $(this);
+            var $input = $(data.input);
+            var value = $input.val();
+            var html = '';
 
-				//wait a fifth of a second the user stops typing
-				var request_delay = 200;
+            //wait a fifth of a second the user stops typing
+            var request_delay = 200;
 
-				$ul.html("");
+            $ul.html('');
 
-				//trigger request with more than 2 chars
-				if (value && value.length > 2) {
+            //trigger request with more than 2 chars
+            if (value && value.length > 2) {
 
-				    autocomplete_spinning_loader.removeClass("hidden");
+                autocomplete_spinning_loader.removeClass('hidden');
 
-					$ul.html('<li class="autocomplete-spinner"><i class="fa fa-spinner fa-spin"></i></li>');
-					$ul.listview("refresh");
+                $ul.html('<li class="autocomplete-spinner"><i class="fa fa-spinner fa-spin"></i></li>');
+                $ul.listview('refresh');
 
-					/* Throttle requests as the user is typing on a phone. We want to send as fewer requests as possible:
-					 * Typing a new char will stop the previous ajax request, not tapping for a third of a second will let the request go through
-					 */
-					clearTimeout(request_timeout);
-					request_timeout = setTimeout(function() {
+                /* Throttle requests as the user is typing on a phone. We want to send as fewer requests as possible:
+                 * Typing a new char will stop the previous ajax request, not tapping for a third of a second will let the request go through
+                 */
+                clearTimeout(request_timeout);
+                request_timeout = setTimeout(function () {
 
-					    console.log("requesting");
+                    console.log('requesting');
 
-						$.ajax({
-							url : "http://plus.epicollect.net/" + "projects?q=" + value + "&limit=25",
-							dataType : "json",
-							crossDomain : true,
-							success : function(response) {
+                    $.ajax({
+                        url: 'http://plus.epicollect.net/' + 'projects?q=' + value + '&limit=25',
+                        dataType: 'json',
+                        crossDomain: true,
+                        success: function (response) {
 
-							    autocomplete_spinning_loader.addClass("hidden");
+                            autocomplete_spinning_loader.addClass('hidden');
 
-								$.each(response, function(i) {
-									html += "<li class='h-nav-item'>" + response[i].name + "</li>";
-								});
-								$ul.html(html);
-								$ul.listview("refresh");
-								$ul.trigger("updatelayout");
+                            $.each(response, function (i) {
+                                html += '<li class="h-nav-item">' + response[i].name + '</li>';
+                            });
+                            $ul.html(html);
+                            $ul.listview('refresh');
+                            $ul.trigger('updatelayout');
 
-							},
-							error : function(request, status, error) {
-							     autocomplete_spinning_loader.addClass("hidden");
-							}
-						});
+                        },
+                        error: function (request, status, error) {
+                            autocomplete_spinning_loader.addClass('hidden');
+                        }
+                    });
 
-					}, request_delay);
-				}//if
-			});
+                }, request_delay);
+            }//if
+        });
 
-			dom_list.on('vclick', function(e) {
+        dom_list.on('vclick', function (e) {
 
-				if (e.target.tagName.toLowerCase() === "li") {
+            if (e.target.tagName.toLowerCase() === 'li') {
 
-					input_value.val(e.target.innerText);
-					input_value.attr("value", e.target.innerText);
+                input_value.val(e.target.innerText);
+                input_value.attr('value', e.target.innerText);
 
-				} else {
+            } else {
 
-					return;
-				}
+                return;
+            }
 
-			});
+        });
 
-			//Load project confirm button handler
-			load_project_btn.off().on('vclick', _load);
+        //Load project confirm button handler
+        load_project_btn.off().on('vclick', _load);
 
-			back_btn.off().one('vclick', function(e) {
+        back_btn.off().one('vclick', function (e) {
 
-				window.localStorage.back_nav_url = "#refresh";
-				EC.Routing.changePage(EC.Const.INDEX_VIEW, "../");
-			});
-		};
+            window.localStorage.back_nav_url = '#refresh';
+            EC.Routing.changePage(EC.Const.INDEX_VIEW, '../');
+        });
+    };
 
-		return module;
+    return module;
 
-	}(EC.Project));
+}(EC.Project));

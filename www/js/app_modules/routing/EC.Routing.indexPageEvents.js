@@ -167,6 +167,10 @@ EC.Routing.indexPageEvents = function () {
             }
         }
 
+
+        //add placeholder
+        $('div#add-project div#add-project-content ul#projects-autocomplete').attr(' data-filter-placeholder', 'type_project_name_here');
+
         //Localise placeholder if device language is not set to English and the language is supported
         //if the device language is not localised or it is English, do not translate placeholder
         if (Object.keys(EC.Dictionary).indexOf(window.localStorage.DEVICE_LANGUAGE) !== -1) {
