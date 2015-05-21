@@ -819,12 +819,16 @@ EC.Utils = (function () {
 
         var app_name;
         var deferred = new $.Deferred();
-
-        cordova.getAppVersion.getAppName(function (the_app_name) {
-            console.log('App name ' + the_app_name);
-            app_name = the_app_name;
-            deferred.resolve(app_name);
-        });
+        if (!EC.Utils.isChrome()) {
+            cordova.getAppVersion.getAppName(function (the_app_name) {
+                console.log('App name ' + the_app_name);
+                app_name = the_app_name;
+                deferred.resolve(app_name);
+            });
+        }
+        else {
+            deferred.resolve('');
+        }
 
         return deferred.promise();
 
@@ -835,16 +839,21 @@ EC.Utils = (function () {
         var dir;
         var deferred = new $.Deferred();
 
-        cordova.getAppVersion.getAppName(function (the_app_name) {
-
-            //sanitise app name to be used as a directory (remove all special chars with '-')
-            dir = the_app_name.replace(/[^\w\s]/gi, '-')
-            dir += '-export';
-            deferred.resolve(dir);
-        });
-
+        if (!EC.Utils.isChrome()) {
+            cordova.getAppVersion.getAppName(function (the_app_name) {
+                //sanitise app name to be used as a directory (remove all special chars with '-')
+                dir = the_app_name.replace(/[^\w\s]/gi, '-')
+                //remove all spaces
+                dir = dir.replace(/\s+/g, '');
+                //append export suffix foe easier identification
+                dir += '-export';
+                deferred.resolve(dir);
+            });
+        }
+        else {
+            deferred.resolve('');
+        }
         return deferred.promise();
-
     };
 
     //get absolute path for page urls
@@ -1399,7 +1408,7 @@ EC.Utils = (function () {
         changeHashNavigationDirection: changeHashNavigationDirection,
         inArray: inArray,
         getVersionName: getVersionName,
-        getAppName:getAppName,
+        getAppName: getAppName,
         getExportDirName: getExportDirName,
         getPageBaseURI: getPageBaseURI,
         isValidValue: isValidValue,

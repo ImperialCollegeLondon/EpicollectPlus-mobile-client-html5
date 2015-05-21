@@ -9,8 +9,6 @@ EC.Boot.onDeviceReady = function () {
 
     if (!EC.Utils.isChrome()) {
 
-
-
         console.log('OS version: ' + window.device.version);
 
         //set media dir paths based on platform
@@ -103,6 +101,11 @@ EC.Boot.onDeviceReady = function () {
 
         //set base URI for debugging on Chrome
         window.localStorage.BASE_URI = window.location.href.replace('index.html', '');
+
+        //replace page title with name of the app (used mostly for GapDebug)
+        $.when(EC.Utils.getAppName()).then(function (the_app_name) {
+            $(document).prop('title', the_app_name);
+        });
     }
 
     EC.db = EC.Utils.openDatabase();
@@ -166,7 +169,6 @@ EC.Boot.onDeviceReady = function () {
     //test referrer on Android platform
     if (window.device) {
         if (window.device.platform === EC.Const.ANDROID) {
-
             window.plugins.appPreferences.fetch(function (value) {
                 console.log('Referrer value is ****************************' + value);
             }, function (error) {
@@ -174,6 +176,5 @@ EC.Boot.onDeviceReady = function () {
             }, 'referrer');
         }
     }
-
     EC.Boot.getProjects();
-}
+};

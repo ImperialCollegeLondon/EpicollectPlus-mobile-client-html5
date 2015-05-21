@@ -181,8 +181,6 @@ EC.Boot.onDeviceReady = function () {
 
     if (!EC.Utils.isChrome()) {
 
-
-
         console.log('OS version: ' + window.device.version);
 
         //set media dir paths based on platform
@@ -275,6 +273,11 @@ EC.Boot.onDeviceReady = function () {
 
         //set base URI for debugging on Chrome
         window.localStorage.BASE_URI = window.location.href.replace('index.html', '');
+
+        //replace page title with name of the app (used mostly for GapDebug)
+        $.when(EC.Utils.getAppName()).then(function (the_app_name) {
+            $(document).prop('title', the_app_name);
+        });
     }
 
     EC.db = EC.Utils.openDatabase();
@@ -338,7 +341,6 @@ EC.Boot.onDeviceReady = function () {
     //test referrer on Android platform
     if (window.device) {
         if (window.device.platform === EC.Const.ANDROID) {
-
             window.plugins.appPreferences.fetch(function (value) {
                 console.log('Referrer value is ****************************' + value);
             }, function (error) {
@@ -346,9 +348,8 @@ EC.Boot.onDeviceReady = function () {
             }, 'referrer');
         }
     }
-
     EC.Boot.getProjects();
-}
+};
 
 /*global $, jQuery, cordova, device, ActivityIndicator, Connection*/
 var EC = EC || {};
@@ -1935,12 +1936,16 @@ EC.Utils = (function () {
 
         var app_name;
         var deferred = new $.Deferred();
-
-        cordova.getAppVersion.getAppName(function (the_app_name) {
-            console.log('App name ' + the_app_name);
-            app_name = the_app_name;
-            deferred.resolve(app_name);
-        });
+        if (!EC.Utils.isChrome()) {
+            cordova.getAppVersion.getAppName(function (the_app_name) {
+                console.log('App name ' + the_app_name);
+                app_name = the_app_name;
+                deferred.resolve(app_name);
+            });
+        }
+        else {
+            deferred.resolve('');
+        }
 
         return deferred.promise();
 
@@ -1951,16 +1956,21 @@ EC.Utils = (function () {
         var dir;
         var deferred = new $.Deferred();
 
-        cordova.getAppVersion.getAppName(function (the_app_name) {
-
-            //sanitise app name to be used as a directory (remove all special chars with '-')
-            dir = the_app_name.replace(/[^\w\s]/gi, '-')
-            dir += '-export';
-            deferred.resolve(dir);
-        });
-
+        if (!EC.Utils.isChrome()) {
+            cordova.getAppVersion.getAppName(function (the_app_name) {
+                //sanitise app name to be used as a directory (remove all special chars with '-')
+                dir = the_app_name.replace(/[^\w\s]/gi, '-')
+                //remove all spaces
+                dir = dir.replace(/\s+/g, '');
+                //append export suffix foe easier identification
+                dir += '-export';
+                deferred.resolve(dir);
+            });
+        }
+        else {
+            deferred.resolve('');
+        }
         return deferred.promise();
-
     };
 
     //get absolute path for page urls
@@ -2515,7 +2525,7 @@ EC.Utils = (function () {
         changeHashNavigationDirection: changeHashNavigationDirection,
         inArray: inArray,
         getVersionName: getVersionName,
-        getAppName:getAppName,
+        getAppName: getAppName,
         getExportDirName: getExportDirName,
         getPageBaseURI: getPageBaseURI,
         isValidValue: isValidValue,
@@ -29029,6 +29039,7 @@ EC.Settings = (function () {
     var project_name;
     var header;
     var enhance_map_checkbox;
+    var app_name;
 
     var renderView = function () {
 
@@ -29042,10 +29053,12 @@ EC.Settings = (function () {
         enhance_map_checkbox = $('div#settings div#settings-values input#enhanced-location-google-maps');
         project_name = window.localStorage.project_name;
         header = $('div#settings div[data-role="header"] div[data-href="back-btn"] span.project-name');
+        app_name = $('div#settings div#settings-values p#version-name span.app-name');
 
         //show app version (we use a deferred object as on iOS the version plugins returns a value too late)
-        $.when(EC.Utils.getVersionName()).then(function (the_version_name) {
+        $.when(EC.Utils.getVersionName(), EC.Utils.getAppName()).then(function (the_version_name, the_app_name) {
             version_name_label.text(the_version_name);
+            app_name.text(the_app_name);
         });
 
         project_server_url_holder.val(project_server_url);
@@ -29069,12 +29082,10 @@ EC.Settings = (function () {
             pagination_radio_btns.each(function (index) {
 
                 var checked = $(this).is(':checked');
-
                 if (checked) {
                     console.log($(this).val());
                     window.localStorage.QUERY_LIMIT = $(this).val();
                 }
-
             });
 
             //show toast on device
@@ -29086,17 +29097,14 @@ EC.Settings = (function () {
             if (window.localStorage.current_view_url) {
                 EC.Routing.changePage(window.localStorage.current_view_url);
             } else {
-
                 //TODO: test this
                 //EC.Routing.changePage(EC.Const.INDEX_VIEW);
                 window.history.back(-1);
             }
-
         });
 
         //bind back button
         back_btn.off().one('vclick', function (e) {
-
             if (window.localStorage.current_view_url) {
                 EC.Routing.changePage(window.localStorage.current_view_url);
             } else {
@@ -29105,12 +29113,10 @@ EC.Settings = (function () {
                 //EC.Routing.changePage(EC.Const.INDEX_VIEW, '../');
                 window.history.back(-1);
             }
-
         });
 
         //check (highlight) the radio button based on user preferences
         pagination_radio_btns.each(function (index) {
-
             if ($(this).val() === window.localStorage.QUERY_LIMIT) {
                 $(this).prop('checked', true).checkboxradio('refresh');
             }
@@ -29120,13 +29126,11 @@ EC.Settings = (function () {
         if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
             EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
         }
-
     };
 
     return {
         renderView: renderView
     };
-
 }());
 
 /*jslint vars: true , nomen: true devel: true, plusplus: true*/
