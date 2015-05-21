@@ -101,21 +101,6 @@ EC.InputTypes = (function (module) {
                     console.log('map needs to be updated');
                 }
 
-
-                //$.when(EC.DevicePosition.loadGoogleMapsApi()).then(function () {
-                //    $.when(EC.DevicePosition.initGoogleMap()).then(function () {
-                //        window.google.maps.event.trigger(EC.DevicePosition.map, 'resize');
-                //        EC.DevicePosition.map.setZoom(EC.DevicePosition.map.getZoom());
-                //        EC.Notification.hideProgressDialog();
-                //    });
-                //}, function () {
-                //    //loading Google Maps Api failed, show standard view
-                //    //todo alert user google maps failed to load
-                //    textarea_coords.val(EC.DevicePosition.getCoordsFormattedText()).removeClass('hidden');
-                //    map_canvas.addClass('hidden');
-                //    EC.Notification.hideProgressDialog();
-                //});
-
                 EC.Notification.hideProgressDialog();
 
             } else {

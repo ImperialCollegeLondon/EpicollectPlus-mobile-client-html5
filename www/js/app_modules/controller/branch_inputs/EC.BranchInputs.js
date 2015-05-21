@@ -1,10 +1,3 @@
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
-/*global $, jQuery*/
-/*
- *	@module EC
- @submodule BranchInputs
- *
- */
 var EC = EC || {};
 EC.BranchInputs = EC.BranchInputs || {};
 EC.BranchInputs = (function (module) {

@@ -1,23 +1,24 @@
-/*jslint vars: true , nomen: true, devel: true, plusplus:true*/
-/*global $, jQuery*/
 var EC = EC || {};
 EC.BranchInputTypes = EC.BranchInputTypes || {};
 EC.BranchInputTypes = (function (module) {
     'use strict';
 
+    //branches only have old location implementation
     module.location = function (the_value, the_input) {
-
 
         var span_label = $('span.label');
         var value = the_value;
         var input = the_input;
         var requests = [];
         var geolocation_request;
-
         var is_first_attempt = true;
         //set unlimited timeout for watch position to avoid timeout error on iOS when the device does not move
         // see http://goo.gl/tYsBSC, http://goo.gl/jYQhgr, http://goo.gl/8oR1g2
         var timeout = (window.device.platform === EC.Const.IOS) ? Infinity : 30000;
+        var set_location_btn = $('div#branch-location div#branch-input-location div#branch-set-location');
+        var set_location_result = $('textarea#branch-set-location-result');
+        var accuracy_result = $('div#branch-location  div#branch-input-location div.current-accuracy-result');
+        var accuracy_tip = $('div#branch-location  div#branch-input-location div.location-accuracy-tip');
 
         //update label text
         span_label.text(input.label);
@@ -27,25 +28,24 @@ EC.BranchInputTypes = (function (module) {
             EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
         }
 
-        var set_location_btn = $('div#branch-location div#branch-input-location div#branch-set-location');
-        var set_location_result = $('textarea#branch-set-location-result');
-        var accuracy_result = $('div#branch-location  div#branch-input-location div.current-accuracy-result');
-        var accuracy_tip = $('div#branch-location  div#branch-input-location div.location-accuracy-tip');
-
-        //hide feedback when showing the view the first time
-        $(accuracy_result).addClass('hidden');
-        $(accuracy_tip).addClass('hidden');
-
         //set previous location value if any
-        set_location_result.val(value);
+        if (value !== '') {
+            set_location_result.val(value);
+            accuracy_result.find('span').text(Math.floor(location.accuracy));
+            accuracy_result.removeClass('hidden');
+            accuracy_tip.removeClass('hidden');
+        } else {
+            //hide feedback when showing the view the first time
+            $(accuracy_result).addClass('hidden');
+            $(accuracy_tip).addClass('hidden');
+        }
 
         function _showAcquiredLocation() {
 
-            // clearAllRequests();
-
-            $(accuracy_result).find('span').text(Math.floor(location.accuracy));
-            $(accuracy_result).removeClass('hidden');
-            $(accuracy_tip).removeClass('hidden');
+            window.navigator.geolocation.clearWatch(geolocation_request);
+            accuracy_result.find('span').text(Math.floor(location.accuracy));
+            accuracy_result.removeClass('hidden');
+            accuracy_tip.removeClass('hidden');
 
             EC.Notification.hideProgressDialog();
 
@@ -62,7 +62,6 @@ EC.BranchInputTypes = (function (module) {
                 EC.Notification.showToast(EC.Localise.getTranslation('location_acquired'), 'short');
             }
             set_location_btn.one('vclick', _getLocation);
-
 
         }
 
@@ -90,7 +89,6 @@ EC.BranchInputTypes = (function (module) {
                     timeout: timeout,
                     enableHighAccuracy: true
                 });
-
 
                 window.setTimeout(function () {
                         window.navigator.geolocation.clearWatch(geolocation_request);
@@ -153,7 +151,7 @@ EC.BranchInputTypes = (function (module) {
             location.altitude_accuracy = (position.coords.altitudeAccuracy === null) ? '' : position.coords.altitudeAccuracy;
             location.heading = (position.coords.heading === null) ? '' : position.coords.heading;
 
-
+            _showAcquiredLocation();
         };
 
         // onError Callback receives a PositionError object

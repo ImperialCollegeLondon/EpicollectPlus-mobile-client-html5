@@ -4102,6 +4102,10 @@ EC.Routing.indexPageEvents = function () {
             }
         }
 
+
+        //add placeholder
+        $('div#add-project div#add-project-content ul#projects-autocomplete').attr('data-filter-placeholder', 'type_project_name_here');
+
         //Localise placeholder if device language is not set to English and the language is supported
         //if the device language is not localised or it is English, do not translate placeholder
         if (Object.keys(EC.Dictionary).indexOf(window.localStorage.DEVICE_LANGUAGE) !== -1) {
@@ -6542,6 +6546,7 @@ EC.Select = (function (module) {
             tx.executeSql(select_query, [forms[i]._id], _getAllProjectEntriesSQLSuccessCB, EC.Select.errorCB);
         }
 
+        //get any branches
         if (has_branches) {
             branch_data_rows = [];
             branch_form_names = [];
@@ -6551,24 +6556,7 @@ EC.Select = (function (module) {
 
     };
 
-    var _getAllProjectEntriesSuccessCB = function () {
 
-        //if we have any branch data, append them to the end of entries array
-        if (branch_data_rows.length > 0) {
-            entries.push({
-                has_branches: true,
-                branch_data_rows: branch_data_rows,
-                branch_form_names: branch_form_names
-            });
-        }
-
-        //return entries to backup controller
-        deferred.resolve(entries.slice(0));
-
-        entries.length = 0;
-        branch_data_rows.length = 0;
-        forms.length = 0;
-    };
 
     var _getAllProjectEntriesSQLSuccessCB = function (the_tx, the_result) {
 
@@ -6620,6 +6608,25 @@ EC.Select = (function (module) {
             }
         }
 
+    };
+
+    var _getAllProjectEntriesSuccessCB = function () {
+
+        //if we have any branch data, append them to the end of entries array
+        if (branch_data_rows.length > 0) {
+            entries.push({
+                has_branches: true,
+                branch_data_rows: branch_data_rows,
+                branch_form_names: branch_form_names
+            });
+        }
+
+        //return entries to backup controller
+        deferred.resolve(entries.slice(0));
+
+        entries.length = 0;
+        branch_data_rows.length = 0;
+        forms.length = 0;
     };
 
     /**
@@ -12372,241 +12379,226 @@ EC.Create = ( function(module) {"use strict";
 
 	}(EC.Create));
 
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
-/*global $, jQuery*/
-/**
- * @module EC
- * @submodule Create
- *
- */
+var EC = EC || {};
+EC.Create = EC.Create || {};
+EC.Create = (function (module) {
+    'use strict';
+
+    var self;
+    var branch_form_values = [];
+    var branch_forms_data = [];
+    var entries = [];
+    var entry_key;
+    var local_branch_form_id;
+    var branch_form_total_entries;
+    var deferred;
+
+    //callback for a transaction error
+    var _errorCB = function (the_tx, the_result) {
+        console.log(EC.Utils.TRANSACTION_ERROR);
+        console.log(the_result);
+    };
+
+    var _insertBranchFormValuesTX = function (tx) {
+
+        var i;
+        var iLength = branch_form_values.length;
+        var remote_flag = 0;
+        var is_cached = 1;
+        var is_stored = 0;
+
+        for (i = 0; i < iLength; i++) {
+
+            var query = '';
+            var obj = branch_form_values[i];
+
+            query += 'INSERT INTO ec_branch_data (';
+            query += 'input_id, ';
+            query += 'form_id, ';
+            query += 'hierarchy_entry_key_ref, ';
+            query += 'hierarchy_entry_key_value, ';
+            query += 'position, ';
+            query += 'label, ';
+            query += 'ref, ';
+            query += 'value, ';
+            query += 'is_title, ';
+            query += 'entry_key, ';
+            query += 'type, ';
+            query += 'is_data_synced, ';
+            query += 'is_media_synced, ';
+            query += 'is_cached, ';
+            query += 'is_stored, ';
+            query += 'created_on, ';
+            query += 'is_remote) ';
+            query += 'VALUES ("';
+            query += obj.input_id + '", "';
+            query += obj.form_id + '", "';
+            query += obj.hierarchy_entry_key_ref + '", "';
+            query += obj.hierarchy_entry_key_value + '", "';
+            query += obj.position + '", "';
+            query += obj.label + '", "';
+            query += obj.ref + '", "';
+            query += obj.value + '", "';
+            query += obj.is_title + '", "';
+            query += obj.entry_key + '", "';
+            query += obj.type + '", "';
+            query += obj.is_data_synced + '", "';
+            query += obj.is_media_synced + '", "';
+            query += is_cached + '", "';
+            query += is_stored + '", "';
+            query += obj.created_on + '", "';
+            query += remote_flag + '");';
+
+            tx.executeSql(query, [], _insertBranchFormValuesSQLSuccessCB, _errorCB);
+
+        }//for
+
+    };
+
+    var _insertBranchFormValuesSuccessCB = function () {
+
+        var branch_form_id = branch_form_values[0].form_id;
+
+        //update branch entries counter, + 1
+        $.when(EC.Update.updateCountersOnSingleBranchEntryInsertion(entry_key, branch_form_id)).then(function () {
+            deferred.resolve(entry_key);
+        }, function () {
+            deferred.reject();
+        });
+
+    };
+
+    var _insertBranchFormValueserrorCB = function (the_tx, the_result) {
+        console.log(the_result);
+        deferred.reject();
+    };
+
+    var _insertBranchFormValuesSQLSuccessCB = function () {
+    };
+
+    /*
+     * Commit a branch form to database; each value is a row in the table ec_data:
+     * when committed, the branch form is set as is_cached = 1, is_stored = 0
+     * the is_stored flag is set to one when the main form is saved.
+     * If the user leaves the main form without saving, the branch entries only cached (is_stored = 0) will be deleted
+     */
+    module.insertBranchFormValues = function (the_branch_form_values, the_key_value) {
+
+        branch_form_values = the_branch_form_values;
+        entry_key = the_key_value;
+        deferred = new $.Deferred();
+
+        EC.db.transaction(_insertBranchFormValuesTX, _errorCB, _insertBranchFormValuesSuccessCB);
+
+        return deferred.promise();
+
+    };
+
+    return module;
+
+}(EC.Create));
 
 var EC = EC || {};
 EC.Create = EC.Create || {};
-EC.Create = ( function(module) {"use strict";
+EC.Create = ( function (module) {
+    'use strict';
 
-		var self;
-		var branch_form_values = [];
-		var branch_forms_data = [];
-		var entries = [];
-		var entry_key;
-		var local_branch_form_id;
-		var branch_form_total_entries;
-		var deferred;
+    var form_values;
+    var entry_key;
+    var deferred;
 
-		//callback for a transaction error
-		var _errorCB = function(the_tx, the_result) {
-			console.log(EC.Utils.TRANSACTION_ERROR);
-			console.log(the_result);
-		};
+    var _insertFormValuesTX = function (tx) {
 
-		var _insertBranchFormValuesTX = function(tx) {
+        var i;
+        var iLength = form_values.length;
+        var remote_flag = 0;
+        var query;
+        var obj;
 
-			var i;
-			var iLength = branch_form_values.length;
-			var remote_flag = 0;
-			var is_cached = 1;
-			var is_stored = 0;
+        for (i = 0; i < iLength; i++) {
 
-			for ( i = 0; i < iLength; i++) {
+            query = '';
+            obj = form_values[i];
 
-				var query = "";
-				var obj = branch_form_values[i];
+            query += 'INSERT INTO ec_data (';
+            query += 'input_id, ';
+            query += 'form_id, ';
+            query += 'position, ';
+            query += 'parent, ';
+            query += 'label, ';
+            query += 'ref, ';
+            query += 'value, ';
+            query += 'is_title, ';
+            query += 'entry_key, ';
+            query += 'type, ';
+            query += 'created_on, ';
+            query += 'is_data_synced, ';
+            query += 'is_remote, ';
+            query += 'is_media_synced) ';
+            query += 'VALUES ("';
+            query += obj.input_id + '", "';
+            query += obj.form_id + '", "';
+            query += obj.position + '", "';
+            query += obj.parent + '", "';
+            query += obj.label + '", "';
+            query += obj.ref + '", "';
+            query += obj.value + '", "';
+            query += obj.is_title + '", "';
+            query += obj.entry_key + '", "';
+            query += obj.type + '", "';
+            query += obj.created_on + '", "';
+            query += obj.is_data_synced + '", "';
+            query += remote_flag + '", "';
+            query += obj.is_media_synced + '");';
 
-				query += 'INSERT INTO ec_branch_data (';
-				query += 'input_id, ';
-				query += 'form_id, ';
-				query += 'hierarchy_entry_key_ref, ';
-				query += 'hierarchy_entry_key_value, ';
-				query += 'position, ';
-				query += 'label, ';
-				query += 'ref, ';
-				query += 'value, ';
-				query += 'is_title, ';
-				query += 'entry_key, ';
-				query += 'type, ';
-				query += 'is_data_synced, ';
-				query += 'is_media_synced, ';
-				query += 'is_cached, ';
-				query += 'is_stored, ';
-				query += 'created_on, ';
-				query += 'is_remote) ';
-				query += 'VALUES ("';
-				query += obj.input_id + '", "';
-				query += obj.form_id + '", "';
-				query += obj.hierarchy_entry_key_ref + '", "';
-				query += obj.hierarchy_entry_key_value + '", "';
-				query += obj.position + '", "';
-				query += obj.label + '", "';
-				query += obj.ref + '", "';
-				query += obj.value + '", "';
-				query += obj.is_title + '", "';
-				query += obj.entry_key + '", "';
-				query += obj.type + '", "';
-				query += obj.is_data_synced + '", "';
-				query += obj.is_media_synced + '", "';
-				query += is_cached + '", "';
-				query += is_stored + '", "';
-				query += obj.created_on + '", "';
-				query += remote_flag + '");';
+            tx.executeSql(query, [], _insertFormValuesSQLSuccessCB, _errorCB);
 
-				tx.executeSql(query, [], _insertBranchFormValuesSQLSuccessCB, _errorCB);
+        }//for
 
-			}//for
+    };
 
-		};
+    var _insertFormValuesSuccessCB = function () {
 
-		var _insertBranchFormValuesSuccessCB = function() {
+        var form_id = form_values[0].form_id;
+        console.log('FORM VALUES SAVED SUCCESSFULLY');
 
-			var branch_form_id = branch_form_values[0].form_id;
+        //update entries counter, + 1
+        $.when(EC.Update.updateCountersOnSingleEntryInsertion(entry_key, form_id)).then(function (main_form_entry_key) {
+            deferred.resolve(main_form_entry_key);
+        }, function () {
+            deferred.reject();
+        });
 
-			//update branch entries counter, + 1
-			$.when(EC.Update.updateCountersOnSingleBranchEntryInsertion(entry_key, branch_form_id)).then(function() {
-				deferred.resolve(entry_key);
-			}, function() {
-				deferred.reject();
-			});
+    };
 
-		};
+    var _insertFormValuesSQLSuccessCB = function () {
+        console.log('FORM VALUE SQL QUERY SUCCESS');
+    };
 
-		var _insertBranchFormValueserrorCB = function(the_tx, the_result) {
-			console.log(the_result);
-			deferred.reject();
-		};
+    var _errorCB = function (the_tx, the_result) {
+        console.log(the_result);
+        deferred.reject();
+    };
 
-		var _insertBranchFormValuesSQLSuccessCB = function() {
-		};
+    /*
+     * Commit a form to database; each value is a row in the table ec_data
+     * a single entry get multiple rows
+     */
+    module.insertFormValues = function (the_form_values, the_key_value) {
 
-		/*
-		 * Commit a branch form to database; each value is a row in the table ec_data:
-		 * when committed, the branch form is set as is_cached = 1, is_stored = 0
-		 * the is_stored flag is set to one when the main form is saved.
-		 * If the user leaves the main form without saving, the branch entries only cached (is_stored = 0) will be deleted
-		 */
-		module.insertBranchFormValues = function(the_branch_form_values, the_key_value) {
+        form_values = the_form_values;
+        entry_key = the_key_value;
+        deferred = new $.Deferred();
 
-			branch_form_values = the_branch_form_values;
-			entry_key = the_key_value;
-			deferred = new $.Deferred();
+        EC.db.transaction(_insertFormValuesTX, _errorCB, _insertFormValuesSuccessCB);
 
-			EC.db.transaction(_insertBranchFormValuesTX, _errorCB, _insertBranchFormValuesSuccessCB);
+        return deferred.promise();
 
-			return deferred.promise();
+    };
 
-		};
+    return module;
 
-		return module;
-
-	}(EC.Create));
-
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
-/*global $, jQuery*/
-
-/**
- * @module EC
- * @submodule Create
- *
- */
-
-var EC = EC || {};
-EC.Create = EC.Create || {};
-EC.Create = ( function(module) {"use strict";
-
-		var form_values;
-		var entry_key;
-		var deferred;
-
-		var _insertFormValuesTX = function(tx) {
-
-			var i;
-			var iLength = form_values.length;
-			var remote_flag = 0;
-			var query;
-			var obj;
-
-			for ( i = 0; i < iLength; i++) {
-
-				query = "";
-				obj = form_values[i];
-
-				query += 'INSERT INTO ec_data (';
-				query += 'input_id, ';
-				query += 'form_id, ';
-				query += 'position, ';
-				query += 'parent, ';
-				query += 'label, ';
-				query += 'ref, ';
-				query += 'value, ';
-				query += 'is_title, ';
-				query += 'entry_key, ';
-				query += 'type, ';
-				query += 'created_on, ';
-				query += 'is_data_synced, ';
-				query += 'is_remote, ';
-				query += 'is_media_synced) ';
-				query += 'VALUES ("';
-				query += obj.input_id + '", "';
-				query += obj.form_id + '", "';
-				query += obj.position + '", "';
-				query += obj.parent + '", "';
-				query += obj.label + '", "';
-				query += obj.ref + '", "';
-				query += obj.value + '", "';
-				query += obj.is_title + '", "';
-				query += obj.entry_key + '", "';
-				query += obj.type + '", "';
-				query += obj.created_on + '", "';
-				query += obj.is_data_synced + '", "';
-				query += remote_flag + '", "';
-				query += obj.is_media_synced + '");';
-
-				tx.executeSql(query, [], _insertFormValuesSQLSuccessCB, _errorCB);
-
-			}//for
-
-		};
-
-		var _insertFormValuesSuccessCB = function() {
-
-			var form_id = form_values[0].form_id;
-			console.log("FORM VALUES SAVED SUCCESSFULLY");
-
-			//update entries counter, + 1
-			$.when(EC.Update.updateCountersOnSingleEntryInsertion(entry_key, form_id)).then(function(main_form_entry_key) {
-				deferred.resolve(main_form_entry_key);
-			}, function() {
-				deferred.reject();
-			});
-
-		};
-
-		var _insertFormValuesSQLSuccessCB = function() {
-			console.log("FORM VALUE SQL QUERY SUCCESS");
-		};
-
-		var _errorCB = function(the_tx, the_result) {
-			console.log(the_result);
-			deferred.reject();
-		};
-
-		/*
-		 * Commit a form to database; each value is a row in the table ec_data
-		 * a single entry get multiple rows
-		 */
-		module.insertFormValues = function(the_form_values, the_key_value) {
-
-			form_values = the_form_values;
-			entry_key = the_key_value;
-			deferred = new $.Deferred();
-
-			EC.db.transaction(_insertFormValuesTX, _errorCB, _insertFormValuesSuccessCB);
-
-			return deferred.promise();
-
-		};
-
-		return module;
-
-	}(EC.Create));
+}(EC.Create));
 
 var EC = EC || {};
 EC.Create = EC.Create || {};
@@ -15150,13 +15142,6 @@ EC.File = (function (module) {
     return module;
 }(EC.File));
 
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
-/*global $, jQuery*/
-/*
- *	@module EC
- @submodule BranchInputs
- *
- */
 var EC = EC || {};
 EC.BranchInputs = EC.BranchInputs || {};
 EC.BranchInputs = (function (module) {
@@ -16558,307 +16543,178 @@ EC.BranchInputs = ( function(module) {"use strict";
 
 	}(EC.BranchInputs));
 
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
-/*global $, jQuery, cordova, device*/
-
-/*
- *	@module EC
- *  @submodule BranchInputs
- *
- */
 var EC = EC || {};
 EC.BranchInputs = EC.BranchInputs || {};
-EC.BranchInputs = ( function(module) {"use strict";
+EC.BranchInputs = (function (module) {
+    'use strict';
 
-		module.buildRows = function(the_filenameToTimestamp) {
+    module.buildRows = function (the_filenameToTimestamp) {
 
-			var self = this;
-			var i;
-			var branch_input;
-			var value_obj;
-			var value;
-			var _id;
-			var ref;
-			var rows = [];
-			var iLength = EC.BranchInputs.branch_inputs.length;
-			var key_position = EC.BranchInputs.getPrimaryKeyRefPosition();
-			var hierarchy_key_position = EC.Inputs.getPrimaryKeyRefPosition();
-			var parts;
-			var filename;
-			var filename_parts;
-			var extension;
-			var form_name = window.localStorage.form_name;
-			var uuid = EC.Utils.getPhoneUUID();
-			var form_id = window.localStorage.form_id;
-			var created_on = EC.Utils.getTimestamp();
-			var branch_form_name = window.localStorage.branch_form_name;
-			var ios_filenames = the_filenameToTimestamp;
-			var timestamp;
-
-			//get parent key value for the current branch form
-			var current_branch_input_position = parseInt(window.localStorage.branch_current_position, 10);
-
-			//get value of primary key for this branchform
-			var key_value = EC.BranchInputs.getCachedInputValue(key_position).value;
-
-			/* Get key and value of primary key for the hierarchy entry of this branch form.
-			 * The hierarchy key value is the one cached, if the user edits it before saving the entry, it will need to be updated in the database
-			 * or lock the editing after inserting a branch form.
-			 */
-			var hierarchy_entry_key_value = EC.Inputs.getCachedInputValue(hierarchy_key_position).value;
-			var hierarchy_entry_key_ref = EC.Utils.getFormPrimaryKeyRef(form_id);
-
-			//build rows to be saved - the text value for each input is saved in an array with corresponding indexes
-			for ( i = 0; i < iLength; i++) {
-
-				//get current value
-				branch_input = EC.BranchInputs.branch_inputs[i];
-				value_obj = EC.BranchInputs.getCachedInputValue(branch_input.position);
-
-				//save cached value OR "" when the value cannot be found
-				value = value_obj.value || "";
-
-				//_id is set only when we are editing, it is the _id of the current row in the database which will be updated
-				_id = value_obj._id;
-
-				//deal with media types to save the correct value (full path uri)
-				if (branch_input.type === EC.Const.PHOTO || branch_input.type === EC.Const.VIDEO || branch_input.type === EC.Const.AUDIO) {
-
-					//check whether the value is defined as media value {stored: "<path>", cached: "<path>"}
-					if (value.hasOwnProperty("stored")) {
-
-						if (value.stored === "") {
-
-							//we are saving a new media file path from the cached one (or an empty string if the file field was optional)
-							if (value.cached !== "") {
-
-								//build file name (in the format <form_name>_<ref>_<uuid>_filename) with the cached value
-								//Cordova Camera API unfortunately returns the timestamp as a file name on Android only, on iOS a smart guy decided to use the same file name with an incremental index (lol)
-
-								parts = value.cached.split('/');
-								filename = parts[parts.length - 1];
+        var self = this;
+        var i;
+        var branch_input;
+        var value_obj;
+        var value;
+        var _id;
+        var ref;
+        var rows = [];
+        var iLength = EC.BranchInputs.branch_inputs.length;
+        var key_position = EC.BranchInputs.getPrimaryKeyRefPosition();
+        var hierarchy_key_position = EC.Inputs.getPrimaryKeyRefPosition();
+        var parts;
+        var filename;
+        var filename_parts;
+        var extension;
+        var form_name = window.localStorage.form_name;
+        var uuid = EC.Utils.getPhoneUUID();
+        var form_id = window.localStorage.form_id;
+        var created_on = EC.Utils.getTimestamp();
+        var branch_form_name = window.localStorage.branch_form_name;
+        var ios_filenames = the_filenameToTimestamp;
+        var timestamp;
+
+        //get parent key value for the current branch form
+        var current_branch_input_position = parseInt(window.localStorage.branch_current_position, 10);
+
+        //get value of primary key for this branchform
+        var key_value = EC.BranchInputs.getCachedInputValue(key_position).value;
+
+        /* Get key and value of primary key for the hierarchy entry of this branch form.
+         * The hierarchy key value is the one cached, if the user edits it before saving the entry, it will need to be updated in the database
+         * or lock the editing after inserting a branch form.
+         */
+        var hierarchy_entry_key_value = EC.Inputs.getCachedInputValue(hierarchy_key_position).value;
+        var hierarchy_entry_key_ref = EC.Utils.getFormPrimaryKeyRef(form_id);
+
+        //build rows to be saved - the text value for each input is saved in an array with corresponding indexes
+        for (i = 0; i < iLength; i++) {
+
+            //get current value
+            branch_input = EC.BranchInputs.branch_inputs[i];
+            value_obj = EC.BranchInputs.getCachedInputValue(branch_input.position);
+
+            //save cached value OR '' when the value cannot be found
+            value = value_obj.value || '';
+
+            //_id is set only when we are editing, it is the _id of the current row in the database which will be updated
+            _id = value_obj._id;
+
+            //deal with media types to save the correct value (full path uri)
+            if (branch_input.type === EC.Const.PHOTO || branch_input.type === EC.Const.VIDEO || branch_input.type === EC.Const.AUDIO) {
+
+                //check whether the value is defined as media value {stored: '<path>', cached: '<path>'}
+                if (value.hasOwnProperty('stored')) {
+
+                    if (value.stored === '') {
+
+                        //we are saving a new media file path from the cached one (or an empty string if the file field was optional)
+                        if (value.cached !== '') {
+
+                            //build file name (in the format <form_name>_<ref>_<uuid>_filename) with the cached value
+                            //Cordova Camera API unfortunately returns the timestamp as a file name on Android only, on iOS a smart guy decided to use the same file name with an incremental index (lol)
+
+                            parts = value.cached.split('/');
+                            filename = parts[parts.length - 1];
 
-								switch(window.device.platform) {
+                            switch (window.device.platform) {
 
-									case EC.Const.ANDROID:
-										//do nothing
-										break;
-									case EC.Const.IOS:
+                                case EC.Const.ANDROID:
+                                    //do nothing
+                                    break;
+                                case EC.Const.IOS:
 
-										//replace filename with <timestamp>.jpg as on IOS the Camera, Audio and Video capture is inconsistent and returns weird file names
-										//not always the timestamp. We want to save the files using the timestamp as we do on Android (and following Epicollect+ filename schema)
-										if (branch_input.type === EC.Const.PHOTO || branch_input.type === EC.Const.AUDIO || branch_input.type === EC.Const.VIDEO) {
+                                    //replace filename with <timestamp>.jpg as on IOS the Camera, Audio and Video capture is inconsistent and returns weird file names
+                                    //not always the timestamp. We want to save the files using the timestamp as we do on Android (and following Epicollect+ filename schema)
+                                    if (branch_input.type === EC.Const.PHOTO || branch_input.type === EC.Const.AUDIO || branch_input.type === EC.Const.VIDEO) {
 
-											//get linked timestamp as we save the file using the timestamp as the file name
-											filename_parts = filename.split(".");
-											extension = filename_parts[filename_parts.length - 1];
+                                        //get linked timestamp as we save the file using the timestamp as the file name
+                                        filename_parts = filename.split('.');
+                                        extension = filename_parts[filename_parts.length - 1];
 
-											timestamp = EC.Utils.getIOSFilename(ios_filenames, filename);
-											filename = timestamp + "." + extension;
-										}
-
-										break;
-
-								}
-
-								value = form_name + "_" + branch_input.ref + "_" + uuid + "_" + filename;
-							} else {
-
-								value = "";
-							}
-
-						} else {
-
-							//use the existing stored path
-							value = value.stored;
-						}
-
-					} else {
-						//value was not defined as media value: use case when user leaves a form halfway through but still wants to save. Save an empty object then
-						value = "";
-					}
-				}
-
-				rows.push({
-					_id : _id, //this is set only when we are editing
-					input_id : branch_input._id,
-					form_id : branch_input.form_id,
-					position : branch_input.position,
-					hierarchy_entry_key_value : hierarchy_entry_key_value,
-					hierarchy_entry_key_ref : hierarchy_entry_key_ref,
-					label : branch_input.label,
-					value : value,
-					ref : branch_input.ref,
-					is_title : branch_input.is_title,
-					entry_key : key_value,
-					type : branch_input.type,
-					is_data_synced : 0,
-					is_media_synced : 0,
-					is_remote : 0,
-					created_on : created_on
-				});
-
-			}//for each input
+                                        timestamp = EC.Utils.getIOSFilename(ios_filenames, filename);
+                                        filename = timestamp + '.' + extension;
+                                    }
 
-			//EC.Notification.showProgressDialog();
-
-			console.log('rows');
-			console.log(JSON.stringify(rows));
+                                    break;
 
-			//save/update values to database
-			if (window.localStorage.branch_edit_mode) {
+                            }
 
-				$.when(EC.Update.commitBranchForm(rows)).then(function() {
+                            value = form_name + '_' + branch_input.ref + '_' + uuid + '_' + filename;
+                        } else {
 
-					window.localStorage.branch_edit_hash = '#entries?form=' + form_id + '&name=' + form_name + '&entry_key=&direction=' + EC.Const.EDITING;
+                            value = '';
+                        }
 
-					//set selected key value in localStorage to show list of values later
-					window.localStorage.branch_edit_key_value = key_value;
+                    } else {
 
-					//redirect to branch entries list page with positive flag
-					EC.BranchInputs.renderStoreEditFeedback(true);
+                        //use the existing stored path
+                        value = value.stored;
+                    }
 
-				}, function() {
-					EC.BranchInputs.renderStoreEditFeedback(false);
-				});
+                } else {
+                    //value was not defined as media value: use case when user leaves a form halfway through but still wants to save. Save an empty object then
+                    value = '';
+                }
+            }
 
-			} else {
+            rows.push({
+                _id: _id, //this is set only when we are editing
+                input_id: branch_input._id,
+                form_id: branch_input.form_id,
+                position: branch_input.position,
+                hierarchy_entry_key_value: hierarchy_entry_key_value,
+                hierarchy_entry_key_ref: hierarchy_entry_key_ref,
+                label: branch_input.label,
+                value: value,
+                ref: branch_input.ref,
+                is_title: branch_input.is_title,
+                entry_key: key_value,
+                type: branch_input.type,
+                is_data_synced: 0,
+                is_media_synced: 0,
+                is_remote: 0,
+                created_on: created_on
+            });
 
-				$.when(EC.Create.insertBranchFormValues(rows, key_value, hierarchy_entry_key_value)).then(function(entry_key) {
-					EC.BranchInputs.prepareFeedback(true, entry_key);
-				}, function() {
-					EC.BranchInputs.prepareFeedback(false, null);
-				});
-			}
-
-		};
-
-		return module;
-
-	}(EC.BranchInputs));
-
-
-/*jslint vars: true , nomen: true, devel: true, plusplus:true*/
-/*global $, jQuery*/
-var EC = EC || {};
-EC.BranchInputs = EC.BranchInputs || {};
-EC.BranchInputs = ( function(module) {"use strict";
+        }//for each input
 
-		module.buildRows = function() {
-
-			var self = this;
-			var i;
-			var branch_input;
-			var value;
-			var _id;
-			var ref;
-			var rows = [];
-			var iLength = EC.BranchInputs.branch_inputs.length;
-			var key_position = EC.BranchInputs.getPrimaryKeyRefPosition();
-			var parent_key_position = EC.Inputs.getPrimaryKeyRefPosition();
-			var parts;
-			var filename;
-			var form_name = window.localStorage.form_name;
-			var uuid = EC.Utils.getPhoneUUID();
-			var form_id = window.localStorage.form_id;
-			var created_on = EC.Utils.getTimestamp();
-			var branch_form_name = window.localStorage.branch_form_name;
+        //EC.Notification.showProgressDialog();
 
-			//get parent key value for the current branch form
-			var current_branch_input_position = parseInt(window.localStorage.branch_current_position, 10);
+        console.log('rows');
+        console.log(JSON.stringify(rows));
 
-			//get value of primary key for this branchform
-			var key_value = EC.BranchInputs.getCachedInputValue(key_position).value;
+        //save/update values to database
+        if (window.localStorage.branch_edit_mode) {
 
-			/* Get value of primary key for the parent entry of this branch form.
-			 * The parent key value is the one cached, if the user edits it before saving the entry, it will need to be updated in the database
-			 * or lock the editing after inserting a branch form
-			 */
+            $.when(EC.Update.commitBranchForm(rows)).then(function () {
 
-			var hierarchy_entry_key_value = EC.Inputs.getCachedInputValue(parent_key_position).value;
+                window.localStorage.branch_edit_hash = '#entries?form=' + form_id + '&name=' + form_name + '&entry_key=&direction=' + EC.Const.EDITING;
 
-			//build rows to be saved - the text value for each input is saved in an array with corresponding indexes
-			for ( i = 0; i < iLength; i++) {
+                //set selected key value in localStorage to show list of values later
+                window.localStorage.branch_edit_key_value = key_value;
 
-				//get current value
-				branch_input = EC.BranchInputs.branch_inputs[i];
-				value = EC.BranchInputs.getCachedInputValue(branch_input.position).value;
-				_id = EC.BranchInputs.getCachedInputValue(branch_input.position)._id;
+                //redirect to branch entries list page with positive flag
+                EC.BranchInputs.renderStoreEditFeedback(true);
 
-				//deal with media types to save the correct value (full path uri)
-				if (branch_input.type === EC.Const.PHOTO || branch_input.type === EC.Const.VIDEO || branch_input.type === EC.Const.AUDIO) {
+            }, function () {
+                EC.BranchInputs.renderStoreEditFeedback(false);
+            });
 
-					console.log("value: " + JSON.stringify(value));
+        } else {
 
-					if (value.stored === "") {
+            $.when(EC.Create.insertBranchFormValues(rows, key_value, hierarchy_entry_key_value)).then(function (entry_key) {
+                EC.BranchInputs.prepareFeedback(true, entry_key);
+            }, function () {
+                EC.BranchInputs.prepareFeedback(false, null);
+            });
+        }
 
-						//we are saving a new media file path from the cached one (or an empty string if the file field was optional)
-						if (value.cached !== "") {
+    };
 
-							//build file name (in the format <form_name>_<ref>_<uuid>_filename) with the cached value
-							parts = value.cached.split('/');
-							filename = parts[parts.length - 1];
+    return module;
 
-							value = form_name + "_" + branch_input.ref + "_" + uuid + "_" + filename;
-						} else {
+}(EC.BranchInputs));
 
-							value = "";
-						}
-
-					} else {
-
-						//use the existing stored path
-						value = value.stored;
-					}
-
-				}
-
-				console.log('branch_input.type: ' + branch_input.type);
-
-				rows.push({
-					_id : _id, //this is set only when we are editing
-					input_id : branch_input._id,
-					form_id : branch_input.form_id,
-					position : branch_input.position,
-					hierarchy_entry_key_value : hierarchy_entry_key_value,
-					label : branch_input.label,
-					value : value,
-					ref : branch_input.ref,
-					is_title : branch_input.is_title,
-					entry_key : key_value,
-					type : branch_input.type,
-					is_data_synced : 0,
-					is_media_synced : 0,
-					is_remote : 0,
-					created_on : created_on
-				});
-
-			}//for each input
-
-			EC.Notification.showProgressDialog();
-
-			console.log('rows');
-			console.log(JSON.stringify(rows));
-
-			//save/update values to database
-			if (window.localStorage.branch_edit_mode) {
-
-				EC.Update.commitBranchForm(rows);
-				window.localStorage.branch_edit_hash = '#entries?form=' + form_id + '&name=' + form_name + '&entry_key=&direction=' + EC.Const.EDITING;
-
-				//set selected key value in localStorage to show list of values later
-				window.localStorage.branch_edit_key_value = key_value;
-
-			} else {
-
-				EC.Create.insertBranchFormValues(rows, key_value, hierarchy_entry_key_value);
-			}
-
-		};
-
-		return module;
-
-	}(EC.BranchInputs));
 
 /*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery, cordova, device*/
@@ -18023,26 +17879,27 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 		return module;
 
 	}(EC.BranchInputTypes)); 
-/*jslint vars: true , nomen: true, devel: true, plusplus:true*/
-/*global $, jQuery*/
 var EC = EC || {};
 EC.BranchInputTypes = EC.BranchInputTypes || {};
 EC.BranchInputTypes = (function (module) {
     'use strict';
 
+    //branches only have old location implementation
     module.location = function (the_value, the_input) {
-
 
         var span_label = $('span.label');
         var value = the_value;
         var input = the_input;
         var requests = [];
         var geolocation_request;
-
         var is_first_attempt = true;
         //set unlimited timeout for watch position to avoid timeout error on iOS when the device does not move
         // see http://goo.gl/tYsBSC, http://goo.gl/jYQhgr, http://goo.gl/8oR1g2
         var timeout = (window.device.platform === EC.Const.IOS) ? Infinity : 30000;
+        var set_location_btn = $('div#branch-location div#branch-input-location div#branch-set-location');
+        var set_location_result = $('textarea#branch-set-location-result');
+        var accuracy_result = $('div#branch-location  div#branch-input-location div.current-accuracy-result');
+        var accuracy_tip = $('div#branch-location  div#branch-input-location div.location-accuracy-tip');
 
         //update label text
         span_label.text(input.label);
@@ -18052,25 +17909,24 @@ EC.BranchInputTypes = (function (module) {
             EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
         }
 
-        var set_location_btn = $('div#branch-location div#branch-input-location div#branch-set-location');
-        var set_location_result = $('textarea#branch-set-location-result');
-        var accuracy_result = $('div#branch-location  div#branch-input-location div.current-accuracy-result');
-        var accuracy_tip = $('div#branch-location  div#branch-input-location div.location-accuracy-tip');
-
-        //hide feedback when showing the view the first time
-        $(accuracy_result).addClass('hidden');
-        $(accuracy_tip).addClass('hidden');
-
         //set previous location value if any
-        set_location_result.val(value);
+        if (value !== '') {
+            set_location_result.val(value);
+            accuracy_result.find('span').text(Math.floor(location.accuracy));
+            accuracy_result.removeClass('hidden');
+            accuracy_tip.removeClass('hidden');
+        } else {
+            //hide feedback when showing the view the first time
+            $(accuracy_result).addClass('hidden');
+            $(accuracy_tip).addClass('hidden');
+        }
 
         function _showAcquiredLocation() {
 
-            // clearAllRequests();
-
-            $(accuracy_result).find('span').text(Math.floor(location.accuracy));
-            $(accuracy_result).removeClass('hidden');
-            $(accuracy_tip).removeClass('hidden');
+            window.navigator.geolocation.clearWatch(geolocation_request);
+            accuracy_result.find('span').text(Math.floor(location.accuracy));
+            accuracy_result.removeClass('hidden');
+            accuracy_tip.removeClass('hidden');
 
             EC.Notification.hideProgressDialog();
 
@@ -18087,7 +17943,6 @@ EC.BranchInputTypes = (function (module) {
                 EC.Notification.showToast(EC.Localise.getTranslation('location_acquired'), 'short');
             }
             set_location_btn.one('vclick', _getLocation);
-
 
         }
 
@@ -18115,7 +17970,6 @@ EC.BranchInputTypes = (function (module) {
                     timeout: timeout,
                     enableHighAccuracy: true
                 });
-
 
                 window.setTimeout(function () {
                         window.navigator.geolocation.clearWatch(geolocation_request);
@@ -18178,7 +18032,7 @@ EC.BranchInputTypes = (function (module) {
             location.altitude_accuracy = (position.coords.altitudeAccuracy === null) ? '' : position.coords.altitudeAccuracy;
             location.heading = (position.coords.heading === null) ? '' : position.coords.heading;
 
-
+            _showAcquiredLocation();
         };
 
         // onError Callback receives a PositionError object
@@ -23046,7 +22900,6 @@ EC.Export.saveProjectDataToCSV = function (the_project_id, the_forms) {
         var i;
         var iLength = data.length;
 
-
         parsed_forms_json = [];
 
         //per each form parse all the entries, also set form mane and list headers
@@ -26617,21 +26470,6 @@ EC.InputTypes = (function (module) {
                     console.log('map needs to be updated');
                 }
 
-
-                //$.when(EC.DevicePosition.loadGoogleMapsApi()).then(function () {
-                //    $.when(EC.DevicePosition.initGoogleMap()).then(function () {
-                //        window.google.maps.event.trigger(EC.DevicePosition.map, 'resize');
-                //        EC.DevicePosition.map.setZoom(EC.DevicePosition.map.getZoom());
-                //        EC.Notification.hideProgressDialog();
-                //    });
-                //}, function () {
-                //    //loading Google Maps Api failed, show standard view
-                //    //todo alert user google maps failed to load
-                //    textarea_coords.val(EC.DevicePosition.getCoordsFormattedText()).removeClass('hidden');
-                //    map_canvas.addClass('hidden');
-                //    EC.Notification.hideProgressDialog();
-                //});
-
                 EC.Notification.hideProgressDialog();
 
             } else {
@@ -28847,159 +28685,153 @@ EC.Project = ( function (module) {
 
 }(EC.Project));
 
-/*jslint vars: true , nomen: true, devel: true, plusplus:true*/
-/*global $, jQuery*/
-/**
- * @module EC
- * @submodule Project
- */
-
 var EC = EC || {};
 EC.Project = EC.Project || {};
-EC.Project = ( function(module) {"use strict";
+EC.Project = (function (module) {
+    'use strict';
 
-		var load_project_btn;
-		var back_btn;
-		var input_value;
-		var autocomplete_spinning_loader;
-		var project_url;
+    var load_project_btn;
+    var back_btn;
+    var input_value;
+    var autocomplete_spinning_loader;
+    var project_url;
 
-		var _load = function() {
+    var _load = function () {
 
-			if (EC.Utils.hasConnection()) {
-				_loadProjectFromXML();
-			} else {
-				EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("no_internet"));
-				//load_project_btn.off().one('vclick', _load);
-			}
-		};
+        if (EC.Utils.hasConnection()) {
+            _loadProjectFromXML();
+        } else {
+            EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('no_internet'));
+            //load_project_btn.off().one('vclick', _load);
+        }
+    };
 
-		//Load the specified project via Ajax
-		var _loadProjectFromXML = function() {
+    //Load the specified project via Ajax
+    var _loadProjectFromXML = function () {
 
-			var project_name = input_value.val();
+        var project_name = input_value.val();
 
-			//empty project name
-			if (project_name === "") {
-				EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("project_empty_not_allowed"));
-				load_project_btn.off().one('vclick', _load);
-				return;
-			}
+        //empty project name
+        if (project_name === '') {
+            EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('project_empty_not_allowed'));
+            load_project_btn.off().one('vclick', _load);
+            return;
+        }
 
-			// It has any kind of whitespace
-			if (/\s/.test(project_name)) {
-				EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("project_no_spaces_allowed"));
-				load_project_btn.off().one('vclick', _load);
-				return;
-			}
+        // It has any kind of whitespace
+        if (/\s/.test(project_name)) {
+            EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('project_no_spaces_allowed'));
+            load_project_btn.off().one('vclick', _load);
+            return;
+        }
 
-			//load project from remote XML
-			EC.Project.loadRemoteXML(project_name);
+        //load project from remote XML
+        EC.Project.loadRemoteXML(project_name);
 
-		};
-		//loadProjectFromXML
+    };
+    //loadProjectFromXML
 
-		module.renderAddProjectView = function() {
+    module.renderAddProjectView = function () {
 
-			var dom_list = $("div#add-project-content ul#projects-autocomplete");
-			var request_timeout;
+        var dom_list = $('div#add-project-content ul#projects-autocomplete');
+        var request_timeout;
 
-			load_project_btn = $("div#add-project div[data-role='header'] div.ui-btn-right[data-href='load-project-confirm']");
-			back_btn = $("div#add-project div[data-role='header'] div[data-href='back-btn']");
-			input_value = $("div#add-project-content form div input[data-type='search']");
-			autocomplete_spinning_loader = $(".autocomplete-spinner-loader");
-			project_url = window.localStorage.project_server_url;
+        load_project_btn = $('div#add-project div[data-role="header"] div.ui-btn-right[data-href="load-project-confirm"]');
+        back_btn = $('div#add-project div[data-role="header"] div[data-href="back-btn"]');
+        input_value = $('div#add-project-content form div input[data-type="search"]');
+        autocomplete_spinning_loader = $('.autocomplete-spinner-loader');
+        project_url = window.localStorage.project_server_url;
 
-			//Localise
-			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
-				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
-			}
+        //Localise
+        if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
+            EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
+        }
 
-			input_value.val("");
+        input_value.val('');
 
-            //populate lists with autocomplete suggestions based on project names on the server
-			dom_list.on("listviewbeforefilter", function(e, data) {
+        //populate lists with autocomplete suggestions based on project names on the server
+        dom_list.on('listviewbeforefilter', function (e, data) {
 
-			    console.log("typing");
+            console.log('typing');
 
-				var $ul = $(this);
-				var $input = $(data.input);
-				var value = $input.val();
-				var html = "";
+            var $ul = $(this);
+            var $input = $(data.input);
+            var value = $input.val();
+            var html = '';
 
-				//wait a fifth of a second the user stops typing
-				var request_delay = 200;
+            //wait a fifth of a second the user stops typing
+            var request_delay = 200;
 
-				$ul.html("");
+            $ul.html('');
 
-				//trigger request with more than 2 chars
-				if (value && value.length > 2) {
+            //trigger request with more than 2 chars
+            if (value && value.length > 2) {
 
-				    autocomplete_spinning_loader.removeClass("hidden");
+                autocomplete_spinning_loader.removeClass('hidden');
 
-					$ul.html('<li class="autocomplete-spinner"><i class="fa fa-spinner fa-spin"></i></li>');
-					$ul.listview("refresh");
+                $ul.html('<li class="autocomplete-spinner"><i class="fa fa-spinner fa-spin"></i></li>');
+                $ul.listview('refresh');
 
-					/* Throttle requests as the user is typing on a phone. We want to send as fewer requests as possible:
-					 * Typing a new char will stop the previous ajax request, not tapping for a third of a second will let the request go through
-					 */
-					clearTimeout(request_timeout);
-					request_timeout = setTimeout(function() {
+                /* Throttle requests as the user is typing on a phone. We want to send as fewer requests as possible:
+                 * Typing a new char will stop the previous ajax request, not tapping for a third of a second will let the request go through
+                 */
+                clearTimeout(request_timeout);
+                request_timeout = setTimeout(function () {
 
-					    console.log("requesting");
+                    console.log('requesting');
 
-						$.ajax({
-							url : "http://plus.epicollect.net/" + "projects?q=" + value + "&limit=25",
-							dataType : "json",
-							crossDomain : true,
-							success : function(response) {
+                    $.ajax({
+                        url: 'http://plus.epicollect.net/' + 'projects?q=' + value + '&limit=25',
+                        dataType: 'json',
+                        crossDomain: true,
+                        success: function (response) {
 
-							    autocomplete_spinning_loader.addClass("hidden");
+                            autocomplete_spinning_loader.addClass('hidden');
 
-								$.each(response, function(i) {
-									html += "<li class='h-nav-item'>" + response[i].name + "</li>";
-								});
-								$ul.html(html);
-								$ul.listview("refresh");
-								$ul.trigger("updatelayout");
+                            $.each(response, function (i) {
+                                html += '<li class="h-nav-item">' + response[i].name + '</li>';
+                            });
+                            $ul.html(html);
+                            $ul.listview('refresh');
+                            $ul.trigger('updatelayout');
 
-							},
-							error : function(request, status, error) {
-							     autocomplete_spinning_loader.addClass("hidden");
-							}
-						});
+                        },
+                        error: function (request, status, error) {
+                            autocomplete_spinning_loader.addClass('hidden');
+                        }
+                    });
 
-					}, request_delay);
-				}//if
-			});
+                }, request_delay);
+            }//if
+        });
 
-			dom_list.on('vclick', function(e) {
+        dom_list.on('vclick', function (e) {
 
-				if (e.target.tagName.toLowerCase() === "li") {
+            if (e.target.tagName.toLowerCase() === 'li') {
 
-					input_value.val(e.target.innerText);
-					input_value.attr("value", e.target.innerText);
+                input_value.val(e.target.innerText);
+                input_value.attr('value', e.target.innerText);
 
-				} else {
+            } else {
 
-					return;
-				}
+                return;
+            }
 
-			});
+        });
 
-			//Load project confirm button handler
-			load_project_btn.off().on('vclick', _load);
+        //Load project confirm button handler
+        load_project_btn.off().on('vclick', _load);
 
-			back_btn.off().one('vclick', function(e) {
+        back_btn.off().one('vclick', function (e) {
 
-				window.localStorage.back_nav_url = "#refresh";
-				EC.Routing.changePage(EC.Const.INDEX_VIEW, "../");
-			});
-		};
+            window.localStorage.back_nav_url = '#refresh';
+            EC.Routing.changePage(EC.Const.INDEX_VIEW, '../');
+        });
+    };
 
-		return module;
+    return module;
 
-	}(EC.Project));
+}(EC.Project));
 
 /*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/
