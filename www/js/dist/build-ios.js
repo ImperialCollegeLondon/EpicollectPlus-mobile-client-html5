@@ -6,11 +6,14 @@ EC.Boot = EC.Boot || {};
 EC.Boot.getProjects = function () {
     'use strict';
 
-    //hide splashcreen (timeout so we have time to render the project list, 1 sec will be enough)
-    //todo currently buggy
-    //window.setTimeout(function () {
-    //    navigator.splashscreen.hide();
-    //}, 1000);
+    //hide splashcreen (timeout so we have time to render the project list, 1.5 sec will be enough)
+    if (!EC.Utils.isChrome()) {
+        if (window.device.platform === EC.Const.IOS) {
+            window.setTimeout(function () {
+                navigator.splashscreen.hide();
+            }, 1500);
+        }
+    }
 
     //if database already set, just list projects
     if (window.localStorage.is_db_set === EC.Const.SET) {

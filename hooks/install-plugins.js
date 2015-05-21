@@ -13,8 +13,11 @@ var pluginlist = [
 // file plugin is added as a dependency of media-capture!
     'org.apache.cordova.file-transfer',//
     'org.apache.cordova.globalization', //
+    //splashscreen from its own repo otherwise it does not work on android
+    'https://github.com/apache/cordova-plugin-splashscreen.git', //
+
 // Fork of media pugin see README
-    'org.apache.cordova.splashscreen', //
+
     'https://github.com/ImperialCollegeLondon/cordova-plugin-media.git',
 //fork of dialogs plugin see README
     'https://github.com/ImperialCollegeLondon/cordova-plugin-dialogs.git',

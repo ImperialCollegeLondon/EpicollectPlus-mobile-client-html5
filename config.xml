@@ -17,8 +17,9 @@
     <content src="index.html?project="/>
     <access origin="*" subdomains="true"/>
 
-    <preference name="SplashScreenDelay" value="5000"/>
-    <preference name="FadeSplashScreen" value="true" />
+    <!-- splashscreen name is screen-->
+    <preference name="SplashScreen" value="screen" />
+    <preference name="SplashScreenDelay" value="5000" />
     <!-- increase load timeout to 2 minutes, because initial instrumentation takes time -->
     <preference
             name="loadUrlTimeoutValue"
@@ -86,6 +87,9 @@
         <!-- Status bar -->
         <preference name="StatusBarOverlaysWebView" value="false"/>
         <preference name="StatusBarStyle" value="default"/>
+
+        <!--Do not hide it, hide it manually as it is buggy otherwise-->
+        <preference name="AutoHideSplashScreen" value="false" />
     </platform>
     <platform name="android">
         <!-- Automatically install plugin dependencies (this will also install them for iOS) -->
