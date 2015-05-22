@@ -40,6 +40,26 @@ EC.Boot.handleDeviceEvents = function () {
 //handle app resume
     window.onResume = function () {
         console.log('App resumed');
+
+        var page_id = $.mobile.activePage.attr('id');
+
+        /*
+         this condition can be true when we either go back to the Photo page after a picture taken or after having opened the gallery
+         we need to check if the cached file is still there, as from the gallery app it is possible to delete it.
+         If the file gets deleted, set cache to empty and refresh the view.
+         When the picture is taken, file is there
+         When the user cancelled the camera/gallery action, file is there
+
+         */
+        if (page_id === EC.Const.PHOTO) {
+
+            //check if image file exist
+            //todo get hold of file with cordova file api
+            //EC.File.wasImageDeleted(EC.InputTy)
+
+        }
+
+
     };
     document.addEventListener('resume', window.onResume, false);
 };

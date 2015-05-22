@@ -1,5 +1,4 @@
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
-/*global $, jQuery, Camera*/
+/*global $, jQuery, Camera, FileViewerPlugin*/
 
 var EC = EC || {};
 EC.InputTypes = EC.InputTypes || {};
@@ -8,9 +7,12 @@ EC.InputTypes = (function (module) {
 
     var app_storage_dir;
 
+    //property to get hold of cache image path on global app resume
+    module.cached_photo_path = '';
+
     module.photo = function (the_value, the_input) {
 
-
+        var self = this;
         var span_label = $('span.label');
         var value = the_value;
         var input = the_input;
@@ -54,45 +56,51 @@ EC.InputTypes = (function (module) {
             }
 
             if (window.device) {
+
+                var win;
+                var fail;
+                var params;
                 switch (window.device.platform) {
 
                     //on Android we show the image as a opo up using swipebox
                     case EC.Const.ANDROID:
-                        e.preventDefault();
-                        $.swipebox([{
-                            href: href
-                        }]);
+                        //e.preventDefault();
+                        //$.swipebox([{
+                        //    href: href
+                        //}]);
+
+
+                        //usage:
+
+                        win = function () {
+                            //alert('win!');
+                        };
+                        fail = function () {
+                            //alert('fail!');
+                        };
+                        params = {
+                            action: FileViewerPlugin.ACTION_VIEW,
+                            url: encodeURI(href)
+                        };
+                        FileViewerPlugin.view(params, win, fail);
+
                         break;
 
                     //on iOS we show a built in JQM popup, as swipebox has
                     // got issues
                     case EC.Const.IOS:
-                        iOS_popup.find('img').attr('src', href);
 
-                        /*
-                         * let's use a timeout otherwise the popup is not
-                         * centered on the first tap, because the
-                         * image is not loaded. Not the prettiest solution,
-                         * but since the image is loaded locally
-                         * and always the same size, I can assume 100 ms will
-                         * work everytime on iPhones
-                         *
-                         * see here
-                         * http://stackoverflow.com/questions/21304763/jquery-mobile-popup-not-centered-on-first-click
-                         *
-                         */
-
-                        window.setTimeout(function () {
-                            iOS_popup.popup('open');
-                        }, 100);
-
-                        $(window).on('orientationchange', function (event) {
-                            console.log('called orientationchange');
-
-                            //close popup, as it is not scaled/positioned
-                            // properly
-                            iOS_popup.popup('close');
-                        });
+                        win = function () {
+                            //alert('win!');
+                        };
+                        fail = function () {
+                            //alert('fail!');
+                        };
+                        params = {
+                            action: FileViewerPlugin.ACTION_VIEW,
+                            url: encodeURI(href)
+                        };
+                        FileViewerPlugin.view(params, win, fail);
 
                         break;
                 }
@@ -125,6 +133,7 @@ EC.InputTypes = (function (module) {
             source += '?' + parseInt(new Date().getTime() / 1000, 10);
 
             image.src = source;
+            self.cached_photo_path = source;
 
             image.onerror = function () {
                 console.log('Image failed!');
