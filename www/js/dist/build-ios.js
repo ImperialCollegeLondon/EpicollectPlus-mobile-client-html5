@@ -75,6 +75,26 @@ EC.Boot.handleDeviceEvents = function () {
 //handle app resume
     window.onResume = function () {
         console.log('App resumed');
+
+        var page_id = $.mobile.activePage.attr('id');
+
+        /*
+         this condition can be true when we either go back to the Photo page after a picture taken or after having opened the gallery
+         we need to check if the cached file is still there, as from the gallery app it is possible to delete it.
+         If the file gets deleted, set cache to empty and refresh the view.
+         When the picture is taken, file is there
+         When the user cancelled the camera/gallery action, file is there
+
+         */
+        if (page_id === EC.Const.PHOTO) {
+
+            //check if image file exist
+            //todo get hold of file with cordova file api
+            //EC.File.wasImageDeleted(EC.InputTy)
+
+        }
+
+
     };
     document.addEventListener('resume', window.onResume, false);
 };
@@ -353,346 +373,6 @@ EC.Boot.onDeviceReady = function () {
     }
     EC.Boot.getProjects();
 };
-
-/*global $, jQuery, cordova, device, ActivityIndicator, Connection*/
-var EC = EC || {};
-EC.DevicePosition = EC.DevicePosition || {};
-EC.DevicePosition = (function (module) {
-    'use strict';
-
-    module.initGoogleMap = function () {
-
-        var self = this;
-        var deferred = new $.Deferred();
-
-        self.current_position = new google.maps.LatLng(self.coords.latitude, self.coords.longitude);
-        self.map_options = {
-            center: {lat: self.coords.latitude, lng: self.coords.longitude},
-            zoom: 16,
-            disableDefaultUI: true
-        };
-
-        self.map = new google.maps.Map(document.getElementById('map-canvas'), self.map_options);
-        //add current user position
-        self.marker = new google.maps.Marker({
-            position: self.current_position,
-            map: self.map,
-            draggable: true
-        });
-
-        //draw accuracy circle
-        self.circle = new google.maps.Circle({
-            center: self.current_position,
-            radius: self.coords.accuracy,
-            map: self.map,
-            fillColor: '#0000FF',
-            fillOpacity: 0.2,
-            strokeColor: '0',
-            strokeOpacity: 0
-        });
-
-        self.marker.bindTo('position', self.circle, 'center');
-        self.map.fitBounds(self.circle.getBounds());
-
-        //let's use 'idle' event and a 2 secs timeout, to play it safe
-        // 'tilesloaded' could not be fire if there are network problems
-        window.google.maps.event.addListenerOnce(self.map, 'idle', function () {
-            window.setTimeout(function () {
-                deferred.resolve();
-            }, 2000);
-        });
-
-        window.google.maps.event.addListener(self.marker, 'dragend', function (event) {
-            console.debug('final position is ' + event.latLng.lat() + ' / ' + event.latLng.lng());
-            self.coords.latitude = event.latLng.lat();
-            self.coords.latitude = event.latLng.lng();
-            EC.Notification.showToast('Marker dragged by user', 'short');
-        });
-
-        return deferred.promise();
-    };
-
-    return module;
-
-}(EC.DevicePosition));
-
-/*global $, jQuery, cordova, device, ActivityIndicator*/
-var EC = EC || {};
-EC.DevicePosition = EC.DevicePosition || {};
-EC.DevicePosition = (function (module) {
-    'use strict';
-
-    module.map = {};
-    module.marker = {};
-    module.circle = {};
-    module.coords = {};
-    module.current_position = {};
-    module.map_options = {};
-    module.timeout = 30000;
-    module.is_first_attempt = true;
-    module.is_api_loaded = false;
-    //the 'is_enhanced_map_on' flag changes a lot, if the device loses connection and stuff, so it is a good idea to always request it via a function
-    module.is_enhanced_map_on = function () {
-        return parseInt(window.localStorage.is_enhanced_map_on, 10) === 1;
-    };
-
-    module.watchTimeout = function () {
-        //set unlimited timeout for watch position to avoid timeout error on iOS when the device does not move
-        // see http://goo.gl/tYsBSC, http://goo.gl/jYQhgr, http://goo.gl/8oR1g2
-        return (window.device.platform === EC.Const.IOS) ? Infinity : 30000;
-    };
-
-    module.getCurrentPosition = function () {
-
-        var deferred = new $.Deferred();
-        var self = this;
-
-        //resolve passing position to caller
-        function onSuccess(position) {
-            self.setCoords(position);
-            deferred.resolve();
-        }
-
-        function onError(error) {
-            console.log(error);
-            deferred.reject();
-        }
-
-        navigator.geolocation.getCurrentPosition(onSuccess, onError, {
-            maximumAge: 0,
-            timeout: self.timeout,
-            enableHighAccuracy: true
-        });
-
-        return deferred.promise();
-    };
-
-    module.watchPosition = function () {
-
-        var deferred = new $.Deferred();
-        var geolocation_request;
-        var timeout = EC.DevicePosition.watchTimeout();
-        var self = this;
-
-        function onWatchSuccess(position) {
-
-            console.log('onWatchSuccess called, accuracy: ' + position.coords.accuracy);
-
-            //get HTML5 geolocation coords values replacing null with '' for not available values
-            self.setCoords(position);
-            //clear the current watch
-            window.navigator.geolocation.clearWatch(geolocation_request);
-            deferred.resolve(true);
-        }
-
-        //onError Callback
-        function onWatchError(error) {
-
-            console.log(error);
-            window.navigator.geolocation.clearWatch(geolocation_request);
-
-            switch (error.code) {
-                case 1:
-                    if (window.device.platform === EC.Const.IOS) {
-                        EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('location_service_fail'));
-                    }
-                    break;
-                case 3:
-                    EC.Notification.showAlert(EC.Localise.getTranslation('error'), error.message + EC.Localise.getTranslation('location_fail'));
-                    break;
-                default :
-                    EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('unknow_error'));
-            }
-            deferred.resolve(false);
-        }
-
-        //on first attempt, get a quick and rough location just to get started
-        //We do not use getCurrentPosition as it tends to give back a cached position when is it called, not looking for a new one each time
-        if (self.is_first_attempt) {
-            geolocation_request = navigator.geolocation.watchPosition(onWatchSuccess, onWatchError, {
-                maximumAge: 0,
-                timeout: timeout,
-                enableHighAccuracy: true
-            });
-            self.is_first_attempt = false;
-        }
-        else {
-
-            /*
-             on subsequent calls, check position for 3 secs and return.
-             this will improve cases when watchPositionretunr immediately with the same value, as it might return more than once during the 3 secs period
-             */
-            window.setTimeout(function () {
-
-                //be safe in case after 3 secs we still do not have a location, and resolve to show old values
-                window.navigator.geolocation.clearWatch(geolocation_request);
-                deferred.resolve(true);
-                console.log('setTimeout called without location');
-            }, 30000);
-
-            //get location using watchPosition for more accurate results, It is called automatically when movement is detected,
-            //not only when requesting it. Do thjis when user wants to improve location
-            geolocation_request = navigator.geolocation.watchPosition(onWatchSuccess, onWatchError, {
-                maximumAge: 0,
-                timeout: timeout,
-                enableHighAccuracy: true
-            });
-        }
-
-        return deferred.promise();
-    };
-
-    module.setCoords = function (position) {
-
-        var self = this;
-        //get HTML5 geolocation coords values replacing null with '' for not available values
-        self.coords = {
-            latitude: (position.coords.latitude === null) ? '' : position.coords.latitude,
-            longitude: (position.coords.longitude === null) ? '' : position.coords.longitude,
-            altitude: (position.coords.altitude === null) ? '' : position.coords.altitude,
-            accuracy: (position.coords.accuracy === null) ? '' : position.coords.accuracy,
-            altitude_accuracy: (position.coords.altitudeAccuracy === null) ? '' : position.coords.altitudeAccuracy,
-            heading: (position.coords.heading === null) ? '' : position.coords.heading
-        };
-    };
-
-    module.getCoordsFormattedText = function () {
-
-        return 'Latitude: ' + this.coords.latitude + ',\n' + //
-            'Longitude: ' + this.coords.longitude + ',\n' + //
-            'Altitude: ' + this.coords.altitude + ',\n' + //
-            'Accuracy: ' + this.coords.accuracy + ',\n' + //
-            'Altitude Accuracy: ' + this.coords.altitude_accuracy + ',\n' + //
-            'Heading: ' + this.coords.heading + '\n';
-
-    };
-
-    module.getCoordsEmptyText = function () {
-        return 'Latitude: ,\n' + 'Longitude: ,\n' + 'Altitude: ,\n' + 'Accuracy: ,\n' + 'Altitude Accuracy: ,\n' + 'Heading: \n';
-    };
-
-    return module;
-}(EC.DevicePosition));
-
-/*global $, jQuery, cordova, device, ActivityIndicator, Connection*/
-var EC = EC || {};
-EC.DevicePosition = EC.DevicePosition || {};
-EC.DevicePosition.loadGoogleMapsApi = function () {
-    'use strict';
-
-    var deferred = new $.Deferred();
-
-    //callback from Google Maps API needs to be in the global scope
-    window.mapIsLoaded = function () {
-        // EC.DevicePosition.is_api_loaded = true;
-        deferred.resolve();
-    };
-
-    //is the Api already loaded?
-    if (window.google !== undefined && window.google.maps) {
-        console.log('Maps API cached already');
-        //if no connection, exit and warn user todo
-        if (EC.Utils.hasGoodConnection()) {
-            //load API from server
-            //connection looks good, try to load tiles
-            deferred.resolve();
-        }
-        else {
-            //could not load API
-            deferred.reject();
-        }
-    }
-    else {
-
-        if (EC.Utils.hasGoodConnection()) {
-
-            $.getScript('https://maps.googleapis.com/maps/api/js?sensor=true&callback=mapIsLoaded')
-                .done(function (script, textStatus) {
-                    console.log(textStatus);
-                })
-                .fail(function (jqxhr, settings, exception) {
-                    console.log(jqxhr + exception);
-                    deferred.reject();
-                });
-        }
-        else {
-            //could not load API
-            deferred.reject();
-        }
-    }
-
-    return deferred.promise();
-};
-
-
-
-
-
-
-
-/*global $, jQuery, cordova, device, ActivityIndicator, Connection*/
-var EC = EC || {};
-EC.DevicePosition = EC.DevicePosition || {};
-EC.DevicePosition = (function (module) {
-    'use strict';
-
-    module.updateGoogleMap = function () {
-
-        var self = this;
-        var deferred = new $.Deferred();
-
-        //get info from map on the dom: if the details are the same, we are navigation to an existing map on the dom, no need to update
-
-        self.current_position = new google.maps.LatLng(self.coords.latitude, self.coords.longitude);
-        self.map_options = {
-            center: {lat: self.coords.latitude, lng: self.coords.longitude},
-            zoom: 16,
-            disableDefaultUI: true
-        };
-
-        self.map = new google.maps.Map(document.getElementById('map-canvas'), self.map_options);
-        //add current user position
-        self.marker = new google.maps.Marker({
-            position: self.current_position,
-            map: self.map,
-            draggable: true
-        });
-
-        //draw accuracy circle
-        self.circle = new google.maps.Circle({
-            center: self.current_position,
-            radius: self.coords.accuracy,
-            map: self.map,
-            fillColor: '#0000FF',
-            fillOpacity: 0.2,
-            strokeColor: '0',
-            strokeOpacity: 0
-        });
-
-        self.marker.bindTo('position', self.circle, 'center');
-        self.map.fitBounds(self.circle.getBounds());
-
-        //let's use 'idle' event and a 2 secs timeout, to play it safe
-        // 'tilesloaded' could not be fire if there are network problems
-        window.google.maps.event.addListenerOnce(self.map, 'idle', function () {
-            window.setTimeout(function () {
-                deferred.resolve();
-            }, 2000);
-        });
-
-        window.google.maps.event.addListener(self.marker, 'dragend', function (event) {
-            console.debug('final position is ' + event.latLng.lat() + ' / ' + event.latLng.lng());
-            self.coords.latitude = event.latLng.lat();
-            self.coords.latitude = event.latLng.lng();
-            EC.Notification.showToast('Marker dragged by user', 'short');
-        });
-
-        return deferred.promise();
-    };
-
-    return module;
-
-}(EC.DevicePosition));
 
 /*global $, jQuery, cordova, device, ActivityIndicator*/
 
@@ -2544,6 +2224,594 @@ EC.Utils = (function () {
     };
 
 }());
+
+
+/*global $, jQuery, cordova, device, ActivityIndicator, Connection*/
+var EC = EC || {};
+EC.DevicePosition = EC.DevicePosition || {};
+EC.DevicePosition = (function (module) {
+    'use strict';
+
+    module.initGoogleMap = function () {
+
+        var self = this;
+        var deferred = new $.Deferred();
+
+        self.current_position = new google.maps.LatLng(self.coords.latitude, self.coords.longitude);
+        self.map_options = {
+            center: {lat: self.coords.latitude, lng: self.coords.longitude},
+            zoom: 16,
+            disableDefaultUI: true
+        };
+
+        self.map = new google.maps.Map(document.getElementById('map-canvas'), self.map_options);
+        //add current user position
+        self.marker = new google.maps.Marker({
+            position: self.current_position,
+            map: self.map,
+            draggable: true
+        });
+
+        //draw accuracy circle
+        self.circle = new google.maps.Circle({
+            center: self.current_position,
+            radius: self.coords.accuracy,
+            map: self.map,
+            fillColor: '#0000FF',
+            fillOpacity: 0.2,
+            strokeColor: '0',
+            strokeOpacity: 0
+        });
+
+        self.marker.bindTo('position', self.circle, 'center');
+        self.map.fitBounds(self.circle.getBounds());
+
+        //let's use 'idle' event and a 2 secs timeout, to play it safe
+        // 'tilesloaded' could not be fire if there are network problems
+        window.google.maps.event.addListenerOnce(self.map, 'idle', function () {
+            window.setTimeout(function () {
+                deferred.resolve();
+            }, 2000);
+        });
+
+        window.google.maps.event.addListener(self.marker, 'dragend', function (event) {
+            console.debug('final position is ' + event.latLng.lat() + ' / ' + event.latLng.lng());
+            self.coords.latitude = event.latLng.lat();
+            self.coords.latitude = event.latLng.lng();
+            EC.Notification.showToast('Marker dragged by user', 'short');
+        });
+
+        return deferred.promise();
+    };
+
+    return module;
+
+}(EC.DevicePosition));
+
+/*global $, jQuery, cordova, device, ActivityIndicator*/
+var EC = EC || {};
+EC.DevicePosition = EC.DevicePosition || {};
+EC.DevicePosition = (function (module) {
+    'use strict';
+
+    module.map = {};
+    module.marker = {};
+    module.circle = {};
+    module.coords = {};
+    module.current_position = {};
+    module.map_options = {};
+    module.timeout = 30000;
+    module.is_first_attempt = true;
+    module.is_api_loaded = false;
+    //the 'is_enhanced_map_on' flag changes a lot, if the device loses connection and stuff, so it is a good idea to always request it via a function
+    module.is_enhanced_map_on = function () {
+        return parseInt(window.localStorage.is_enhanced_map_on, 10) === 1;
+    };
+
+    module.watchTimeout = function () {
+        //set unlimited timeout for watch position to avoid timeout error on iOS when the device does not move
+        // see http://goo.gl/tYsBSC, http://goo.gl/jYQhgr, http://goo.gl/8oR1g2
+        return (window.device.platform === EC.Const.IOS) ? Infinity : 30000;
+    };
+
+    module.getCurrentPosition = function () {
+
+        var deferred = new $.Deferred();
+        var self = this;
+
+        //resolve passing position to caller
+        function onSuccess(position) {
+            self.setCoords(position);
+            deferred.resolve();
+        }
+
+        function onError(error) {
+            console.log(error);
+            deferred.reject();
+        }
+
+        navigator.geolocation.getCurrentPosition(onSuccess, onError, {
+            maximumAge: 0,
+            timeout: self.timeout,
+            enableHighAccuracy: true
+        });
+
+        return deferred.promise();
+    };
+
+    module.watchPosition = function () {
+
+        var deferred = new $.Deferred();
+        var geolocation_request;
+        var timeout = EC.DevicePosition.watchTimeout();
+        var self = this;
+
+        function onWatchSuccess(position) {
+
+            console.log('onWatchSuccess called, accuracy: ' + position.coords.accuracy);
+
+            //get HTML5 geolocation coords values replacing null with '' for not available values
+            self.setCoords(position);
+            //clear the current watch
+            window.navigator.geolocation.clearWatch(geolocation_request);
+            deferred.resolve(true);
+        }
+
+        //onError Callback
+        function onWatchError(error) {
+
+            console.log(error);
+            window.navigator.geolocation.clearWatch(geolocation_request);
+
+            switch (error.code) {
+                case 1:
+                    if (window.device.platform === EC.Const.IOS) {
+                        EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('location_service_fail'));
+                    }
+                    break;
+                case 3:
+                    EC.Notification.showAlert(EC.Localise.getTranslation('error'), error.message + EC.Localise.getTranslation('location_fail'));
+                    break;
+                default :
+                    EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('unknow_error'));
+            }
+            deferred.resolve(false);
+        }
+
+        //on first attempt, get a quick and rough location just to get started
+        //We do not use getCurrentPosition as it tends to give back a cached position when is it called, not looking for a new one each time
+        if (self.is_first_attempt) {
+            geolocation_request = navigator.geolocation.watchPosition(onWatchSuccess, onWatchError, {
+                maximumAge: 0,
+                timeout: timeout,
+                enableHighAccuracy: true
+            });
+            self.is_first_attempt = false;
+        }
+        else {
+
+            /*
+             on subsequent calls, check position for 3 secs and return.
+             this will improve cases when watchPositionretunr immediately with the same value, as it might return more than once during the 3 secs period
+             */
+            window.setTimeout(function () {
+
+                //be safe in case after 3 secs we still do not have a location, and resolve to show old values
+                window.navigator.geolocation.clearWatch(geolocation_request);
+                deferred.resolve(true);
+                console.log('setTimeout called without location');
+            }, 30000);
+
+            //get location using watchPosition for more accurate results, It is called automatically when movement is detected,
+            //not only when requesting it. Do thjis when user wants to improve location
+            geolocation_request = navigator.geolocation.watchPosition(onWatchSuccess, onWatchError, {
+                maximumAge: 0,
+                timeout: timeout,
+                enableHighAccuracy: true
+            });
+        }
+
+        return deferred.promise();
+    };
+
+    module.setCoords = function (position) {
+
+        var self = this;
+        //get HTML5 geolocation coords values replacing null with '' for not available values
+        self.coords = {
+            latitude: (position.coords.latitude === null) ? '' : position.coords.latitude,
+            longitude: (position.coords.longitude === null) ? '' : position.coords.longitude,
+            altitude: (position.coords.altitude === null) ? '' : position.coords.altitude,
+            accuracy: (position.coords.accuracy === null) ? '' : position.coords.accuracy,
+            altitude_accuracy: (position.coords.altitudeAccuracy === null) ? '' : position.coords.altitudeAccuracy,
+            heading: (position.coords.heading === null) ? '' : position.coords.heading
+        };
+    };
+
+    module.getCoordsFormattedText = function () {
+
+        return 'Latitude: ' + this.coords.latitude + ',\n' + //
+            'Longitude: ' + this.coords.longitude + ',\n' + //
+            'Altitude: ' + this.coords.altitude + ',\n' + //
+            'Accuracy: ' + this.coords.accuracy + ',\n' + //
+            'Altitude Accuracy: ' + this.coords.altitude_accuracy + ',\n' + //
+            'Heading: ' + this.coords.heading + '\n';
+
+    };
+
+    module.getCoordsEmptyText = function () {
+        return 'Latitude: ,\n' + 'Longitude: ,\n' + 'Altitude: ,\n' + 'Accuracy: ,\n' + 'Altitude Accuracy: ,\n' + 'Heading: \n';
+    };
+
+    return module;
+}(EC.DevicePosition));
+
+/*global $, jQuery, cordova, device, ActivityIndicator, Connection*/
+var EC = EC || {};
+EC.DevicePosition = EC.DevicePosition || {};
+EC.DevicePosition.loadGoogleMapsApi = function () {
+    'use strict';
+
+    var deferred = new $.Deferred();
+
+    //callback from Google Maps API needs to be in the global scope
+    window.mapIsLoaded = function () {
+        // EC.DevicePosition.is_api_loaded = true;
+        deferred.resolve();
+    };
+
+    //is the Api already loaded?
+    if (window.google !== undefined && window.google.maps) {
+        console.log('Maps API cached already');
+        //if no connection, exit and warn user todo
+        if (EC.Utils.hasGoodConnection()) {
+            //load API from server
+            //connection looks good, try to load tiles
+            deferred.resolve();
+        }
+        else {
+            //could not load API
+            deferred.reject();
+        }
+    }
+    else {
+
+        if (EC.Utils.hasGoodConnection()) {
+
+            $.getScript('https://maps.googleapis.com/maps/api/js?sensor=true&callback=mapIsLoaded')
+                .done(function (script, textStatus) {
+                    console.log(textStatus);
+                })
+                .fail(function (jqxhr, settings, exception) {
+                    console.log(jqxhr + exception);
+                    deferred.reject();
+                });
+        }
+        else {
+            //could not load API
+            deferred.reject();
+        }
+    }
+
+    return deferred.promise();
+};
+
+
+
+
+
+
+
+/*global $, jQuery, cordova, device, ActivityIndicator, Connection*/
+var EC = EC || {};
+EC.DevicePosition = EC.DevicePosition || {};
+EC.DevicePosition = (function (module) {
+    'use strict';
+
+    module.updateGoogleMap = function () {
+
+        var self = this;
+        var deferred = new $.Deferred();
+
+        //get info from map on the dom: if the details are the same, we are navigation to an existing map on the dom, no need to update
+
+        self.current_position = new google.maps.LatLng(self.coords.latitude, self.coords.longitude);
+        self.map_options = {
+            center: {lat: self.coords.latitude, lng: self.coords.longitude},
+            zoom: 16,
+            disableDefaultUI: true
+        };
+
+        self.map = new google.maps.Map(document.getElementById('map-canvas'), self.map_options);
+        //add current user position
+        self.marker = new google.maps.Marker({
+            position: self.current_position,
+            map: self.map,
+            draggable: true
+        });
+
+        //draw accuracy circle
+        self.circle = new google.maps.Circle({
+            center: self.current_position,
+            radius: self.coords.accuracy,
+            map: self.map,
+            fillColor: '#0000FF',
+            fillOpacity: 0.2,
+            strokeColor: '0',
+            strokeOpacity: 0
+        });
+
+        self.marker.bindTo('position', self.circle, 'center');
+        self.map.fitBounds(self.circle.getBounds());
+
+        //let's use 'idle' event and a 2 secs timeout, to play it safe
+        // 'tilesloaded' could not be fire if there are network problems
+        window.google.maps.event.addListenerOnce(self.map, 'idle', function () {
+            window.setTimeout(function () {
+                deferred.resolve();
+            }, 2000);
+        });
+
+        window.google.maps.event.addListener(self.marker, 'dragend', function (event) {
+            console.debug('final position is ' + event.latLng.lat() + ' / ' + event.latLng.lng());
+            self.coords.latitude = event.latLng.lat();
+            self.coords.latitude = event.latLng.lng();
+            EC.Notification.showToast('Marker dragged by user', 'short');
+        });
+
+        return deferred.promise();
+    };
+
+    return module;
+
+}(EC.DevicePosition));
+
+/*global $, Camera*/
+var EC = EC || {};
+EC.Photo = EC.Photo || {};
+EC.Photo = (function (module) {
+    'use strict';
+
+    module.getCameraOptions = function () {
+
+        //Set camera options - anything more than 1024 x 728 will crash
+        var source = Camera.PictureSourceType.CAMERA;
+
+        return {
+            quality: 50, //anything more than this will cause memory leaks, we might offer the user to set this value in the future
+            //  allowEdit: true, //this enables crop, better to leave it off for now
+            destinationType: Camera.DestinationType.FILE_URI,
+            sourceType: source,
+            encodingType: Camera.EncodingType.JPEG,
+            mediaType: Camera.MediaType.PICTURE,
+            correctOrientation: true,
+            saveToPhotoAlbum: false, //save to cache folder only
+            /*
+             actual image is not square 1024 x 1014, but this will keep the aspect ratio
+             landscape 1024 x 768
+             portrait  768 x 1024
+             */
+            targetWidth: 1024,
+            targetHeight: 1024
+        };
+    };
+
+    return module;
+}(EC.Photo));
+
+/*global $*/
+var EC = EC || {};
+EC.Photo = EC.Photo || {};
+EC.Photo = (function (module) {
+    'use strict';
+
+    module.getStoredImageDir = function () {
+
+        var dir;
+        //build full path to get image from private app folder
+        switch (window.device.platform) {
+            case EC.Const.ANDROID:
+                dir = EC.Const.ANDROID_APP_PRIVATE_URI + EC.Const.PHOTO_DIR + window.localStorage.project_name + '/';
+                break;
+            case EC.Const.IOS:
+                //prepend 'file://' to load images from iOS application directory
+                dir = 'file://' + EC.Const.IOS_APP_PRIVATE_URI + EC.Const.PHOTO_DIR + window.localStorage.project_name + '/';
+                break;
+        }
+        return dir;
+    };
+    return module;
+}(EC.Photo));
+
+/*global $, jQuery, Camera, FileViewerPlugin*/
+
+var EC = EC || {};
+EC.Photo = EC.Photo || {};
+EC.Photo = (function (module) {
+    'use strict';
+
+    module.openImageView = function (tap_event, the_href) {
+        var href = the_href;
+        var e = tap_event;
+        var params;
+
+        switch (window.device.platform) {
+
+            //on Android we show the image as a js popup using swipebox.js
+            //todo replace with native image viewer, to be built ;)
+            case EC.Const.ANDROID:
+                e.preventDefault();
+                $.swipebox([{
+                    href: href
+                }]);
+                break;
+            //on iOS we show the native image viewer using the FileViewerPlugin
+            case EC.Const.IOS:
+                //todo: do we nee the action parameter on iOS?
+                params = {
+                    action: FileViewerPlugin.ACTION_VIEW,
+                    url: encodeURI(href)
+                };
+                FileViewerPlugin.view(params, function () {
+                    console.log('viewing image');
+                }, function (error) {
+                    console.log('error opening image' + error);
+                });
+                break;
+        }
+    };
+
+    return module;
+
+}(EC.Photo));
+
+
+
+/*global $, jQuery, Camera, FileViewerPlugin*/
+
+var EC = EC || {};
+EC.Photo = EC.Photo || {};
+EC.Photo = (function (module) {
+    'use strict';
+
+    module.renderOnCanvas = function(the_canvas_portrait_dom, the_canvas_landscape_dom, the_image_uri) {
+
+        //clear canvas from previous images
+        var canvas_portrait_dom = the_canvas_portrait_dom;
+        var canvas_landscape_dom = the_canvas_landscape_dom;
+        var canvas_portrait = canvas_portrait_dom[0];
+        var canvas_landscape = canvas_landscape_dom[0];
+        //load taken image on <canvas> tag
+        var image = new Image();
+        var context;
+        var source = the_image_uri;
+
+
+        /**Attach a timestamp to the source URI to make the UIWebView
+         * refresh the cache
+         * and request a new image otherwise old images are loaded (iOS
+         * quirk)
+         * The same thing happens on a browser. On Android this does not
+         * happen
+         * because the image URI is saved using the timestamp as filename
+         * directly (good choice)
+         *
+         * Anyway, when editing and replacing the image with a new one the saved url does
+         * not change, so we need to force a refresh on all platforms
+         */
+        source += '?' + parseInt(new Date().getTime() / 1000, 10);
+        image.src = source;
+
+        image.onerror = function () {
+            console.log('Image failed!');
+            EC.Notification.hideProgressDialog();
+        };
+
+        image.onload = function () {
+
+            //todo resize image to fit in canvas -> it is not working
+            // properly!
+            console.log('on load called');
+            var width = this.width;
+            var height = this.height;
+            var thumb_height;
+            var thumb_width;
+            var canvas;
+
+            if (height > width) {
+                //portrait
+                canvas = canvas_portrait;
+                thumb_width = 188;
+                thumb_height = 250;
+                canvas_landscape_dom.addClass('hidden');
+                canvas_portrait_dom.removeClass('hidden');
+
+            }
+            else {
+                //landscape
+                canvas = canvas_landscape;
+                thumb_width = 250;
+                thumb_height = 188;
+                canvas_portrait_dom.addClass('hidden');
+                canvas_landscape_dom.removeClass('hidden');
+            }
+
+            context = canvas.getContext('2d');
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.save();
+            //scale image based on device pixel density
+            // context.scale(window.devicePixelRatio, window.devicePixelRatio);
+            context.imageSmoothingEnabled = false;
+            context.drawImage(this, 0, 0, thumb_width, thumb_height);
+            context.restore();
+            EC.Notification.hideProgressDialog();
+
+        };
+        //image.onload
+        console.log(JSON.stringify(source));
+    };
+
+    return module;
+
+}(EC.Photo));
+
+
+
+/*global $, jQuery, Camera, FileViewerPlugin*/
+
+var EC = EC || {};
+EC.Photo = EC.Photo || {};
+EC.Photo = (function (module) {
+    'use strict';
+
+    module.renderOnImg = function (the_image_uri) {
+
+        var image = new Image();
+        var source = the_image_uri;
+        //todo move as dependency
+        var img_wrapper = $('img.thumb');
+
+        /**Attach a timestamp to the source URI to make the UIWebView
+         * refresh the cache
+         * and request a new image otherwise old images are loaded (iOS
+         * quirk)
+         * The same thing happens on a browser. On Android this does not
+         * happen
+         * because the image URI is saved using the timestamp as filename
+         * directly (good choice)
+         *
+         * Anyway, when editing and replacing the image with a new one the saved url does
+         * not change, so we need to force a refresh on all platforms
+         */
+        source += '?' + parseInt(new Date().getTime() / 1000, 10);
+
+        image.src = source;
+
+        image.onload = function () {
+            var width = this.width;
+            var height = this.height;
+
+            if (width > height) {
+                img_wrapper.attr('src', the_image_uri).width(250).height(188);
+            }
+            else {
+                img_wrapper.attr('src', the_image_uri).width(188).height(250);
+            }
+            EC.Notification.hideProgressDialog();
+        };
+
+        image.onerror = function () {
+            console.log('Image failed!');
+            EC.Notification.hideProgressDialog();
+
+        };
+    };
+
+    return module;
+
+}(EC.Photo));
+
+
 
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
@@ -24905,232 +25173,231 @@ EC.Inputs = ( function(module) {"use strict";
 
 	}(EC.Inputs));
 
-/*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
-
 var EC = EC || {};
 EC.Inputs = EC.Inputs || {};
-EC.Inputs = ( function(module) {"use strict";
+EC.Inputs = (function (module) {
+    'use strict';
 
-		module.buildRows = function(the_filenameToTimestamp) {
+    module.buildRows = function (the_filenameToTimestamp) {
 
-			var self = this;
-			var i;
-			var input;
-			var value_obj;
-			var value;
-			var _id;
-			var ref;
-			var rows = [];
-			var iLength = EC.Inputs.inputs.length;
-			var key_position = EC.Inputs.getPrimaryKeyRefPosition();
-			var parts;
-			var filename;
-			var filename_parts;
-			var extension;
-			var form_name = window.localStorage.form_name;
-			var uuid = EC.Utils.getPhoneUUID();
-			var form_id = window.localStorage.form_id;
-			var created_on = EC.Utils.getTimestamp();
-			var ios_filenames = the_filenameToTimestamp;
-			var timestamp;
+        var self = this;
+        var i;
+        var input;
+        var value_obj;
+        var value;
+        var _id;
+        var ref;
+        var rows = [];
+        var iLength = EC.Inputs.inputs.length;
+        var key_position = EC.Inputs.getPrimaryKeyRefPosition();
+        var parts;
+        var filename;
+        var filename_parts;
+        var extension;
+        var form_name = window.localStorage.form_name;
+        var uuid = EC.Utils.getPhoneUUID();
+        var form_id = window.localStorage.form_id;
+        var created_on = EC.Utils.getTimestamp();
+        var ios_filenames = the_filenameToTimestamp;
+        var timestamp;
 
-			//get parent key value for the current form
-			var current_input_position = parseInt(window.localStorage.current_position, 10);
-			var breadcrumb_trail = JSON.parse(window.localStorage.getItem("breadcrumbs"));
-			var parent_key = breadcrumb_trail[breadcrumb_trail.length - 1];
+        //get parent key value for the current form
+        var current_input_position = parseInt(window.localStorage.current_position, 10);
+        var breadcrumb_trail = JSON.parse(window.localStorage.getItem('breadcrumbs'));
+        var parent_key = breadcrumb_trail[breadcrumb_trail.length - 1];
 
-			//save full breadcrumbs as path to parent node (node tree representation using adjacent list)
-			var parent_path = (breadcrumb_trail[0] === "") ? breadcrumb_trail.join(EC.Const.ENTRY_ROOT_PATH_SEPARATOR).substring(1) : breadcrumb_trail.join(EC.Const.ENTRY_ROOT_PATH_SEPARATOR);
+        //save full breadcrumbs as path to parent node (node tree representation using adjacent list)
+        var parent_path = (breadcrumb_trail[0] === '') ? breadcrumb_trail.join(EC.Const.ENTRY_ROOT_PATH_SEPARATOR).substring(1) : breadcrumb_trail.join(EC.Const.ENTRY_ROOT_PATH_SEPARATOR);
 
-			//get value of primary key for this form
-			var key_value = EC.Inputs.getCachedInputValue(key_position).value;
+        //get value of primary key for this form
+        var key_value = EC.Inputs.getCachedInputValue(key_position).value;
 
-			var branch_entries;
+        var branch_entries;
 
-			//build rows to be saved - the text value for each input is saved in an array with corresponding indexes
-			for ( i = 0; i < iLength; i++) {
+        //build rows to be saved - the text value for each input is saved in an array with corresponding indexes
+        for (i = 0; i < iLength; i++) {
 
-				//get current value details
-				input = EC.Inputs.inputs[i];
-				value_obj = self.getCachedInputValue(input.position);
+            //get current value details
+            input = EC.Inputs.inputs[i];
+            value_obj = self.getCachedInputValue(input.position);
 
-				//save cached value OR "" when input_values not found...that should never happen?
-				value = value_obj.value || "";
+            //save cached value OR '' when input_values not found...that should never happen?
+            value = value_obj.value || '';
 
-				//_id is set only when we are editing, it is the _id of the current row in the database which will be updated
-				_id = value_obj._id;
+            //_id is set only when we are editing, it is the _id of the current row in the database which will be updated
+            _id = value_obj._id;
 
-				//deal with media types to save the correct value (full path uri)
-				if (input.type === EC.Const.PHOTO || input.type === EC.Const.VIDEO || input.type === EC.Const.AUDIO) {
+            //deal with media types to save the correct value (full path uri)
+            if (input.type === EC.Const.PHOTO || input.type === EC.Const.VIDEO || input.type === EC.Const.AUDIO) {
 
-					//check whether the value is defined as media value {stored: "<path>", cached: "<path>"}
-					if (value.hasOwnProperty("stored")) {
+                //check whether the value is defined as media value {stored: '<path>', cached: '<path>'}
+                if (value.hasOwnProperty('stored')) {
 
-						if (value.stored === "") {
+                    if (value.stored === '') {
 
-							//we are saving a new media file path from the cached one (or an empty string if the file field was optional)
-							if (value.cached !== "") {
+                        //we are saving a new media file path from the cached one (or an empty string if the file field was optional)
+                        if (value.cached !== '') {
 
-								//build file name (in the format <form_name>_<ref>_<uuid>_filename) with the cached value (Android) or the timestamp (iOS)
-								//Cordova Camera API unfortunately returns the timestamp as a file name on Android only, on iOS a smart guy decided to use the same file name with an incremental index (lol)
-								parts = value.cached.split('/');
-								filename = parts[parts.length - 1];
+                            //build file name (in the format <form_name>_<ref>_<uuid>_filename) with the cached value (Android) or the timestamp (iOS)
+                            //Cordova Camera API unfortunately returns the timestamp as a file name on Android only, on iOS some smart guy decided to use the same file name with an incremental index (lol)
+                            parts = value.cached.split('/');
+                            filename = parts[parts.length - 1];
 
-								switch(window.device.platform) {
+                            switch (window.device.platform) {
 
-									case EC.Const.ANDROID:
-										//do nothing
-										break;
-									case EC.Const.IOS:
+                                case EC.Const.ANDROID:
+                                    //do nothing
+                                    break;
+                                case EC.Const.IOS:
 
-										//replace filename with <timestamp>.jpg as on IOS the Camera, Audio and Video capture is inconsistent and returns weird file names
-										//not always the timestamp. We want to save the files using the timestamp as we do on Android (and following Epicollect+ filename schema)
-										if (input.type === EC.Const.PHOTO || input.type === EC.Const.AUDIO || input.type === EC.Const.VIDEO) {
+                                    //replace filename with <timestamp>.jpg as on IOS the Camera, Audio and Video capture is inconsistent and returns weird file names
+                                    //not always the timestamp. We want to save the files using the timestamp as we do on Android (and following Epicollect+ filename schema)
+                                    if (input.type === EC.Const.PHOTO || input.type === EC.Const.AUDIO || input.type === EC.Const.VIDEO) {
 
-											//get linked timestamp as we save the file using the timestamp as the file name
-											filename_parts = filename.split(".");
-											extension = filename_parts[filename_parts.length - 1];
+                                        //get linked timestamp as we save the file using the timestamp as the file name
+                                        filename_parts = filename.split('.');
+                                        extension = filename_parts[filename_parts.length - 1];
 
-											timestamp = EC.Utils.getIOSFilename(ios_filenames, filename);
-											filename = timestamp + "." + extension;
-										}
+                                        timestamp = EC.Utils.getIOSFilename(ios_filenames, filename);
+                                        filename = timestamp + '.' + extension;
+                                    }
 
-										break;
+                                    break;
 
-								}
+                            }
 
-								value = form_name + "_" + input.ref + "_" + uuid + "_" + filename;
+                            value = form_name + '_' + input.ref + '_' + uuid + '_' + filename;
 
-							} else {
+                        } else {
 
-								value = "";
-							}
+                            value = '';
+                        }
 
-						} else {
+                    } else {
 
-							//use the existing stored path
-							value = value.stored;
-						}
-					} else {
-						//value was not defined as media value: use case when user leaves a form halfway through but still wants to save. Save an empty object then
-						value = "";
-					}
+                        //use the existing stored path
+                        value = value.stored;
+                    }
+                } else {
+                    //value was not defined as media value: use case when user leaves a form halfway through but still wants to save. Save an empty object then
+                    value = '';
+                }
 
-				}
+            }
 
-				//deal with branch type to save the value ({branch_form_name, total_of_entries}) in the correct format
-				if (input.type === EC.Const.BRANCH) {
+            //deal with branch type to save the value ({branch_form_name, total_of_entries}) in the correct format
+            if (input.type === EC.Const.BRANCH) {
 
-					//check if the branch input was skipped (by jumps or exiting a form earlier)
+                //check if the branch input was skipped (by jumps or exiting a form earlier)
 
-					if (value === EC.Const.SKIPPED) {
+                if (value === EC.Const.SKIPPED) {
 
-						value = input.branch_form_name + ",0";
+                    value = input.branch_form_name + ',0';
 
-					} else {
-						//get branch form name and total of entries and save them as csv (cannot save JSON.stringify(obj) due to quotes, balls!)
-						value = value.branch_form_name + "," + value.branch_total_entries;
-					}
+                } else {
+                    //get branch form name and total of entries and save them as csv (cannot save JSON.stringify(obj) due to quotes, balls!)
+                    value = value.branch_form_name + ',' + value.branch_total_entries;
+                }
 
-				}
+            }
 
-				//dropdown/radio values
-				if (input.type === EC.Const.DROPDOWN || input.type === EC.Const.RADIO) {
+            //dropdown/radio values
+            if (input.type === EC.Const.DROPDOWN || input.type === EC.Const.RADIO) {
 
-					//if the input was NOT skipped, save the value or "" when no option was selected in the dropdown
-					if (value !== EC.Const.SKIPPED) {
+                //if the input was NOT skipped, save the value or '' when no option was selected in the dropdown
+                if (value !== EC.Const.SKIPPED) {
 
-						//if the label is the select placeholder OR the value was skipped, save an empty value
-						if (value === EC.Const.NO_OPTION_SELECTED) {
-							value = "";
-						}
-					}
-				}
+                    //if the label is the select placeholder OR the value was skipped, save an empty value
+                    if (value === EC.Const.NO_OPTION_SELECTED) {
+                        value = '';
+                    }
+                }
+            }
 
-				//checkbox values we save all the value  as csv
-				if (input.type === EC.Const.CHECKBOX) {
+            //checkbox values we save all the value  as csv
+            if (input.type === EC.Const.CHECKBOX) {
 
-					//if the input was NOT skipped, save the value or "" when no option was selected in the checkboxes list
-					if (value !== EC.Const.SKIPPED) {
-						//TODO: if the label is the select placeholder OR the value was skipped, save an empty value does it happen this is an empty array?
-						if (value === EC.Const.NO_OPTION_SELECTED) {
-							value = "";
-						} else {
-							value = value.join(", ");
-						}
-					}
+                //if the input was NOT skipped, save the value or '' when no option was selected in the checkboxes list
+                if (value !== EC.Const.SKIPPED) {
+                    //TODO: if the label is the select placeholder OR the value was skipped, save an empty value does it happen this is an empty array?
+                    if (value === EC.Const.NO_OPTION_SELECTED) {
+                        value = '';
+                    } else {
+                        value = value.join(', ');
+                    }
+                }
 
-				}
+            }
 
-				rows.push({
-					_id : _id, //this is set only when we are editing
-					input_id : input._id,
-					form_id : input.form_id,
-					position : input.position,
-					parent : parent_path,
-					label : input.label,
-					value : value,
-					ref : input.ref,
-					is_title : input.is_title,
-					entry_key : key_value,
-					type : input.type,
-					is_data_synced : 0,
-					is_media_synced : 0,
-					is_remote : 0,
-					created_on : created_on
-				});
+            rows.push({
+                _id: _id, //this is set only when we are editing
+                input_id: input._id,
+                form_id: input.form_id,
+                position: input.position,
+                parent: parent_path,
+                label: input.label,
+                value: value,
+                ref: input.ref,
+                is_title: input.is_title,
+                entry_key: key_value,
+                type: input.type,
+                is_data_synced: 0,
+                is_media_synced: 0,
+                is_remote: 0,
+                created_on: created_on
+            });
 
-			}//for each input
+        }//for each input
 
-			//EC.Notification.showProgressDialog();
+        //EC.Notification.showProgressDialog();
 
-			console.log("rows: " + JSON.stringify(rows));
+        console.log('rows: ' + JSON.stringify(rows));
 
-			//save/update values to database
-			if (window.localStorage.edit_mode) {
+        //save/update values to database
+        if (window.localStorage.edit_mode) {
 
-				$.when(EC.Update.updateHierarchyEntryValues(rows)).then(function() {
+            $.when(EC.Update.updateHierarchyEntryValues(rows)).then(function () {
 
-					//TODO: check this
-					//set selected key value in localStorage to show list of values later
-					//window.localStorage.entry_key = key_value;
+                //TODO: check this
+                //set selected key value in localStorage to show list of values later
+                //window.localStorage.entry_key = key_value;
 
-					//check if we came to the editing from a child form list or selecting the top form and going through the whole sequence
-					if (window.localStorage.is_child_form_nav) {
+                //check if we came to the editing from a child form list or selecting the top form and going through the whole sequence
+                if (window.localStorage.is_child_form_nav) {
 
-						//TODO
+                    //TODO
 
-					} else {
-						window.localStorage.back_nav_url = window.localStorage.back_edit_nav_url;
-					}
+                } else {
+                    window.localStorage.back_nav_url = window.localStorage.back_edit_nav_url;
+                }
 
-					//if it is a nested form, keep track of its parent and save it in localStorage
-					if (key_value !== parent_path) {
+                //if it is a nested form, keep track of its parent and save it in localStorage
+                if (key_value !== parent_path) {
 
-						var parent_path_array = parent_path.split(EC.Const.ENTRY_ROOT_PATH_SEPARATOR);
-						parent_path_array.pop();
-						window.localStorage.parent_path = parent_path_array.join(EC.Const.ENTRY_ROOT_PATH_SEPARATOR);
-					}
+                    var parent_path_array = parent_path.split(EC.Const.ENTRY_ROOT_PATH_SEPARATOR);
+                    parent_path_array.pop();
+                    window.localStorage.parent_path = parent_path_array.join(EC.Const.ENTRY_ROOT_PATH_SEPARATOR);
+                }
 
-					EC.Inputs.renderStoreEditFeedback(true);
-				}, function() {
-					EC.Inputs.renderStoreEditFeedback(false);
-				});
+                EC.Inputs.renderStoreEditFeedback(true);
+            }, function () {
+                EC.Inputs.renderStoreEditFeedback(false);
+            });
 
-			} else {
-				//insert form values, on success/fail show feedback
-				$.when(EC.Create.insertFormValues(rows, key_value)).then(function(main_form_entry_key) {
-					EC.Inputs.prepareFeedback(true, main_form_entry_key);
-				}, function() {
-					EC.Inputs.prepareFeedback(false, null);
-				});
-			}
-		};
+        } else {
+            //insert form values, on success/fail show feedback
+            $.when(EC.Create.insertFormValues(rows, key_value)).then(function (main_form_entry_key) {
+                EC.Inputs.prepareFeedback(true, main_form_entry_key);
+            }, function () {
+                EC.Inputs.prepareFeedback(false, null);
+            });
+        }
+    };
 
-		return module;
+    return module;
 
-	}(EC.Inputs));
+}(EC.Inputs));
 
 /*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/
@@ -26609,10 +26876,7 @@ EC.InputTypes = EC.InputTypes || {};
 EC.InputTypes = (function (module) {
     'use strict';
 
-    var app_storage_dir;
-
     module.photo = function (the_value, the_input) {
-
 
         var span_label = $('span.label');
         var value = the_value;
@@ -26621,172 +26885,22 @@ EC.InputTypes = (function (module) {
         var store_image_uri = $('div#input-photo input#stored-image-uri');
         var cache_image_uri = $('div#input-photo input#cached-image-uri');
         var image_full_path_uri;
+        var app_photo_dir = EC.Photo.getStoredImageDir();
 
         //clear canvas from previous images
         var canvas_portrait_dom = $('#canvas-portrait');
         var canvas_landscape_dom = $('#canvas-landscape');
-        var canvas_portrait = $('#canvas-portrait')[0];
-        var canvas_landscape = $('#canvas-landscape')[0];
-
+        var canvas_portrait = canvas_portrait_dom[0];
+        var canvas_landscape = canvas_landscape_dom[0];
         var context_portrait = canvas_portrait.getContext('2d');
-        context_portrait.clearRect(0, 0, canvas_portrait.width, canvas_portrait.height);
-
         var context_landscape = canvas_landscape.getContext('2d');
+        context_portrait.clearRect(0, 0, canvas_portrait.width, canvas_portrait.height);
         context_landscape.clearRect(0, 0, canvas_landscape.width, canvas_landscape.height);
 
         //Localise
         if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
             EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
         }
-
-        // //on iOS, close image popup on orientation change
-        if (EC.Const.IOS) {
-            //TODO
-        }
-
-        $('div#canvas-wrapper').off().on('vclick', function (e) {
-
-            var href = $('div#input-photo input#cached-image-uri').val();
-            var iOS_popup = $('#photo-popup');
-
-            console.log(href);
-
-            //if cached image url is empty, get stored image url
-            if (href === '') {
-                href = app_storage_dir + $('div#input-photo input#stored-image-uri').val();
-            }
-
-            if (window.device) {
-
-                var win;
-                var fail;
-                var params;
-                switch (window.device.platform) {
-
-                    //on Android we show the image as a opo up using swipebox
-                    case EC.Const.ANDROID:
-                        //e.preventDefault();
-                        //$.swipebox([{
-                        //    href: href
-                        //}]);
-
-
-                        //usage:
-
-                        win = function () {
-                            //alert('win!');
-                        };
-                        fail = function () {
-                            //alert('fail!');
-                        };
-                        params = {
-                            action: FileViewerPlugin.ACTION_VIEW,
-                            url: encodeURI(href)
-                        };
-                        FileViewerPlugin.view(params, win, fail);
-
-                        break;
-
-                    //on iOS we show a built in JQM popup, as swipebox has
-                    // got issues
-                    case EC.Const.IOS:
-
-                        win = function () {
-                            //alert('win!');
-                        };
-                        fail = function () {
-                            //alert('fail!');
-                        };
-                        params = {
-                            action: FileViewerPlugin.ACTION_VIEW,
-                            url: encodeURI(href)
-                        };
-                        FileViewerPlugin.view(params, win, fail);
-
-                        break;
-                }
-
-            }
-
-        });
-
-        //Render thumbnail on <canvas>
-        var _renderThumb = function (the_image_uri) {
-
-            //load taken image on <canvas> tag
-            var image = new Image();
-            var canvas;
-            var context;
-            var source = the_image_uri;
-
-            /**Attach a timestamp to the source URI to make the UIWebView
-             * refresh the cache
-             * and request a new image otherwise old images are loaded (iOS
-             * quirk)
-             * The same thing happens on a browser. On Android this does not
-             * happen
-             * because the image URI is saved using the timestamp as filename
-             * directly (good choice)
-             *
-             * Anyway, when editing and replacing the image with a new one the saved url does
-             * not change, so we need to force a refresh on all platforms
-             */
-            source += '?' + parseInt(new Date().getTime() / 1000, 10);
-
-            image.src = source;
-
-            image.onerror = function () {
-                console.log('Image failed!');
-            };
-
-            image.onload = function () {
-
-                //TODO:resize image to fit in canvas -> it is not working
-                // properly!
-                console.log('on load called');
-                var width = this.width;
-                var height = this.height;
-                var thumb_height;
-                var thumb_width;
-                var canvas;
-
-                if (height > width) {
-
-                    //portrait
-                    canvas = canvas_portrait;
-                    thumb_width = 188;
-                    thumb_height = 250;
-                    canvas_landscape_dom.addClass('hidden');
-                    canvas_portrait_dom.removeClass('hidden');
-
-                }
-                else {
-
-                    //landscape
-                    canvas = canvas_landscape;
-                    thumb_width = 250;
-                    thumb_height = 188;
-                    canvas_portrait_dom.addClass('hidden');
-                    canvas_landscape_dom.removeClass('hidden');
-                }
-
-                context = canvas.getContext('2d');
-                context.clearRect(0, 0, canvas.width, canvas.height);
-                context.save();
-
-                //scale image based on device pixel density
-                // context.scale(window.devicePixelRatio,
-                // window.devicePixelRatio);
-                context.imageSmoothingEnabled = false;
-                context.drawImage(this, 0, 0, thumb_width, thumb_height);
-                context.restore();
-
-            };
-            //image.onload
-
-            console.log(JSON.stringify(source));
-
-        };
 
         //hide both canvas
         canvas_landscape_dom.addClass('hidden');
@@ -26798,7 +26912,6 @@ EC.InputTypes = (function (module) {
         //if a value is stored when editing, on the first load add it to
         // hidden input field,  to be shown if no cached value is set
         if (window.localStorage.edit_mode) {
-
             if (value.stored === undefined) {
                 store_image_uri.val(value);
                 value = {
@@ -26807,10 +26920,8 @@ EC.InputTypes = (function (module) {
                 };
             }
             else {
-
                 store_image_uri.val(value.stored);
             }
-
         }
         else {
             //clear any previous stored path in the DOM, otherwise it get cached and it causes the same image to be overriden when adding a new entry
@@ -26825,84 +26936,50 @@ EC.InputTypes = (function (module) {
 
         //Show cached image if any, otherwise the stored image, if any
         if (value.cached === '') {
-
             console.log('cached value empty');
-
             if (value.stored !== '') {
-
-                //build full path to get image from private app folder
-                switch (window.device.platform) {
-
-                    case EC.Const.ANDROID:
-                        image_full_path_uri = EC.Const.ANDROID_APP_PRIVATE_URI + EC.Const.PHOTO_DIR + window.localStorage.project_name + '/' + value.stored;
-                        app_storage_dir = EC.Const.ANDROID_APP_PRIVATE_URI + EC.Const.PHOTO_DIR + window.localStorage.project_name + '/';
-                        break;
-                    case EC.Const.IOS:
-                        //prepend 'file://' to load images from iOS
-                        // application directory
-                        image_full_path_uri = 'file://' + EC.Const.IOS_APP_PRIVATE_URI + EC.Const.PHOTO_DIR + window.localStorage.project_name + '/' + value.stored;
-                        app_storage_dir = 'file://' + EC.Const.IOS_APP_PRIVATE_URI + EC.Const.PHOTO_DIR + window.localStorage.project_name + '/';
-                        break;
-
-                }
-
+                image_full_path_uri = app_photo_dir + value.stored;
                 console.log('image_full_path_uri: ' + image_full_path_uri);
-
-                _renderThumb(image_full_path_uri);
-
+                EC.Photo.renderOnCanvas(canvas_portrait_dom, canvas_landscape_dom, image_full_path_uri);
+                // _renderOnImg(image_full_path_uri);
             }
-
         }
         else {
-
-            //render the cached image
-            _renderThumb(value.cached);
+            EC.Photo.renderOnCanvas(canvas_portrait_dom, canvas_landscape_dom, value.cached);
+            //_renderOnImg(value.cached);
         }
-
-        //Set camera options - anything more than 1024 x 728 will crash
-        var source = Camera.PictureSourceType.CAMERA;
-        var camera_options = {
-            quality: 50, //anything more than this will cause memory leaks
-            destinationType: Camera.DestinationType.FILE_URI,
-            sourceType: source,
-            encodingType: Camera.EncodingType.JPEG,
-            mediaType: Camera.MediaType.PICTURE,
-            correctOrientation: true,
-            saveToPhotoAlbum: false,
-            targetWidth: 1024,
-            targetHeight: 768
-        };
 
         //open camera app on click
         camera_btn.off().on('vclick', function () {
 
-            navigator.camera.getPicture(onGPSuccess, onGPError, camera_options);
+            EC.Notification.showProgressDialog();
 
+            navigator.camera.getPicture(function (the_image_uri) {
+                    console.log('image_uri: ' + the_image_uri);
+                    var image_uri = the_image_uri;
+                    //render the new image on canvas
+                    EC.Photo.renderOnCanvas(canvas_portrait_dom, canvas_landscape_dom, image_uri);
+                    // _renderOnImg(image_uri);
+                    //save cached filename in hidden input field
+                    console.log('image uri is' + image_uri);
+                    $('div#input-photo input#cached-image-uri').val(image_uri);
+                }, function (error) {
+                    console.log('Error', 'Failed because: ' + error);
+                    EC.Notification.hideProgressDialog();
+                },
+                EC.Photo.getCameraOptions()
+            );
         });
 
-        //Success callback
-        var onGPSuccess = function (the_image_uri) {
-
-            console.log('image_uri: ' + the_image_uri);
-
-            var image_uri = the_image_uri;
-
-            //render the new image on canvas
-            _renderThumb(image_uri);
-
-            //save cached filename in hidden input field
-            console.log('image uri is' + image_uri);
-
-            $('div#input-photo input#cached-image-uri').val(image_uri);
-
-            // image_src_loaded = false;
-
-        };
-
-        //Error callback
-        var onGPError = function (error) {
-            console.log('Error', 'Failed because: ' + error);
-        };
+        //open image view popup for both implementation (canvas or img)
+        $('.thumb').off().on('vclick', function (e) {
+            var href = $('div#input-photo input#cached-image-uri').val();
+            //if cached image url is empty, get stored image url
+            if (href === '') {
+                href = app_photo_dir + $('div#input-photo input#stored-image-uri').val();
+            }
+            EC.Photo.openImageView(e, href);
+        });
     };
 
     return module;

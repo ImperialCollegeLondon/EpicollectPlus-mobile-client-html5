@@ -138,7 +138,7 @@ div#input-photo, div#input-audio, div#branch-input-photo, div#branch-input-audio
     text-align: center;
 }
 
-#photo canvas, #branch-photo canvas {
+#photo canvas, #branch-photo canvas, img.thumb {
     background: #ffffff;
     padding: 8px;
     border: 1px solid #cccccc;
