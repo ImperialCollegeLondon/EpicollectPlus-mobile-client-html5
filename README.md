@@ -40,31 +40,7 @@ Update Android Manifest file, change default theme to Holo Light
 Run on device
 
 ####
-Look for log errors about missing plugins and fix (I am looking inot this but no solution so far)
-
-####
-Cordova statusbar plugin (iOS) is causing problems so it does not get installed, modify `MainViewController.m` directly instead. Replace the `viewDidLoad()` method with the following:
-
-
-    ```
-    - (void)viewDidLoad
-     {
-         [super viewDidLoad];
-         // Do any additional setup after loading the view from its nib.
-     
-         //Lower screen 20px on ios7: http://goo.gl/hoijax
-         //this is done here as viewDidLoad will be executed only once (what you actually want)
-         //while viewWillAppear is executed EVERY time this view is shown/presented to the user
-         if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 7) {
-            CGRect viewBounds = [self.webView bounds];
-            viewBounds.origin.y = 18;
-            viewBounds.size.height = viewBounds.size.height -18;
-            self.webView.frame = viewBounds;
-        }
-     
-    }
-    ```
-
+Look for log errors about missing plugins and fix (I am looking into this but no solution so far)
 
 ####
 Custom URL schemes need to be added manually to Android manifest and iOS plist files (if you want to deeplink your app to a web page, otherwise you can skip this)
@@ -82,5 +58,4 @@ For debugging, add ` console.error(_error.message);` to `SQLitePlugin.js` at lin
 Enable file sharing on iOS (useful for "Export to CSV" feature to be able to get hold of the csv bundle) adding 
 `<key>UIFileSharingEnabled</key>
 <string>YES</string>`
-
 to `info.plist`
