@@ -140,7 +140,6 @@ EC.Notification = (function () {
                     break;
 
                 case EC.Const.IOS:
-
                     window.ActivityIndicator.show(message);
                     break;
 
@@ -179,9 +178,7 @@ EC.Notification = (function () {
                 break;
 
             case EC.Const.IOS:
-
                 if (window.ActivityIndicator) {
-
                     //if edit mode remove it without timeout
                     if (window.localStorage.edit_mode) {
                         window.ActivityIndicator.hide();
@@ -190,11 +187,8 @@ EC.Notification = (function () {
                             window.ActivityIndicator.hide();
                         }, 500);
                     }
-
                 }
-
                 break;
-
         }
     };
 
