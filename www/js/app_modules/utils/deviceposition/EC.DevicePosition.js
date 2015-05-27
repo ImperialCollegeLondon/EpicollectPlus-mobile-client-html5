@@ -124,17 +124,27 @@ EC.DevicePosition = (function (module) {
         return deferred.promise();
     };
 
+    //set HTML5 geolocation coords values replacing null with '' for not available values
     module.setCoords = function (position) {
-
-        var self = this;
-        //get HTML5 geolocation coords values replacing null with '' for not available values
-        self.coords = {
+        this.coords = {
             latitude: (position.coords.latitude === null) ? '' : position.coords.latitude,
             longitude: (position.coords.longitude === null) ? '' : position.coords.longitude,
             altitude: (position.coords.altitude === null) ? '' : position.coords.altitude,
             accuracy: (position.coords.accuracy === null) ? '' : position.coords.accuracy,
             altitude_accuracy: (position.coords.altitudeAccuracy === null) ? '' : position.coords.altitudeAccuracy,
             heading: (position.coords.heading === null) ? '' : position.coords.heading
+        };
+    };
+
+    //when not able to locate, set HTML5 geolocation coords to ''
+    module.setEmptyCoords = function () {
+        this.coords = {
+            latitude: '',
+            longitude: '',
+            altitude: '',
+            accuracy: '',
+            altitude_accuracy: '',
+            heading: ''
         };
     };
 

@@ -65,12 +65,17 @@ EC.InputTypes = (function (module) {
                 else {
                     //show standard view
                     textarea_coords.val(EC.DevicePosition.getCoordsFormattedText());
-                    $(textarea_coords).removeClass('hidden');
+                    textarea_coords.removeClass('hidden');
                     EC.Notification.hideProgressDialog();
                 }
             }, function (error) {
                 EC.Notification.hideProgressDialog();
                 EC.Notification.showToast('Could not locate', 'long');
+                textarea_coords.removeClass('hidden');
+                textarea_coords.val(EC.DevicePosition.getCoordsEmptyText());
+
+                //set empty coords (resolving to all the properties set to ''), this will be picked up when changing page
+                EC.DevicePosition.setEmptyCoords();
             });
         }
         else {
@@ -78,7 +83,6 @@ EC.InputTypes = (function (module) {
             accuracy_result.find('span').text(Math.floor(EC.Utils.parseLocationString(value).accuracy));
             accuracy_result.removeClass('hidden');
             accuracy_tip.removeClass('hidden');
-
 
             //set previous location value if any
             if (EC.DevicePosition.is_enhanced_map_on()) {
@@ -141,6 +145,11 @@ EC.InputTypes = (function (module) {
                     //standar view
                     textarea_coords.val(EC.DevicePosition.getCoordsFormattedText());
                 }
+
+                if (!EC.Utils.isChrome()) {
+                    EC.Notification.showToast(EC.Localise.getTranslation('location_acquired'), 'short');
+                }
+
             }
             else {
                 //set location object to empty values
@@ -153,11 +162,6 @@ EC.InputTypes = (function (module) {
                 }
 
             }
-
-            if (!EC.Utils.isChrome()) {
-                EC.Notification.showToast(EC.Localise.getTranslation('location_acquired'), 'short');
-            }
-
             set_location_btn.one('vclick', _handleSetLocation);
             EC.Notification.hideProgressDialog();
         }
@@ -193,9 +197,11 @@ EC.InputTypes = (function (module) {
 
             }, function () {
                 console.log('gps NOT enabled');
-                //no gps...do we have at least an internet connection?
-                //TODO: replace with location services network
+
                 EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('gps_disabled'));
+
+                //re-enable button
+                set_location_btn.on('vclick');
             });
 
         };
