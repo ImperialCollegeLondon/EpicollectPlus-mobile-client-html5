@@ -211,25 +211,23 @@ EC.Boot.onDeviceReady = function () {
 
         //request iOS persistent file system
         if (window.device.platform === EC.Const.IOS) {
-
             //create media folders 'images', 'audios', 'videos'
             $.when(EC.File.createMediaDirs()).then(function () {
-
                 //set iOS app root path at run time as app identifier can change
                 EC.Utils.setIOSRootPath();
-
                 //cache persistent storage path
                 EC.Utils.setIOSPersistentStoragePath();
-
             });
-
         }
 
         if (window.device.platform === EC.Const.ANDROID) {
 
             //create Android media folders
             $.when(EC.File.createMediaDirs()).then(function () {
-                console.log('Android media folders created');
+                $.when(EC.Utils.getPackageName()).then(function (package_name) {
+                    EC.Const.ANDROID_APP_PRIVATE_URI += package_name;
+                    console.log('Android media folders created for ' + package_name);
+                });
             });
 
             navigator.globalization.getLocaleName(function (locale) {
@@ -1634,6 +1632,25 @@ EC.Utils = (function () {
 
     };
 
+    var getPackageName = function () {
+
+        var package_name;
+        var deferred = new $.Deferred();
+        if (!EC.Utils.isChrome()) {
+            cordova.getAppVersion.getPackageName(function (the_package_name) {
+                console.log('Package ' + the_package_name);
+                package_name = the_package_name;
+                deferred.resolve(package_name);
+            });
+        }
+        else {
+            deferred.resolve('');
+        }
+
+        return deferred.promise();
+
+    };
+
     var getExportDirName = function () {
 
         var dir;
@@ -1642,7 +1659,7 @@ EC.Utils = (function () {
         if (!EC.Utils.isChrome()) {
             cordova.getAppVersion.getAppName(function (the_app_name) {
                 //sanitise app name to be used as a directory (remove all special chars with '-')
-                dir = the_app_name.replace(/[^\w\s]/gi, '-')
+                dir = the_app_name.replace(/[^\w\s]/gi, '-');
                 //remove all spaces
                 dir = dir.replace(/\s+/g, '');
                 //append export suffix foe easier identification
@@ -1889,13 +1906,18 @@ EC.Utils = (function () {
 
                 console.log(fileSystem);
 
-                documents_path = fileSystem.root.nativeURL;
-                documents_path = documents_path.replace('Documents/', '');
+                //get app name
+                $.when(EC.Utils.getAppName()).then(function (name) {
 
-                //IOS_ASSETS_ABS_PATH : 'Epicollect5 64bit.app/www/' -> we ned to append this
-                EC.Const.IOS_ASSETS_ABS_PATH = documents_path + EC.Const.IOS_ASSETS_ABS_PATH;
+                    EC.Const.IOS_ASSETS_ABS_PATH = name + '.app/www/';
+                    documents_path = fileSystem.root.nativeURL;
+                    documents_path = documents_path.replace('Documents/', '');
 
-                console.log('iOS root www - ' + EC.Const.IOS_ASSETS_ABS_PATH);
+                    //IOS_ASSETS_ABS_PATH : 'Epicollect5 64bit.app/www/' -> we ned to append this
+                    EC.Const.IOS_ASSETS_ABS_PATH = documents_path + EC.Const.IOS_ASSETS_ABS_PATH;
+
+                    console.log('iOS root www - ' + EC.Const.IOS_ASSETS_ABS_PATH);
+                });
             }
         }
 
@@ -1909,11 +1931,9 @@ EC.Utils = (function () {
             window.resolveLocalFileSystemURL(cordova.file.applicationDirectory, onSuccess, onError);
         }
         else {
-
             //on other platforms, use legacy method
             window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, onSuccess, onError);
         }
-
     };
 
     var setIOSPersistentStoragePath = function () {
@@ -2209,6 +2229,7 @@ EC.Utils = (function () {
         inArray: inArray,
         getVersionName: getVersionName,
         getAppName: getAppName,
+        getPackageName: getPackageName,
         getExportDirName: getExportDirName,
         getPageBaseURI: getPageBaseURI,
         isValidValue: isValidValue,
@@ -2981,10 +3002,10 @@ EC.Const = (function () {
         ANDROID: 'Android',
         IOS: 'iOS',
         ANDROID_ASSETS_ABS_PATH: 'file:///android_asset/www/',
-        IOS_ASSETS_ABS_PATH: 'Epicollect+.app/www/',
+        IOS_ASSETS_ABS_PATH: '',//set at run time
 
         //file paths
-        ANDROID_APP_PRIVATE_URI: 'file:///data/data/uk.ac.imperial.epicollectplus.html5',
+        ANDROID_APP_PRIVATE_URI: 'file:///data/data/', //package name is appended at run time
         IOS_APP_PRIVATE_URI: '', //set at run time, it is the Documents folder or the Library folder
         // folder
 

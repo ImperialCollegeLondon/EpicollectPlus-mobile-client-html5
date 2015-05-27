@@ -834,6 +834,25 @@ EC.Utils = (function () {
 
     };
 
+    var getPackageName = function () {
+
+        var package_name;
+        var deferred = new $.Deferred();
+        if (!EC.Utils.isChrome()) {
+            cordova.getAppVersion.getPackageName(function (the_package_name) {
+                console.log('Package ' + the_package_name);
+                package_name = the_package_name;
+                deferred.resolve(package_name);
+            });
+        }
+        else {
+            deferred.resolve('');
+        }
+
+        return deferred.promise();
+
+    };
+
     var getExportDirName = function () {
 
         var dir;
@@ -842,7 +861,7 @@ EC.Utils = (function () {
         if (!EC.Utils.isChrome()) {
             cordova.getAppVersion.getAppName(function (the_app_name) {
                 //sanitise app name to be used as a directory (remove all special chars with '-')
-                dir = the_app_name.replace(/[^\w\s]/gi, '-')
+                dir = the_app_name.replace(/[^\w\s]/gi, '-');
                 //remove all spaces
                 dir = dir.replace(/\s+/g, '');
                 //append export suffix foe easier identification
@@ -1089,13 +1108,18 @@ EC.Utils = (function () {
 
                 console.log(fileSystem);
 
-                documents_path = fileSystem.root.nativeURL;
-                documents_path = documents_path.replace('Documents/', '');
+                //get app name
+                $.when(EC.Utils.getAppName()).then(function (name) {
 
-                //IOS_ASSETS_ABS_PATH : 'Epicollect5 64bit.app/www/' -> we ned to append this
-                EC.Const.IOS_ASSETS_ABS_PATH = documents_path + EC.Const.IOS_ASSETS_ABS_PATH;
+                    EC.Const.IOS_ASSETS_ABS_PATH = name + '.app/www/';
+                    documents_path = fileSystem.root.nativeURL;
+                    documents_path = documents_path.replace('Documents/', '');
 
-                console.log('iOS root www - ' + EC.Const.IOS_ASSETS_ABS_PATH);
+                    //IOS_ASSETS_ABS_PATH : 'Epicollect5 64bit.app/www/' -> we ned to append this
+                    EC.Const.IOS_ASSETS_ABS_PATH = documents_path + EC.Const.IOS_ASSETS_ABS_PATH;
+
+                    console.log('iOS root www - ' + EC.Const.IOS_ASSETS_ABS_PATH);
+                });
             }
         }
 
@@ -1109,11 +1133,9 @@ EC.Utils = (function () {
             window.resolveLocalFileSystemURL(cordova.file.applicationDirectory, onSuccess, onError);
         }
         else {
-
             //on other platforms, use legacy method
             window.requestFileSystem(LocalFileSystem.PERSISTENT, 0, onSuccess, onError);
         }
-
     };
 
     var setIOSPersistentStoragePath = function () {
@@ -1409,6 +1431,7 @@ EC.Utils = (function () {
         inArray: inArray,
         getVersionName: getVersionName,
         getAppName: getAppName,
+        getPackageName: getPackageName,
         getExportDirName: getExportDirName,
         getPageBaseURI: getPageBaseURI,
         isValidValue: isValidValue,

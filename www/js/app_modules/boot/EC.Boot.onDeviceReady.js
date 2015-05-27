@@ -16,25 +16,23 @@ EC.Boot.onDeviceReady = function () {
 
         //request iOS persistent file system
         if (window.device.platform === EC.Const.IOS) {
-
             //create media folders 'images', 'audios', 'videos'
             $.when(EC.File.createMediaDirs()).then(function () {
-
                 //set iOS app root path at run time as app identifier can change
                 EC.Utils.setIOSRootPath();
-
                 //cache persistent storage path
                 EC.Utils.setIOSPersistentStoragePath();
-
             });
-
         }
 
         if (window.device.platform === EC.Const.ANDROID) {
 
             //create Android media folders
             $.when(EC.File.createMediaDirs()).then(function () {
-                console.log('Android media folders created');
+                $.when(EC.Utils.getPackageName()).then(function (package_name) {
+                    EC.Const.ANDROID_APP_PRIVATE_URI += package_name;
+                    console.log('Android media folders created for ' + package_name);
+                });
             });
 
             navigator.globalization.getLocaleName(function (locale) {

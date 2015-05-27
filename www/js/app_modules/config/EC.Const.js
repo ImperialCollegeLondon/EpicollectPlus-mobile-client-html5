@@ -15,10 +15,10 @@ EC.Const = (function () {
         ANDROID: 'Android',
         IOS: 'iOS',
         ANDROID_ASSETS_ABS_PATH: 'file:///android_asset/www/',
-        IOS_ASSETS_ABS_PATH: 'Epicollect+.app/www/',
+        IOS_ASSETS_ABS_PATH: '',//set at run time
 
         //file paths
-        ANDROID_APP_PRIVATE_URI: 'file:///data/data/uk.ac.imperial.epicollectplus.html5',
+        ANDROID_APP_PRIVATE_URI: 'file:///data/data/', //package name is appended at run time
         IOS_APP_PRIVATE_URI: '', //set at run time, it is the Documents folder or the Library folder
         // folder
 
