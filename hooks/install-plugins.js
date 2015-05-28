@@ -34,7 +34,7 @@ var pluginlist = [
 //App Version
     'https://github.com/whiteoctober/cordova-plugin-app-version.git', //
 //status bar in ios7 -> currently causing problems, so I modified the MainViewController directly
-    'org.apache.cordova.statusbar',
+    'https://github.com/apache/cordova-plugin-statusbar.git',
 //video player plugin android
     'https://github.com/macdonst/VideoPlayer',
 //diagnostic plugin
