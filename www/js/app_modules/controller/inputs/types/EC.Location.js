@@ -36,7 +36,6 @@ EC.InputTypes = (function (module) {
         //get a rough location when the view is first loaded (no value set yet)
         getRoughLocation();
 
-
         function getRoughLocation() {
 
             if (value === '') {
