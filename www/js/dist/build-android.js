@@ -318,9 +318,9 @@ EC.Boot.onDeviceReady = function () {
     window.localStorage.QUERY_ENTRIES_OFFSET = 0;
     window.localStorage.QUERY_CHILD_ENTRIES_OFFSET = 0;
     window.localStorage.QUERY_PARENT_ENTRIES_OFFSET = 0;
-
     window.sessionStorage.app_loaded = 0;
 
+    //attach Fastclick to remove 300ms delay when tapping on link
     $(function () {
         FastClick.attach(document.body);
     });
@@ -576,13 +576,9 @@ EC.Notification = (function () {
 
 }());
 
-/* jslint vars: true , nomen: true devel: true, plusplus: true*/
-/* global $, jQuery*/
 var EC = EC || {};
 EC.Ui = EC.Ui || {};
 EC.Ui = {
-
-  
 
     colors: {
         tap_action_overlay: '#2a6fc3',
@@ -591,19 +587,18 @@ EC.Ui = {
         fa_entry_value_embedded_btn_default: '#000000'
     },
 
+    //attach vmousedown and vmouseup event to highlight buttons on tap
     bindBtnStates: function () {
         'use strict';
         
-        var _this = this;
+        var self = this;
 
         //bind events to apply hover effect on buttons (Action Bar)
         $(document).on('vmousedown', 'div.ui-btn-right', function (e) {
-
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css('background-color', _this.colors.tap_action_overlay);
-
+            $(this).css('background-color', self.colors.tap_action_overlay);
         });
 
         $(document).on('vmouseup', 'div.ui-btn-right', function (e) {
@@ -621,7 +616,7 @@ EC.Ui = {
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css("background-color", _this.colors.tap_action_overlay);
+            $(this).css('background-color', self.colors.tap_action_overlay);
 
         });
 
@@ -630,7 +625,7 @@ EC.Ui = {
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css("background", "none");
+            $(this).css('background', 'none');
 
         });
 
@@ -640,7 +635,7 @@ EC.Ui = {
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css("background-color", _this.colors.tap_action_overlay);
+            $(this).css('background-color', self.colors.tap_action_overlay);
 
         });
 
@@ -649,7 +644,7 @@ EC.Ui = {
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css("background-color", _this.colors.list_item_background);
+            $(this).css('background-color', self.colors.list_item_background);
 
         });
 
@@ -659,7 +654,7 @@ EC.Ui = {
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css("background-color", _this.colors.tap_action_overlay);
+            $(this).css('background-color', self.colors.tap_action_overlay);
 
         });
 
@@ -668,7 +663,7 @@ EC.Ui = {
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css("background-color", _this.colors.list_item_background);
+            $(this).css('background-color', self.colors.list_item_background);
 
         });
 
@@ -678,7 +673,7 @@ EC.Ui = {
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css("background-color", _this.colors.tap_action_overlay);
+            $(this).css('background-color', self.colors.tap_action_overlay);
 
         });
 
@@ -687,7 +682,7 @@ EC.Ui = {
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css("background-color", _this.colors.default_button_background);
+            $(this).css('background-color', self.colors.default_button_background);
 
         });
 
@@ -697,7 +692,7 @@ EC.Ui = {
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css("background-color", _this.colors.tap_action_overlay);
+            $(this).css('background-color', self.colors.tap_action_overlay);
 
         });
 
@@ -706,7 +701,7 @@ EC.Ui = {
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css("background-color", _this.colors.default_button_background);
+            $(this).css('background-color', self.colors.default_button_background);
 
         });
 
@@ -716,7 +711,7 @@ EC.Ui = {
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css("background-color", _this.colors.tap_action_overlay);
+            $(this).css('background-color', self.colors.tap_action_overlay);
 
         });
 
@@ -725,7 +720,7 @@ EC.Ui = {
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css("background-color", _this.colors.default_button_background);
+            $(this).css('background-color', self.colors.default_button_background);
 
         });
 
@@ -735,7 +730,7 @@ EC.Ui = {
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css("background-color", _this.colors.tap_action_overlay);
+            $(this).css('background-color', self.colors.tap_action_overlay);
 
         });
 
@@ -744,7 +739,7 @@ EC.Ui = {
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css("background-color", _this.colors.default_button_background);
+            $(this).css('background-color', self.colors.default_button_background);
 
         });
 
@@ -754,7 +749,7 @@ EC.Ui = {
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css("color", _this.colors.tap_action_overlay);
+            $(this).css('color', self.colors.tap_action_overlay);
 
         });
 
@@ -763,17 +758,17 @@ EC.Ui = {
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css("color", _this.colors.fa_entry_value_embedded_btn_default);
+            $(this).css('color', self.colors.fa_entry_value_embedded_btn_default);
 
         });
 
-        //bind events to apply hover effect on "show more" buttons
+        //bind events to apply hover effect on 'show more' buttons
         $(document).on('vmousedown', '.more-items-btn', function (e) {
 
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css("background-color", _this.colors.tap_action_overlay);
+            $(this).css('background-color', self.colors.tap_action_overlay);
 
         });
 
@@ -782,10 +777,8 @@ EC.Ui = {
             e.preventDefault();
             e.stopPropagation();
 
-            $(this).css("background-color", _this.colors.default_button_background);
-
+            $(this).css('background-color', self.colors.default_button_background);
         });
-
     }
 };
 

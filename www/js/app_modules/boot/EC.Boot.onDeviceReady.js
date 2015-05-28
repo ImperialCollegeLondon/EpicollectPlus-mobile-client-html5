@@ -123,9 +123,9 @@ EC.Boot.onDeviceReady = function () {
     window.localStorage.QUERY_ENTRIES_OFFSET = 0;
     window.localStorage.QUERY_CHILD_ENTRIES_OFFSET = 0;
     window.localStorage.QUERY_PARENT_ENTRIES_OFFSET = 0;
-
     window.sessionStorage.app_loaded = 0;
 
+    //attach Fastclick to remove 300ms delay when tapping on link
     $(function () {
         FastClick.attach(document.body);
     });
