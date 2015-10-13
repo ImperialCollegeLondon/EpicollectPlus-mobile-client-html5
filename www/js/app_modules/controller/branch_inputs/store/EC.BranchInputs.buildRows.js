@@ -94,6 +94,7 @@ EC.BranchInputs = (function (module) {
 
                             }
 
+                            //build file name to be stored
                             value = form_name + '_' + branch_input.ref + '_' + uuid + '_' + filename;
                         } else {
 
