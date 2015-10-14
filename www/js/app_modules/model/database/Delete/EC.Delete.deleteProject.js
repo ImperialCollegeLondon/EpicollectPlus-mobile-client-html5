@@ -49,7 +49,7 @@ EC.Delete = (function (module) {
     };
 
     //Delete a project and related tables: database integrity will be kept with
-    // triggers (see EC.DBAdapter)
+    // triggers (see EC.Structure.createSQLiteDatabase)
     module.deleteProject = function (the_project_id, the_project_name) {
 
         project_id = the_project_id;

@@ -1,5 +1,4 @@
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
-/*global $, jQuery, cordova, device, onDeviceReady*/
+/*global $, jQuery, cordova, device, onDeviceReady, FastClick */
 var EC = window.EC || {};
 EC.Boot = EC.Boot || {};
 

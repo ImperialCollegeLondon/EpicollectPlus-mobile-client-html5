@@ -9,6 +9,8 @@ var vendor_path = './www/js/vendor/';
 var app_modules_path = './www/js/app_modules/';
 //var app_styles_path = './css/';
 var shell = require('gulp-shell');
+var run_sequence = require('run-sequence');
+var watch = require('gulp-watch');
 
 // Concatenate vendor js files
 gulp.task('vendor-scripts', function () {
@@ -31,10 +33,13 @@ gulp.task('vendor-scripts', function () {
 gulp.task('app-modules-android', function () {
     return gulp.src([//
         app_modules_path + '**/*.js',
+
+        //skip iOS only scripts
         '!' + app_modules_path + 'model/file/EC.File.createMediaDirs_iOS.js', //
         '!' + app_modules_path + 'model/file/EC.File.moveIOS.js', //
         '!' + app_modules_path + 'model/file/EC.File.moveVideoIOS.js' //
     ])
+        //set order as it is important
         .pipe(order([
             'www/js/app_modules/boot/**/*.js',
             'www/js/app_modules/utils/**/*.js',
@@ -60,6 +65,8 @@ gulp.task('app-modules-android', function () {
 gulp.task('app-modules-ios', function () {
     return gulp.src([//
         app_modules_path + '**/*.js',
+
+        //skip android only scripts
         '!' + app_modules_path + 'model/file/EC.File.createMediaDirs.js', //
         '!' + app_modules_path + 'model/file/EC.File.move.js', //
         '!' + app_modules_path + 'model/file/EC.File.moveVideo.js' //
@@ -97,3 +104,15 @@ gulp.task('app-modules-ios', function () {
 gulp.task('default', ['vendor-scripts', 'app-modules-android', 'app-modules-ios'], shell.task([
     'echo Running cordova prepare...', 'cordova prepare'
 ]));
+
+gulp.task('local', ['app-modules-android', 'app-modules-ios']);
+
+gulp.task('all', function() {
+    console.log('compiling all...');
+    run_sequence('app-modules-android', 'app-modules-ios');
+});
+
+gulp.task('watch', function() {
+    gulp.watch(app_modules_path + '**/*.js', ['all']);
+   // gulp.watch('mods-glob', ['app-modules-ios']);
+});

@@ -11,6 +11,12 @@ EC.Const = (function () {
         //debug on/off
         DEBUG: 1,
 
+        //set database version
+        DATABASE_VERSION: 2,
+
+        //database tables
+        EC_VERSION_TABLE: 'ec_version',
+
         //platforms
         ANDROID: 'Android',
         IOS: 'iOS',

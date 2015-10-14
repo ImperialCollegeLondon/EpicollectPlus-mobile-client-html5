@@ -22,7 +22,7 @@
     <!--<script src="js/vendor/jquery.min.js"></script>-->
 
     <!-- Load Cordova (404 during development)-->
-    <script type="text/javascript" src="cordova.js"></script>
+    <!--<script type="text/javascript" src="cordova.js"></script>-->
 
     <!-- Load JQM dependencies and configurations -->
 
@@ -84,7 +84,7 @@
     <!--<script src="js/app_modules/model/database/Structure/EC.Branch.commitBranchForms.js"></script>-->
     <!--<script src="js/app_modules/model/database/Structure/EC.Branch.commitBranchInputs.js"></script>-->
     <!--<script src="js/app_modules/model/database/Structure/EC.Branch.commitBranchInputOptions.js"></script>-->
-    <!--<script src="js/app_modules/model/database/Structure/EC.DBAdapter.js"></script>-->
+    <!--<script src="js/app_modules/model/database/Structure/EC.Structure.createSQLiteDatabase.js"></script>-->
 
     <!-- Model (Select) -->
     <!--<script src="js/app_modules/model/database/Select/EC.Select.js"></script>-->
@@ -354,7 +354,7 @@
 <div id="index" data-role="page" data-theme="a" data-dom-cache="true">
 
     <!-- Settings panel  -->
-    <div id="home-settings" class="home-settings" data-role="panel" data-position="left" data-display="overlay" data-dismissable="true" data-inset="true" data-swipe-close="true" class="ec-panel">
+    <div id="home-settings" class="home-settings ec-panel" data-role="panel" data-position="left" data-display="overlay" data-dismissable="true" data-inset="true" data-swipe-close="true">
         <ul class="ec-option-list" id="settings-list"data-role="listview" data-inset="true" data-theme="a" data-corners="false">
             <li class="v-nav-item ui-disabled">
                 <div data-href="home">

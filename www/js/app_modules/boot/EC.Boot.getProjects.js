@@ -1,4 +1,3 @@
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery, cordova, device, onDeviceReady*/
 var EC = window.EC || {};
 EC.Boot = EC.Boot || {};
@@ -16,14 +15,48 @@ EC.Boot.getProjects = function () {
     }
 
     //if database already set, just list projects
-    if (window.localStorage.is_db_set === EC.Const.SET) {
-        console.log('getting list');
-        EC.Project.getList();
+    if (parseInt(window.localStorage.is_db_set, 10) === EC.Const.SET) {
+
+
+        //get database version and update database if necessary
+        $.when(EC.Structure.doesVersionTableExist()).then(function () {
+            console.log('ec_version table exists');
+
+            //ec_version table exist, check version and update if necessary
+            //todo there is not this option now as all the apps shipped do not have that table ;)
+
+
+        }, function () {
+            console.log('ec_version table does not exists');
+
+            //ec_version table does not exist, create it and set version to EC.Const.DATABASE_VERSION
+            $.when(EC.Structure.createVersionTable()).then(function () {
+                //ec_version table created successfully
+
+                //add group tables
+                $.when(EC.Structure.createGroupTables()).then(function () {
+                    // group tables created
+
+                    console.log('getting list');
+                    EC.Project.getList();
+
+
+                }, function (error) {
+                    //group tables table NOT created
+                    console.log(error);
+                });
+
+
+            }, function (error) {
+                //ec_version table NOT created
+                console.log(error);
+            });
+        });
     }
     else {
 
         //Initialise database BEFORE listing empty project view
-        $.when(EC.DBAdapter.init()).then(function () {
+        $.when(EC.Structure.createSQLiteDatabase()).then(function () {
 
             //database is set
             window.localStorage.is_db_set = EC.Const.SET;
@@ -31,4 +64,4 @@ EC.Boot.getProjects = function () {
             EC.Project.getList();
         });
     }
-}
+};

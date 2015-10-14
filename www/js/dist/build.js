@@ -1671,7 +1671,7 @@ EC.Delete = (function (module) {
     };
 
     //Delete a project and related tables: database integrity will be kept with
-    // triggers (see EC.DBAdapter)
+    // triggers (see EC.CreateSQLiteDatabase)
     module.deleteProject = function (the_project_id, the_project_name) {
 
         project_id = the_project_id;
@@ -6790,8 +6790,8 @@ EC.Branch = ( function() {"use strict";
  *
  */
 var EC = EC || {};
-EC.DBAdapter = EC.DBAdapter || {};
-EC.DBAdapter = ( function() {
+EC.CreateSQLiteDatabase = EC.CreateSQLiteDatabase || {};
+EC.CreateSQLiteDatabase = ( function() {
 		"use strict";
 
 		//Initialise private database object if it is not already
@@ -11102,7 +11102,7 @@ EC.Boot.getProjects = function () {
     else {
 
         //Initialise database BEFORE listing empty project view
-        $.when(EC.DBAdapter.init()).then(function () {
+        $.when(EC.CreateSQLiteDatabase.init()).then(function () {
 
             //database is set
             window.localStorage.is_db_set = EC.Const.SET;

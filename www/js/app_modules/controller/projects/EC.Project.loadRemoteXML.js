@@ -7,8 +7,8 @@
 
 var EC = EC || {};
 EC.Project = EC.Project || {};
-EC.Project = ( function (module) {
-    "use strict";
+EC.Project = (function (module) {
+    'use strict';
 
     module.loadRemoteXML = function (the_project_name) {
 
@@ -26,13 +26,13 @@ EC.Project = ( function (module) {
             for (i = 0; i < iLength; i++) {
 
                 if (cached_project_names[i] === project_name) {
-                    EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("project_already_loaded"));
+                    EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('project_already_loaded'));
                     return;
                 }
             }
         } catch (error) {
             //no project yet
-            console.log("no projects on device yet");
+            console.log('no projects on device yet');
         }
 
 
@@ -57,7 +57,7 @@ EC.Project = ( function (module) {
         }, function () {
             //request failed
             //TODO
-            console.log("request failed");
+            console.log('request failed');
         });
 
     };

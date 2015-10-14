@@ -1,4 +1,3 @@
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery, cordova, device, onDeviceReady*/
 var EC = window.EC || {};
 EC.Boot = EC.Boot || {};
@@ -16,14 +15,48 @@ EC.Boot.getProjects = function () {
     }
 
     //if database already set, just list projects
-    if (window.localStorage.is_db_set === EC.Const.SET) {
-        console.log('getting list');
-        EC.Project.getList();
+    if (parseInt(window.localStorage.is_db_set, 10) === EC.Const.SET) {
+
+
+        //get database version and update database if necessary
+        $.when(EC.Structure.doesVersionTableExist()).then(function () {
+            console.log('ec_version table exists');
+
+            //ec_version table exist, check version and update if necessary
+            //todo there is not this option now as all the apps shipped do not have that table ;)
+
+
+        }, function () {
+            console.log('ec_version table does not exists');
+
+            //ec_version table does not exist, create it and set version to EC.Const.DATABASE_VERSION
+            $.when(EC.Structure.createVersionTable()).then(function () {
+                //ec_version table created successfully
+
+                //add group tables
+                $.when(EC.Structure.createGroupTables()).then(function () {
+                    // group tables created
+
+                    console.log('getting list');
+                    EC.Project.getList();
+
+
+                }, function (error) {
+                    //group tables table NOT created
+                    console.log(error);
+                });
+
+
+            }, function (error) {
+                //ec_version table NOT created
+                console.log(error);
+            });
+        });
     }
     else {
 
         //Initialise database BEFORE listing empty project view
-        $.when(EC.DBAdapter.init()).then(function () {
+        $.when(EC.Structure.createSQLiteDatabase()).then(function () {
 
             //database is set
             window.localStorage.is_db_set = EC.Const.SET;
@@ -31,7 +64,7 @@ EC.Boot.getProjects = function () {
             EC.Project.getList();
         });
     }
-}
+};
 
 /* jslint vars: true , nomen: true devel: true, plusplus: true*/
 /* global $, jQuery, cordova, device, onDeviceReady*/
@@ -55,7 +88,7 @@ EC.Boot.handleDeviceEvents = function () {
         else {
 
             //check if user pressed back button while doing a barcode scan
-            if ((page_id === EC.Const.BARCODE || page_id === EC.Const.BRANCH_PREFIX + EC.Const.BARCODE ) && window.localStorage.is_dismissing_barcode) {
+            if ((page_id === EC.Const.BARCODE || page_id === EC.Const.BRANCH_PREFIX + EC.Const.BARCODE) && window.localStorage.is_dismissing_barcode) {
                 window.localStorage.removeItem('is_dismissing_barcode');
             }
             else {
@@ -99,7 +132,6 @@ EC.Boot.handleDeviceEvents = function () {
     document.addEventListener('resume', window.onResume, false);
 };
 
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery, cordova, device, onDeviceReady*/
 var EC = window.EC || {};
 EC.Boot = EC.Boot || {};
@@ -193,8 +225,7 @@ EC.Boot.init = function () {
 
 };
 
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
-/*global $, jQuery, cordova, device, onDeviceReady*/
+/*global $, jQuery, cordova, device, onDeviceReady, FastClick */
 var EC = window.EC || {};
 EC.Boot = EC.Boot || {};
 
@@ -2985,6 +3016,12 @@ EC.Const = (function () {
         //debug on/off
         DEBUG: 1,
 
+        //set database version
+        DATABASE_VERSION: 2,
+
+        //database tables
+        EC_VERSION_TABLE: 'ec_version',
+
         //platforms
         ANDROID: 'Android',
         IOS: 'iOS',
@@ -3571,330 +3608,330 @@ EC.Parse = ( function(module) {"use strict";
 
 	}(EC.Parse));
 
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery, cordova, device, xml2json*/
 /*
  * @module EC
  * @submodulemodule Parser
  */
 var EC = EC || {};
-EC.Parse = ( function(module) {"use strict";
+EC.Parse = (function (module) {
+    'use strict';
 
-		module.parseXML = function(the_data) {
+    module.parseXML = function (the_data) {
 
-			var self = this;
-			var data = the_data;
-			var i;
-			var iLength;
-			var malformed_json = "";
-			var json = "";
-			var obj;
-			var form_has_media;
-			var form_has_branches;
-			var raw_forms = [];
+        var self = this;
+        var data = the_data;
+        var i;
+        var iLength;
+        var malformed_json;
+        var json;
+        var obj;
+        var form_has_media;
+        var form_has_branches;
+        var raw_forms = [];
 
-			self.form_key = "";
-			self.parsed_forms = [];
-			self.form_inputs_positions = [];
+        self.form_key = '';
+        self.parsed_forms = [];
+        self.form_inputs_positions = [];
 
-			/* Map each form inputs against its position in the form:
-			 * we do this because converting from xml to json it will group the same tags together therefore we would lose the inputs real order */
-			self.form_inputs_positions = self.mapPositionToInput(data);
+        /* Map each form inputs against its position in the form:
+         * we do this because converting from xml to json it will group the same tags together therefore we would lose the inputs real order */
+        self.form_inputs_positions = self.mapPositionToInput(data);
 
-			console.log(self.form_inputs_positions, true);
+        console.log(self.form_inputs_positions, true);
 
-			//remove "undefined" from json string (workaround to deal with ECML custom data format)
-			malformed_json = xml2json(data);
+        //remove 'undefined' from json string (workaround to deal with ECML custom data format)
+        malformed_json = xml2json(data);
 
-			json = malformed_json.replace("undefined", "");
+        json = malformed_json.replace('undefined', '');
 
-			console.log('json');
-			console.log(json);
+        console.log('json');
+        console.log(json);
 
-			//json string to object
-			try {
-				obj = JSON.parse(json);
-			} catch (error) {
-				//escape backslashes (found in regex, for example) -> double check cos it is working better without
-				json = json.replace(/\\/g, "\\\\");
-				obj = JSON.parse(json);
+        //json string to object
+        try {
+            obj = JSON.parse(json);
+        } catch (error) {
+            //escape backslashes (found in regex, for example) -> double check cos it is working better without
+            json = json.replace(/\\/g, '\\\\');
+            obj = JSON.parse(json);
 
-			}
+        }
 
-			//get project details (access properties with @ as array keys)
-			self.project = {
-				name : obj.ecml.model.submission["@projectName"], //
-				allowDownloadEdits : obj.ecml.model.submission["@allowDownloadEdits"], //
-				version : obj.ecml.model.submission["@versionNumber"],
-				downloadFromServer : obj.ecml.model.downloadFromServer,
-				uploadToServer : obj.ecml.model.uploadToServer
-			};
+        //get project details (access properties with @ as array keys)
+        self.project = {
+            name: obj.ecml.model.submission['@projectName'], //
+            allowDownloadEdits: obj.ecml.model.submission['@allowDownloadEdits'], //
+            version: obj.ecml.model.submission['@versionNumber'],
+            downloadFromServer: obj.ecml.model.downloadFromServer,
+            uploadToServer: obj.ecml.model.uploadToServer
+        };
 
-			//get the forms in raw format (with @ etc...)
-			raw_forms = obj.ecml.form;
+        //get the forms in raw format (with @ etc...)
+        raw_forms = obj.ecml.form;
 
-			//if no forms for this project, exit and warn user project xml is wrong
-			if (raw_forms === undefined) {
+        //if no forms for this project, exit and warn user project xml is wrong
+        if (raw_forms === undefined) {
 
-				return false;
-			}
+            return false;
+        }
 
-			//cache lenght (with a single form project length defaults to 1 as the length property will be undefined)
-			iLength = raw_forms.length || 1;
+        //cache lenght (with a single form project length defaults to 1 as the length property will be undefined)
+        iLength = raw_forms.length || 1;
 
-			//convert object to array (when it is a single form)
-			if (iLength === 1) {
-				raw_forms = [raw_forms];
-			}
+        //convert object to array (when it is a single form)
+        if (iLength === 1) {
+            raw_forms = [raw_forms];
+        }
 
-			console.log(self.project);
+        console.log(self.project);
 
-			//kepp track of number of form per type
-			self.project.total_hierarchy_forms = 0;
-			self.project.total_branch_forms = 0;
+        //kepp track of number of form per type
+        self.project.total_hierarchy_forms = 0;
+        self.project.total_branch_forms = 0;
 
-			//parse all the raw forms to have objects in proper format
-			for ( i = 0; i < iLength; i++) {
+        //parse all the raw forms to have objects in proper format
+        for (i = 0; i < iLength; i++) {
 
-				var form_obj = raw_forms[i];
-				var type = "";
-				//cache form number to be passed later to parseInput functions
-				var form_num = form_obj["@num"];
-				var form_type = (form_obj["@main"] === "false") ? "branch" : "main";
-				var form_name = form_obj["@name"];
+            var form_obj = raw_forms[i];
+            var type = '';
+            //cache form number to be passed later to parseInput functions
+            var form_num = form_obj['@num'];
+            var form_type = (form_obj['@main'] === 'false') ? 'branch' : 'main';
+            var form_name = form_obj['@name'];
 
-				//clear input_list
-				self.input_list.length = 0;
+            //clear input_list
+            self.input_list.length = 0;
 
-				//clear genkey hidden flag
-				self.is_form_genkey_hidden = 0;
+            //clear genkey hidden flag
+            self.is_form_genkey_hidden = 0;
 
-				//store a flag to indicate the current form has at least 1 media input
-				form_has_media = 0;
+            //store a flag to indicate the current form has at least 1 media input
+            form_has_media = 0;
 
-				//store a flag to indicate the current form has at least 1 branch
-				form_has_branches = 0;
+            //store a flag to indicate the current form has at least 1 branch
+            form_has_branches = 0;
 
-				//store the current form key for later use
-				self.form_key = form_obj["@key"];
+            //store the current form key for later use
+            self.form_key = form_obj['@key'];
 
-				//get form attribute
-				self.parsed_forms.push({
+            //get form attribute
+            self.parsed_forms.push({
 
-					num : form_num,
-					name : form_name,
-					key : self.form_key
+                num: form_num,
+                name: form_name,
+                key: self.form_key
 
-				});
+            });
 
-				/*if @main is defined this is a form of type main, else it is a branch
-				 *
-				 */
-				self.parsed_forms[i].type = form_type;
+            /*if @main is defined this is a form of type main, else it is a branch
+             *
+             */
+            self.parsed_forms[i].type = form_type;
 
-				/*	Parse single value form inputs/custom tags
-				*   if a tag is not undefined, it can be either an Object (single occurrence) or Array of Objects (multiple occurrences)
-				*	also add the form 'num' attribute to each input to reference the right form when storing the inputs to db
-				*/
+            /*	Parse single value form inputs/custom tags
+             *   if a tag is not undefined, it can be either an Object (single occurrence) or Array of Objects (multiple occurrences)
+             *	also add the form 'num' attribute to each input to reference the right form when storing the inputs to db
+             */
 
-				//parse all the input tags (set as type text)
-				if (form_obj.input !== undefined) {
+            //parse all the input tags (set as type text)
+            if (form_obj.input !== undefined) {
 
-					type = "text";
+                type = 'text';
 
-					if (Array.isArray(form_obj.input)) {
-						self.parseInputArray(form_obj.input, type, form_num, form_type, form_name);
-					} else {
-						self.parseInputObject(form_obj.input, type, form_num, form_type, form_name);
-					}
-				}
+                if (Array.isArray(form_obj.input)) {
+                    self.parseInputArray(form_obj.input, type, form_num, form_type, form_name);
+                } else {
+                    self.parseInputObject(form_obj.input, type, form_num, form_type, form_name);
+                }
+            }
 
-				//parse barcode tags (set as type barcode)
-				if (form_obj.barcode !== undefined) {
+            //parse barcode tags (set as type barcode)
+            if (form_obj.barcode !== undefined) {
 
-					type = "barcode";
+                type = 'barcode';
 
-					if (Array.isArray(form_obj.barcode)) {
-						self.parseInputArray(form_obj.barcode, type, form_num, form_type, form_name);
-					} else {
-						self.parseInputObject(form_obj.barcode, type, form_num, form_type, form_name);
-					}
+                if (Array.isArray(form_obj.barcode)) {
+                    self.parseInputArray(form_obj.barcode, type, form_num, form_type, form_name);
+                } else {
+                    self.parseInputObject(form_obj.barcode, type, form_num, form_type, form_name);
+                }
 
-				}
+            }
 
-				//parse location tags (set as type location)
-				if (form_obj.location !== undefined) {
+            //parse location tags (set as type location)
+            if (form_obj.location !== undefined) {
 
-					type = "location";
+                type = 'location';
 
-					if (Array.isArray(form_obj.location)) {
-						self.parseInputArray(form_obj.location, type, form_num, form_type, form_name);
-					} else {
-						self.parseInputObject(form_obj.location, type, form_num, form_type, form_name);
-					}
-				}
+                if (Array.isArray(form_obj.location)) {
+                    self.parseInputArray(form_obj.location, type, form_num, form_type, form_name);
+                } else {
+                    self.parseInputObject(form_obj.location, type, form_num, form_type, form_name);
+                }
+            }
 
-				//parse audio tags (set as type audio)
-				if (form_obj.audio !== undefined) {
+            //parse audio tags (set as type audio)
+            if (form_obj.audio !== undefined) {
 
-					type = "audio";
-					form_has_media = 1;
+                type = 'audio';
+                form_has_media = 1;
 
-					if (Array.isArray(form_obj.audio)) {
-						self.parseInputArray(form_obj.audio, type, form_num, form_type, form_name);
-					} else {
-						self.parseInputObject(form_obj.audio, type, form_num, form_type, form_name);
-					}
-				}
+                if (Array.isArray(form_obj.audio)) {
+                    self.parseInputArray(form_obj.audio, type, form_num, form_type, form_name);
+                } else {
+                    self.parseInputObject(form_obj.audio, type, form_num, form_type, form_name);
+                }
+            }
 
-				//parse video tags (set as type video)
-				if (form_obj.video !== undefined) {
+            //parse video tags (set as type video)
+            if (form_obj.video !== undefined) {
 
-					type = "video";
-					form_has_media = 1;
+                type = 'video';
+                form_has_media = 1;
 
-					if (Array.isArray(form_obj.video)) {
-						self.parseInputArray(form_obj.video, type, form_num, form_type, form_name);
-					} else {
-						self.parseInputObject(form_obj.video, type, form_num, form_type, form_name);
-					}
+                if (Array.isArray(form_obj.video)) {
+                    self.parseInputArray(form_obj.video, type, form_num, form_type, form_name);
+                } else {
+                    self.parseInputObject(form_obj.video, type, form_num, form_type, form_name);
+                }
 
-				}
+            }
 
-				//parse photo tags (set as type photo)
-				if (form_obj.photo !== undefined) {
+            //parse photo tags (set as type photo)
+            if (form_obj.photo !== undefined) {
 
-					type = "photo";
-					form_has_media = 1;
+                type = 'photo';
+                form_has_media = 1;
 
-					if (Array.isArray(form_obj.photo)) {
-						self.parseInputArray(form_obj.photo, type, form_num, form_type, form_name);
-					} else {
-						self.parseInputObject(form_obj.photo, type, form_num, form_type, form_name);
-					}
+                if (Array.isArray(form_obj.photo)) {
+                    self.parseInputArray(form_obj.photo, type, form_num, form_type, form_name);
+                } else {
+                    self.parseInputObject(form_obj.photo, type, form_num, form_type, form_name);
+                }
 
-				}
+            }
 
-				//parse textarea tags (set as type textarea)
-				if (form_obj.textarea !== undefined) {
+            //parse textarea tags (set as type textarea)
+            if (form_obj.textarea !== undefined) {
 
-					type = "textarea";
+                type = 'textarea';
 
-					if (Array.isArray(form_obj.textarea)) {
-						self.parseInputArray(form_obj.textarea, type, form_num, form_type, form_name);
-					} else {
-						self.parseInputObject(form_obj.textarea, type, form_num, form_type, form_name);
-					}
+                if (Array.isArray(form_obj.textarea)) {
+                    self.parseInputArray(form_obj.textarea, type, form_num, form_type, form_name);
+                } else {
+                    self.parseInputObject(form_obj.textarea, type, form_num, form_type, form_name);
+                }
 
-				}
+            }
 
-				/*
-				* Parse tags which allows selection from multiple values (drodpdown, checkbox, radio )
-				*
-				*  ! select -> checkbox
-				*  ! select1 -> select (dropdown)
-				*  ! radio -> radio button
-				*
-				*  Each sets of possible values is within the itme array
-				*/
+            /*
+             * Parse tags which allows selection from multiple values (drodpdown, checkbox, radio )
+             *
+             *  ! select -> checkbox
+             *  ! select1 -> select (dropdown)
+             *  ! radio -> radio button
+             *
+             *  Each sets of possible values is within the itme array
+             */
 
-				//parse radio tags (set as type radio)
-				if (form_obj.radio !== undefined) {
+            //parse radio tags (set as type radio)
+            if (form_obj.radio !== undefined) {
 
-					type = "radio";
+                type = 'radio';
 
-					if (Array.isArray(form_obj.radio)) {
-						self.parseInputArray(form_obj.radio, type, form_num, form_type, form_name);
-					} else {
-						self.parseInputObject(form_obj.radio, type, form_num, form_type, form_name);
-					}
+                if (Array.isArray(form_obj.radio)) {
+                    self.parseInputArray(form_obj.radio, type, form_num, form_type, form_name);
+                } else {
+                    self.parseInputObject(form_obj.radio, type, form_num, form_type, form_name);
+                }
 
-				}
+            }
 
-				//parse select1 tags (set as type select)
-				if (form_obj.select1 !== undefined) {
+            //parse select1 tags (set as type select)
+            if (form_obj.select1 !== undefined) {
 
-					type = "select";
+                type = 'select';
 
-					if (Array.isArray(form_obj.select1)) {
-						self.parseInputArray(form_obj.select1, type, form_num, form_type, form_name);
-					} else {
-						self.parseInputObject(form_obj.select1, type, form_num, form_type, form_name);
-					}
-				}
+                if (Array.isArray(form_obj.select1)) {
+                    self.parseInputArray(form_obj.select1, type, form_num, form_type, form_name);
+                } else {
+                    self.parseInputObject(form_obj.select1, type, form_num, form_type, form_name);
+                }
+            }
 
-				//parse select tags (set as type checkbox)
-				if (form_obj.select !== undefined) {
+            //parse select tags (set as type checkbox)
+            if (form_obj.select !== undefined) {
 
-					type = "checkbox";
+                type = 'checkbox';
 
-					if (Array.isArray(form_obj.select)) {
-						self.parseInputArray(form_obj.select, type, form_num, form_type, form_name);
-					} else {
-						self.parseInputObject(form_obj.select, type, form_num, form_type, form_name);
-					}
+                if (Array.isArray(form_obj.select)) {
+                    self.parseInputArray(form_obj.select, type, form_num, form_type, form_name);
+                } else {
+                    self.parseInputObject(form_obj.select, type, form_num, form_type, form_name);
+                }
 
-				}
+            }
 
-				//parse <branch> tag (set as type bracnh)
-				if (form_obj.branch !== undefined) {
+            //parse <branch> tag (set as type bracnh)
+            if (form_obj.branch !== undefined) {
 
-					type = "branch";
-					form_has_branches = 1;
+                type = 'branch';
+                form_has_branches = 1;
 
-					if (Array.isArray(form_obj.branch)) {
-						self.parseInputArray(form_obj.branch, type, form_num, form_type, form_name);
-					} else {
-						self.parseInputObject(form_obj.branch, type, form_num, form_type, form_name);
-					}
-				}
+                if (Array.isArray(form_obj.branch)) {
+                    self.parseInputArray(form_obj.branch, type, form_num, form_type, form_name);
+                } else {
+                    self.parseInputObject(form_obj.branch, type, form_num, form_type, form_name);
+                }
+            }
 
-				/*
-				* After all the field tags have been parsed, store input list for the current form and clear it for next form
-				*/
+            /*
+             * After all the field tags have been parsed, store input list for the current form and clear it for next form
+             */
 
-				//store list of inputs for current form (hierarchy-> main=true, branch->main=false)
-				if (form_obj["@main"] === "true") {
-					self.inputs.push({
-						num : form_obj["@num"],
-						input_list : self.input_list.slice(0)
-					});
+            //store list of inputs for current form (hierarchy-> main=true, branch->main=false)
+            if (form_obj['@main'] === 'true') {
+                self.inputs.push({
+                    num: form_obj['@num'],
+                    input_list: self.input_list.slice(0)
+                });
 
-					//count current form as hierarchy
-					self.project.total_hierarchy_forms++;
+                //count current form as hierarchy
+                self.project.total_hierarchy_forms++;
 
-				} else {
-					self.branch_inputs.push({
-						num : form_obj["@num"],
-						input_list : self.input_list.slice(0)
-					});
+            } else {
+                self.branch_inputs.push({
+                    num: form_obj['@num'],
+                    input_list: self.input_list.slice(0)
+                });
 
-					//count current form as branch
-					self.project.total_branch_forms++;
-				}
+                //count current form as branch
+                self.project.total_branch_forms++;
+            }
 
-				//add total number of inputs to current parsed form object
-				self.parsed_forms[i].total_inputs = self.input_list.length;
+            //add total number of inputs to current parsed form object
+            self.parsed_forms[i].total_inputs = self.input_list.length;
 
-				//add is_form_genkey_hidden flag, meaning the input field with the auto generated key will not be shown
-				self.parsed_forms[i].is_form_genkey_hidden = self.is_form_genkey_hidden;
+            //add is_form_genkey_hidden flag, meaning the input field with the auto generated key will not be shown
+            self.parsed_forms[i].is_form_genkey_hidden = self.is_form_genkey_hidden;
 
-				//add flag to see if a form contains media input
-				self.parsed_forms[i].has_media = form_has_media;
+            //add flag to see if a form contains media input
+            self.parsed_forms[i].has_media = form_has_media;
 
-				//add flag to see if a form contains branches
-				self.parsed_forms[i].has_branches = form_has_branches;
+            //add flag to see if a form contains branches
+            self.parsed_forms[i].has_branches = form_has_branches;
 
-			}//for each raw_forms
+        }//for each raw_forms
 
-			console.log("Parsed forms");
-			console.log(self.parsed_forms, true);
+        console.log('Parsed forms');
+        console.log(self.parsed_forms, true);
 
-		};
+    };
 
-		return module;
+    return module;
 
-	}(EC.Parse));
+}(EC.Parse));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus: true*/
 /*global $, jQuery*/
@@ -5026,97 +5063,98 @@ EC.Localise = ( function () {
  */
 var EC = EC || {};
 EC.Branch = EC.Branch || {};
-EC.Branch = ( function(module) {"use strict";
+EC.Branch = ( function (module) {
+    "use strict";
 
-        var self;
-        var deferred;
-        //keep track of foreign keys
-        var project_insertId;
-        var branch_forms_IDs = [];
-        //store forms
-        var branch_forms;
-        //we need to keep track of the form @num to be linked with whatever ID it gets upon being entered to the the db
-        var branch_form_num_index = 0;
+    var self;
+    var deferred;
+    //keep track of foreign keys
+    var project_insertId;
+    var branch_forms_IDs = [];
+    //store forms
+    var branch_forms;
+    //we need to keep track of the form @num to be linked with whatever ID it gets upon being entered to the the db
+    var branch_form_num_index = 0;
 
-        var _errorCB = function(the_tx, the_result) {
-            console.log(the_result);
-        };
+    var _errorCB = function (the_tx, the_result) {
+        console.log(the_result);
+    };
 
-        //Transaction to save all the forms to the db. Each form will get its own executeSql and relative callback
-        var _commitBranchFormsTX = function(tx) {
+    //Transaction to save all the forms to the db. Each form will get its own executeSql and relative callback
+    var _commitBranchFormsTX = function (tx) {
 
-            var i;
-            var iLenght = branch_forms.length;
-            var query;
-            for ( i = 0; i < iLenght; i++) {
+        var i;
+        var iLenght = branch_forms.length;
+        var query;
+        for (i = 0; i < iLenght; i++) {
 
-                query = "";
-                query += 'INSERT INTO ec_branch_forms (project_id, num, name, key, has_media, is_genkey_hidden, total_inputs) ';
-                query += 'VALUES ("';
-                query += project_insertId + '", "';
-                query += branch_forms[i].num + '", "';
-                query += branch_forms[i].name + '", "';
-                query += branch_forms[i].key + '", "';
-                query += branch_forms[i].has_media + '", "';
-                query += branch_forms[i].is_form_genkey_hidden + '", "';
-                query += branch_forms[i].total_inputs + '");';
+            query = "";
+            query += 'INSERT INTO ec_branch_forms (project_id, num, name, key, has_media, is_genkey_hidden, total_inputs) ';
+            query += 'VALUES ("';
+            query += project_insertId + '", "';
+            query += branch_forms[i].num + '", "';
+            query += branch_forms[i].name + '", "';
+            query += branch_forms[i].key + '", "';
+            query += branch_forms[i].has_media + '", "';
+            query += branch_forms[i].is_form_genkey_hidden + '", "';
+            query += branch_forms[i].total_inputs + '");';
 
-                //keep track of current form @num and database row ID. Defaults to 0, it will be set after the INSERT
-                branch_forms_IDs.push({
-                    num : branch_forms[i].num,
-                    id : 0
-                });
+            //keep track of current form @num and database row ID. Defaults to 0, it will be set after the INSERT
+            branch_forms_IDs.push({
+                num: branch_forms[i].num,
+                id: 0
+            });
 
-                tx.executeSql(query, [], _commitBranchFormsSQLSuccess, _errorCB);
-            }
+            tx.executeSql(query, [], _commitBranchFormsSQLSuccess, _errorCB);
+        }
 
-        };
+    };
 
-        /*
-         *  @method _commitBranchFormsSQLSuccess
-         *
-         *	it links the form @num with the actual ID on the database to be used as foreign key on the ec_inputs table
-         *	it is called as a callback for each form executeSql()
-         */
-        var _commitBranchFormsSQLSuccess = function(the_tx, the_result) {
+    /*
+     *  @method _commitBranchFormsSQLSuccess
+     *
+     *	it links the form @num with the actual ID on the database to be used as foreign key on the ec_inputs table
+     *	it is called as a callback for each form executeSql()
+     */
+    var _commitBranchFormsSQLSuccess = function (the_tx, the_result) {
 
-            //link each row ID to its form
-            branch_forms_IDs[branch_form_num_index].id = the_result.insertId;
-            branch_form_num_index++;
+        //link each row ID to its form
+        branch_forms_IDs[branch_form_num_index].id = the_result.insertId;
+        branch_form_num_index++;
 
-        };
+    };
 
-        //resets forms array
-        var _commitBranchFormsSuccessCB = function() {
+    //resets forms array
+    var _commitBranchFormsSuccessCB = function () {
 
-            //reset forms arrays
-            branch_forms.length = 0;
-            
-            //return branch forms IDs
-            deferred.resolve(branch_forms_IDs);
+        //reset forms arrays
+        branch_forms.length = 0;
 
-        };
+        //return branch forms IDs
+        deferred.resolve(branch_forms_IDs);
 
-        /**
-         * @method insertForms
-         */
-        module.commitBranchForms = function(the_branch_forms, the_project_insertId) {
+    };
 
-            self = this;
-            deferred = new $.Deferred();
-            branch_forms = the_branch_forms;
-            project_insertId = the_project_insertId;
-            branch_forms_IDs.length = 0;
-            branch_form_num_index = 0;
+    /**
+     * @method insertForms
+     */
+    module.commitBranchForms = function (the_branch_forms, the_project_insertId) {
 
-            EC.db.transaction(_commitBranchFormsTX, _errorCB, _commitBranchFormsSuccessCB);
+        self = this;
+        deferred = new $.Deferred();
+        branch_forms = the_branch_forms;
+        project_insertId = the_project_insertId;
+        branch_forms_IDs.length = 0;
+        branch_form_num_index = 0;
 
-            return deferred.promise();
-        };
+        EC.db.transaction(_commitBranchFormsTX, _errorCB, _commitBranchFormsSuccessCB);
 
-        return module;
+        return deferred.promise();
+    };
 
-    }(EC.Branch));
+    return module;
+
+}(EC.Branch));
 
 /*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/
@@ -5545,395 +5583,6 @@ EC.Branch = (function (module) {
     };
     return module;
 }(EC.Branch));
-
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
-/*global $, jQuery, cordova, device*/
-/*
- * @module DBAdapter
- *
- *   Initialise the database using Phonegap 2.9
- *   Phonegap uses Web SQL specifications on the Chrome browser (Android)
- *
- */
-var EC = EC || {};
-EC.DBAdapter = EC.DBAdapter || {};
-EC.DBAdapter = ( function() {
-		"use strict";
-
-		//Initialise private database object if it is not already
-		//var EC.db =  window.openDatabase("epicollect", "1.0", "Epicollect", 2000000);
-
-		//native
-		//var EC.db =  db || window.sqlitePlugin.openDatabase("epicollect", "1.0",
-		// "Epicollect", 2000000);
-
-		/*
-		 *  Query to create the database tables
-		 *  foreign keys apparently do not work on Web SQL, so it is better to use
-		 * triggers or manually do all the delete/update on cascade
-		 *
-		 */
-
-		var deferred;
-
-		//Query to create ec_projects table
-		var cq_ec_projects = ['', //
-		'CREATE TABLE IF NOT EXISTS "ec_projects" (', //
-		' "_id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,', //
-		'"name" TEXT, ', //
-		'"total_hierarchy_forms" INTEGER DEFAULT 0, ', //
-		'"total_branch_forms" INTEGER DEFAULT 0, ', //
-		'"is_active" INTEGER DEFAULT 0,', //
-		'"uploadToServer" TEXT,', //
-		'"downloadFromServer" TEXT,', //
-		'"allowDownloadEdits" INTEGER DEFAULT 0,', //
-		'"version" TEXT,', '"description" TEXT,', //
-		'"radiobutton_image_url" TEXT,', //
-		'"reg_mail" TEXT);'//
-		].join('');
-		//
-
-		//Query to create ec_forms table
-		var cq_ec_forms = ['', 'CREATE TABLE IF NOT EXISTS "ec_forms" (', //
-		' "_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,', //
-		'"project_id" INTEGER NOT NULL, ', //
-		'"name" TEXT, ', //
-		'"num" INTEGER, ', //
-		'"key" TEXT, ', //
-		'"total_inputs" INTEGER, ', //
-		'"has_media" INTEGER DEFAULT 0, ', //
-		'"has_branches" INTEGER DEFAULT 0, ', //
-		'"is_genkey_hidden" INTEGER DEFAULT 0, ', //
-		'"entries" INTEGER DEFAULT 0, ', //
-		'FOREIGN KEY ("project_id") REFERENCES ec_projects ("_id") ON DELETE CASCADE ON ',
-		// //
-		'UPDATE CASCADE);'].join('');
-		//
-
-		//Query to create ec_branch_forms table
-		var cq_ec_branch_forms = ['', 'CREATE TABLE IF NOT EXISTS "ec_branch_forms" (',
-		// //
-		' "_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,', //
-		'"project_id" INTEGER NOT NULL, ', //
-		'"name" TEXT, ', //
-		'"num" INTEGER, ', //
-		'"key" TEXT, ', //
-		'"total_inputs" INTEGER, ', //
-		'"has_media" INTEGER DEFAULT 0, ', //
-		'"is_genkey_hidden" INTEGER DEFAULT 0, ', //
-		'"entries" INTEGER DEFAULT 0, ', //
-		'FOREIGN KEY ("project_id") REFERENCES ec_projects ("_id") ON DELETE CASCADE ON ',
-		// //
-		'UPDATE CASCADE);'].join('');
-		//
-
-		//Query to create ec_inputs table
-		var cq_ec_inputs = ['', //
-		'CREATE  TABLE IF NOT EXISTS "ec_inputs" (', //
-		'"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE , ', //
-		'"form_id" INTEGER NOT NULL , ', //
-		'"ref" TEXT,', //
-		'"position" INTEGER,', //
-		'"label" TEXT,', //
-		'"default_value" TEXT,', //
-		'"type" TEXT, ', //
-		'"is_primary_key" INTEGER,', //
-		'"is_genkey" INTEGER,', //
-		'"has_double_check" INTEGER,', //
-		'"max_range" TEXT,', //
-		'"min_range" TEXT , ', //
-		'"is_required" INTEGER, ', //
-		'"is_title" INTEGER,', //
-		'"is_server_local" INTEGER,', //
-		'"is_searchable" TEXT, ', //
-		'"regex" TEXT, ', //
-		'"has_jump" INTEGER,', //
-		'"jumps" TEXT,', //
-		'"has_advanced_jump" INTEGER, ', //
-		'"datetime_format" TEXT,', //
-		'"branch_form_name" TEXT,', //
-		'FOREIGN KEY ("form_id") REFERENCES ec_forms(_id) ON DELETE CASCADE ON ', //
-		'UPDATE CASCADE', //
-		');'//
-		].join('');
-		//
-
-		//Query to create ec_branch_inputs table
-		var cq_ec_branch_inputs = ['', //
-		'CREATE  TABLE IF NOT EXISTS "ec_branch_inputs" (', //
-		'"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE , ', //
-		'"form_id" INTEGER NOT NULL , ', //
-		'"ref" TEXT,', //
-		'"position" INTEGER,', //
-		'"label" TEXT,', //
-		'"default_value" TEXT,', //
-		'"type" TEXT, ', //
-		'"is_primary_key" INTEGER,', //
-		'"is_genkey" INTEGER,', //
-		'"has_double_check" INTEGER,', //
-		'"max_range" TEXT,', //
-		'"min_range" TEXT , ', //
-		'"is_required" INTEGER, ', //
-		'"is_title" INTEGER,', //
-		'"is_server_local" INTEGER,', //
-		'"is_searchable" TEXT, ', //
-		'"regex" TEXT, ', //
-		'"has_jump" INTEGER,', //
-		'"jumps" TEXT,', //
-		'"has_advanced_jump" INTEGER, ', //
-		'"datetime_format" TEXT,', //
-		'FOREIGN KEY ("form_id") REFERENCES ec_branch_forms(_id) ON DELETE CASCADE ON ',
-		// //
-		'UPDATE CASCADE', //
-		');'//
-		].join('');
-		//
-
-		//Query to create ec_input_options table
-		var cq_ec_input_options = ['', //
-		'CREATE TABLE IF NOT EXISTS "ec_input_options" (', //
-		'"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,', //
-		'"input_id" INTEGER NOT NULL , ', //
-		'"ref" TEXT NOT NULL ,', //
-		'"label" TEXT NOT NULL ,', //
-		'"value" TEXT NOT NULL , ', //
-		'FOREIGN KEY ("input_id") REFERENCES ec_inputs("_id") ON DELETE CASCADE ON ', //
-		'UPDATE CASCADE', //
-		');'//
-		].join('');
-
-		//Query to create ec_branch_input_options table
-		var cq_ec_branch_input_options = ['', //
-		'CREATE TABLE IF NOT EXISTS "ec_branch_input_options" (', //
-		'"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,', //
-		'"input_id" INTEGER NOT NULL , ', //
-		'"ref" TEXT NOT NULL ,', //
-		'"label" TEXT NOT NULL ,', //
-		'"value" TEXT NOT NULL , ', //
-		'FOREIGN KEY ("input_id") REFERENCES ec_branch_inputs("_id") ON DELETE CASCADE ON ',
-		// //
-		'UPDATE CASCADE', //
-		');'//
-		].join('');
-
-		//Query to create ec_data table
-		var cq_ec_data = ['', //
-		'CREATE TABLE IF NOT EXISTS "ec_data" (', //
-		'"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,', //
-		'"input_id" INTEGER NOT NULL, ', //
-		'"form_id" INTEGER NOT NULL, ', //
-		'"position" INTEGER NOT NULL, ', //
-		'"parent" TEXT NOT NULL DEFAULT "", ', //
-		'"label" TEXT NOT NULL DEFAULT "", ', //
-		'"value" TEXT, ', //
-		'"ref" TEXT, ', //
-		'"is_title" INTEGER DEFAULT 0, ', //
-		'"entry_key" TEXT NOT NULL,', //
-		'"type" TEXT, ', //
-		'"is_data_synced" INTEGER DEFAULT 0, ', //
-		'"is_media_synced" INTEGER DEFAULT 0, ', //
-		'"is_remote" INTEGER DEFAULT 0, ', //
-		'"created_on" INTEGER, ', //
-		'FOREIGN KEY ("input_id") REFERENCES ec_inputs("_id") ON DELETE CASCADE ON ', //
-		'UPDATE CASCADE', //
-		');'//
-		].join('');
-
-		//Query to create ec_data table
-		var cq_ec_branch_data = ['', //
-		'CREATE TABLE IF NOT EXISTS "ec_branch_data" (', //
-		'"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,', //
-		'"input_id" INTEGER NOT NULL, ', //
-		'"form_id" INTEGER NOT NULL, ', //
-		'"hierarchy_entry_key_value" TEXT, ', //main form entry key value
-		'"hierarchy_entry_key_ref" TEXT, ', //main form entry key value
-		'"position" INTEGER NOT NULL, ', //
-		'"label" TEXT NOT NULL DEFAULT "", ', //
-		'"value" TEXT, ', //
-		'"ref" TEXT, ', //
-		'"is_title" INTEGER DEFAULT 0, ', //
-		'"entry_key" TEXT NOT NULL,', //
-		'"type" TEXT, ', //
-		'"is_data_synced" INTEGER DEFAULT 0, ', //
-		'"is_media_synced" INTEGER DEFAULT 0, ', //
-		'"is_remote" INTEGER DEFAULT 0, ', //if the entry has been downloaded remotely or
-		// created
-		'"is_cached" INTEGER DEFAULT 0, ', // if the etry is cached (branch form saved
-		// but not its main form)
-		'"is_stored" INTEGER DEFAULT 0, ', // if the entry and its main form is saved
-		'"created_on" INTEGER, ', //
-		'FOREIGN KEY ("input_id") REFERENCES ec_branch_inputs("_id") ON DELETE CASCADE ON ',
-		// //
-		'UPDATE CASCADE', //
-		');'//
-		].join('');
-
-		/**
-		 * *********************** TRIGGERS
-		 * *******************************************************
-		 */
-
-		var tq_delete_forms = [//
-		'CREATE TRIGGER delete_forms ', //
-		'BEFORE DELETE ', //
-		'ON ec_projects ', //
-		'FOR EACH ROW ', //
-		'BEGIN ', //
-		'DELETE FROM ec_forms WHERE ec_forms.project_id = old._id; ', //
-		'END'//
-		].join('');
-
-		var tq_delete_branch_forms = [//
-		'CREATE TRIGGER delete_branch_forms ', //
-		'BEFORE DELETE ', //
-		'ON ec_projects ', //
-		'FOR EACH ROW ', //
-		'BEGIN ', //
-		'DELETE FROM ec_branch_forms WHERE ec_branch_forms.project_id = old._id; ', //
-		'END'//
-		].join('');
-
-		var tq_delete_inputs = [//
-		'CREATE TRIGGER delete_inputs ', //
-		'BEFORE DELETE ', //
-		'ON ec_forms ', //
-		'FOR EACH ROW ', //
-		'BEGIN ', //
-		'DELETE FROM ec_inputs WHERE ec_inputs.form_id = old._id; ', //
-		'END'//
-		].join('');
-
-		var tq_delete_branch_inputs = [//
-		'CREATE TRIGGER delete_branch_inputs ', //
-		'BEFORE DELETE ', //
-		'ON ec_branch_forms ', //
-		'FOR EACH ROW ', //
-		'BEGIN ', //
-		'DELETE FROM ec_branch_inputs WHERE ec_branch_inputs.form_id = old._id; ', //
-		'END'//
-		].join('');
-
-		var tq_delete_input_options = [//
-		'CREATE TRIGGER delete_input_options ', //
-		'BEFORE DELETE ', //
-		'ON ec_inputs ', //
-		'FOR EACH ROW ', //
-		'BEGIN ', //
-		'DELETE FROM ec_input_options WHERE ec_input_options.input_id = old._id; ', //
-		'END'//
-		].join('');
-
-		var tq_delete_branch_input_options = [//
-		'CREATE TRIGGER delete_branch_input_options ', //
-		'BEFORE DELETE ', //
-		'ON ec_branch_inputs ', //
-		'FOR EACH ROW ', //
-		'BEGIN ', //
-		'DELETE FROM ec_branch_input_options WHERE ec_branch_input_options.input_id = old._id; ',
-		// //
-		'END'//
-		].join('');
-
-		var tq_delete_ec_data = [//
-		'CREATE TRIGGER delete_ec_data ', //
-		'BEFORE DELETE ', //
-		'ON ec_inputs ', //
-		'FOR EACH ROW ', //
-		'BEGIN ', //
-		'DELETE FROM ec_data WHERE ec_data.input_id = old._id; ', //
-		'END'//
-		].join('');
-
-		var tq_delete_ec_branch_data = [//
-		'CREATE TRIGGER delete_ec_branch_data ', //
-		'BEFORE DELETE ', //
-		'ON ec_branch_inputs ', //
-		'FOR EACH ROW ', //
-		'BEGIN ', //
-		'DELETE FROM ec_branch_data WHERE ec_branch_data.input_id = old._id; ', //
-		'END'//
-		].join('');
-
-		/**
-		 *********************** DROP TRIGGERS
-		 */
-		var dtq_delete_forms = 'DROP TRIGGER IF EXISTS delete_forms ';
-		var dtq_delete_branch_forms = 'DROP TRIGGER IF EXISTS delete_branch_forms ';
-		var dtq_delete_inputs = 'DROP TRIGGER IF EXISTS delete_inputs ';
-		var dtq_delete_branch_inputs = 'DROP TRIGGER IF EXISTS delete_branch_inputs ';
-		var dtq_delete_input_options = 'DROP TRIGGER IF EXISTS delete_input_options ';
-		var dtq_delete_branch_input_options = 'DROP TRIGGER IF EXISTS delete_branch_input_options ';
-		var dtq_delete_ec_data = 'DROP TRIGGER IF EXISTS delete_ec_data ';
-		var dtq_delete_ec_branch_data = 'DROP TRIGGER IF EXISTS delete_ec_branch_data ';
-
-		//Create database if not exist
-		var _initDB = function(tx) {
-
-			//tx.executeSql("PRAGMA foreign_keys = ON;"); //apparently PRAGMA is disabled is
-			// some browsers
-
-			//create tables
-			tx.executeSql(cq_ec_projects);
-			tx.executeSql(cq_ec_forms);
-			tx.executeSql(cq_ec_branch_forms);
-			tx.executeSql(cq_ec_inputs);
-			tx.executeSql(cq_ec_branch_inputs);
-			tx.executeSql(cq_ec_input_options);
-			tx.executeSql(cq_ec_branch_input_options);
-			tx.executeSql(cq_ec_data);
-			tx.executeSql(cq_ec_branch_data);
-
-			//drop existing triggers
-			tx.executeSql(dtq_delete_forms);
-			tx.executeSql(dtq_delete_branch_forms);
-			tx.executeSql(dtq_delete_inputs);
-			tx.executeSql(dtq_delete_branch_inputs);
-			tx.executeSql(dtq_delete_input_options);
-			tx.executeSql(dtq_delete_branch_input_options);
-			tx.executeSql(dtq_delete_ec_data);
-			tx.executeSql(dtq_delete_ec_branch_data);
-
-			//add triggers
-			tx.executeSql(tq_delete_forms);
-			tx.executeSql(tq_delete_branch_forms);
-			tx.executeSql(tq_delete_inputs);
-			tx.executeSql(tq_delete_branch_inputs);
-			tx.executeSql(tq_delete_input_options);
-			tx.executeSql(tq_delete_branch_input_options);
-			tx.executeSql(tq_delete_ec_data);
-			tx.executeSql(tq_delete_ec_branch_data);
-
-		};
-
-		//Global callback for a transaction error
-		var errorCB = function(the_error) {
-			console.log(EC.Const.TRANSACTION_ERROR);
-			console.log("%c" + the_error.message, "color: red");
-		};
-
-		//success callback when database transaction successful
-		var _initSuccessCB = function() {
-			console.log("TRANSACTION INIT SUCCESS");
-			deferred.resolve();
-		};
-
-		/* initialise database object */
-		var init = function() {
-
-			deferred = new $.Deferred();
-			//open or create a webSQL database (on webkit)
-			EC.db.transaction(_initDB, errorCB, _initSuccessCB);
-
-			return deferred.promise();
-
-		};
-
-		return {
-			init : init,
-			errorCB : errorCB
-		};
-
-	}());
 
 /*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery, cordova, device*/
@@ -6695,7 +6344,6 @@ EC.Hierarchy = (function (module) {
     return module;
 }(EC.Hierarchy));
 
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/
 /*
  *   @module Structure
@@ -6703,118 +6351,832 @@ EC.Hierarchy = (function (module) {
  */
 var EC = EC || {};
 EC.Structure = EC.Structure || {};
-EC.Structure = ( function(module) {"use strict";
+EC.Structure = (function (module) {
+    'use strict';
 
-        var deferred;
-        var project;
+    var deferred;
+    var project;
 
-        module.commitAll = function() {
+    module.commitAll = function () {
 
-            deferred = new $.Deferred();
+        deferred = new $.Deferred();
 
-            $.when(EC.Hierarchy.commitProject(EC.Parse.project)).then(function(the_project) {
+        $.when(EC.Hierarchy.commitProject(EC.Parse.project)).then(function (the_project) {
 
-                project = the_project;
+            project = the_project;
 
-                //if we have branches, save both hierarchy and branch structure to db
+            //if we have branches, save both hierarchy and branch structure to db
 
-                //commit all branch forms (if any)
-                var branch_forms = EC.Parse.getBranchForms();
-                var hierarchy_forms = EC.Parse.getHierarchyForms();
-                if (branch_forms.length > 0) {
+            //commit all branch forms (if any)
+            var branch_forms = EC.Parse.getBranchForms();
+            var hierarchy_forms = EC.Parse.getHierarchyForms();
+            if (branch_forms.length > 0) {
 
-                    //commit both hierarchy and branch forms
-                    $.when(EC.Hierarchy.commitForms(hierarchy_forms, project.insertId), EC.Branch.commitBranchForms(branch_forms, project.insertId)).then(function(hierarchy_forms_IDs, branch_forms_IDs) {
+                //commit both hierarchy and branch forms
+                $.when(EC.Hierarchy.commitForms(hierarchy_forms, project.insertId), EC.Branch.commitBranchForms(branch_forms, project.insertId)).then(function (hierarchy_forms_IDs, branch_forms_IDs) {
 
-                        var hierarchy_inputs = EC.Parse.inputs;
-                        var branch_inputs = EC.Parse.branch_inputs;
+                    var hierarchy_inputs = EC.Parse.inputs;
+                    var branch_inputs = EC.Parse.branch_inputs;
 
-                        $.when(EC.Hierarchy.commitInputs(hierarchy_inputs, hierarchy_forms_IDs), EC.Branch.commitBranchInputs(branch_inputs, branch_forms_IDs)).then(function(hierarchy_inputs_IDs, branch_inputs_IDs) {
+                    $.when(EC.Hierarchy.commitInputs(hierarchy_inputs, hierarchy_forms_IDs), EC.Branch.commitBranchInputs(branch_inputs, branch_forms_IDs)).then(function (hierarchy_inputs_IDs, branch_inputs_IDs) {
 
-                            var branch_options = EC.Parse.branch_options;
-                            var hierarchy_options = EC.Parse.options;
+                        var branch_options = EC.Parse.branch_options;
+                        var hierarchy_options = EC.Parse.options;
 
-                            //commit hierarchy input options if any
-                            if (hierarchy_options.length > 0) {
-                                $.when(EC.Hierarchy.commitInputOptions(hierarchy_options, hierarchy_inputs_IDs)).then(function() {
+                        //commit hierarchy input options if any
+                        if (hierarchy_options.length > 0) {
+                            $.when(EC.Hierarchy.commitInputOptions(hierarchy_options, hierarchy_inputs_IDs)).then(function () {
 
-                                    //hierarchy option saved, save branch input options if any
-                                    if (branch_options.length > 0) {
-                                        $.when(EC.Branch.commitBranchInputOptions(branch_options, branch_inputs_IDs)).then(function() {
-
-                                            //options saved , redirect to projects list
-                                            console.log("models ready");
-                                            deferred.resolve();
-                                        });
-
-                                    } else {
-
-                                        //no branch options, redirect
-                                        console.log("models ready");
-                                        deferred.resolve();
-                                    }
-
-                                });
-                            } else {
-                                //commit branch input options if any
+                                //hierarchy option saved, save branch input options if any
                                 if (branch_options.length > 0) {
-                                    $.when(EC.Branch.commitBranchInputOptions(branch_options, branch_inputs_IDs)).then(function() {
+                                    $.when(EC.Branch.commitBranchInputOptions(branch_options, branch_inputs_IDs)).then(function () {
 
-                                        //options saved
+                                        //options saved , redirect to projects list
                                         console.log("models ready");
                                         deferred.resolve();
                                     });
+
                                 } else {
-                                    //no branch options, done
+
+                                    //no branch options, redirect
                                     console.log("models ready");
                                     deferred.resolve();
                                 }
-                            }
-                        });
 
-                    });
+                            });
+                        } else {
+                            //commit branch input options if any
+                            if (branch_options.length > 0) {
+                                $.when(EC.Branch.commitBranchInputOptions(branch_options, branch_inputs_IDs)).then(function () {
 
-                } else {
-
-                    //commit only hierarchy forms
-                    $.when(EC.Hierarchy.commitForms(hierarchy_forms, project.insertId)).then(function(forms_IDs) {
-                        //commit hierarchy inputs
-                        var inputs = EC.Parse.inputs;
-
-                        $.when(EC.Hierarchy.commitInputs(inputs, forms_IDs)).then(function(inputs_IDs) {
-
-                            var options = EC.Parse.options;
-
-                            //commit input options if any
-                            if (options.length > 0) {
-                                $.when(EC.Hierarchy.commitInputOptions(options, inputs_IDs)).then(function() {
-
-                                    //options saved , done
+                                    //options saved
                                     console.log("models ready");
                                     deferred.resolve();
-
                                 });
                             } else {
-                                //no options, done
+                                //no branch options, done
                                 console.log("models ready");
                                 deferred.resolve();
                             }
+                        }
+                    });
 
-                        });
+                });
+
+            } else {
+
+                //commit only hierarchy forms
+                $.when(EC.Hierarchy.commitForms(hierarchy_forms, project.insertId)).then(function (forms_IDs) {
+                    //commit hierarchy inputs
+                    var inputs = EC.Parse.inputs;
+
+                    $.when(EC.Hierarchy.commitInputs(inputs, forms_IDs)).then(function (inputs_IDs) {
+
+                        var options = EC.Parse.options;
+
+                        //commit input options if any
+                        if (options.length > 0) {
+                            $.when(EC.Hierarchy.commitInputOptions(options, inputs_IDs)).then(function () {
+
+                                //options saved , done
+                                console.log("models ready");
+                                deferred.resolve();
+
+                            });
+                        } else {
+                            //no options, done
+                            console.log("models ready");
+                            deferred.resolve();
+                        }
 
                     });
 
+                });
+
+            }
+
+        });
+
+        return deferred.promise();
+
+    };
+
+    return module;
+
+}(EC.Structure));
+
+var EC = EC || {};
+EC.Structure = EC.Structure || {};
+EC.Structure = (function (module) {
+    'use strict';
+
+    var deferred;
+
+    //Query to create ec_group_inputs table
+    var cq_ec_group_inputs = ['', //
+        'CREATE  TABLE IF NOT EXISTS "ec_group_inputs" (', //
+        '"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE , ', //
+        '"form_id" INTEGER NOT NULL , ', //
+        '"ref" TEXT,', //
+        '"position" INTEGER,', //
+        '"label" TEXT,', //
+        '"default_value" TEXT,', //
+        '"type" TEXT, ', //
+        '"is_primary_key" INTEGER,', //
+        '"is_genkey" INTEGER,', //
+        '"has_double_check" INTEGER,', //
+        '"max_range" TEXT,', //
+        '"min_range" TEXT , ', //
+        '"is_required" INTEGER, ', //
+        '"is_title" INTEGER,', //
+        '"is_server_local" INTEGER,', //
+        '"is_searchable" TEXT, ', //
+        '"regex" TEXT, ', //
+        '"datetime_format" TEXT,', //
+        'FOREIGN KEY ("form_id") REFERENCES ec_forms(_id) ON DELETE CASCADE ON ',
+        // //
+        'UPDATE CASCADE', //
+        ');'//
+    ].join('');
+
+    //Query to create ec_group_input_options table
+    var cq_ec_group_input_options = ['', //
+        'CREATE TABLE IF NOT EXISTS "ec_group_input_options" (', //
+        '"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,', //
+        '"input_id" INTEGER NOT NULL , ', //
+        '"ref" TEXT NOT NULL ,', //
+        '"label" TEXT NOT NULL ,', //
+        '"value" TEXT NOT NULL , ', //
+        'FOREIGN KEY ("input_id") REFERENCES ec_group_inputs("_id") ON DELETE CASCADE ON ',
+        // //
+        'UPDATE CASCADE', //
+        ');'//
+    ].join('');
+
+    function _createGroupTablesError(error) {
+        deferred.reject(error);
+    }
+
+    function _createGroupTablesSuccess() {
+        deferred.resolve();
+    }
+
+    //create only group tables, for a device with the old app already installed
+    module.createGroupTables = function () {
+
+        deferred = new $.Deferred();
+
+        function _createVersionTableError() {
+            deferred.resolve();
+        }
+
+        function _createVersionTableSuccess(error) {
+            deferred.reject(error);
+        }
+
+        EC.db.transaction(function (tx) {
+                tx.executeSql(cq_ec_group_inputs);
+                tx.executeSql(cq_ec_group_input_options);
+            },
+            _createGroupTablesError,
+            _createGroupTablesSuccess);
+
+        return deferred.promise();
+    };
+
+    return module;
+
+}(EC.Structure));
+
+/*
+ * @module CreateSQLiteDatabase
+ *
+ *
+ *   Cordova uses Web SQL specifications on the Chrome browser (Android)
+ *
+ */
+
+/*global $, jQuery*/
+/*
+ *   @module Structure
+ *
+ */
+var EC = EC || {};
+EC.Structure = EC.Structure || {};
+EC.Structure = (function (module) {
+    'use strict';
+
+    /*
+     *  Query to create the database tables
+     *  foreign keys apparently do not work on Web SQL, so it is better to use
+     * triggers or manually do all the delete/update on cascade
+     *
+     */
+
+    var deferred;
+
+    //Query to create version table (single row to store db version)
+    var cq_ec_version = ['', //
+        'CREATE TABLE IF NOT EXISTS "ec_version" (', //
+        ' "_id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,', //
+        '"version" INT);'//
+    ].join('');
+
+    var iq_version = 'INSERT INTO ec_version (version) VALUES (' + EC.Const.DATABASE_VERSION + ');';
+
+    //Query to create ec_projects table
+    var cq_ec_projects = ['', //
+        'CREATE TABLE IF NOT EXISTS "ec_projects" (', //
+        ' "_id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,', //
+        '"name" TEXT, ', //
+        '"total_hierarchy_forms" INTEGER DEFAULT 0, ', //
+        '"total_branch_forms" INTEGER DEFAULT 0, ', //
+        '"is_active" INTEGER DEFAULT 0,', //
+        '"uploadToServer" TEXT,', //
+        '"downloadFromServer" TEXT,', //
+        '"allowDownloadEdits" INTEGER DEFAULT 0,', //
+        '"version" TEXT,', '"description" TEXT,', //
+        '"radiobutton_image_url" TEXT,', //
+        '"reg_mail" TEXT);'//
+    ].join('');
+    //
+
+    //Query to create ec_forms table
+    var cq_ec_forms = ['', 'CREATE TABLE IF NOT EXISTS "ec_forms" (', //
+        ' "_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,', //
+        '"project_id" INTEGER NOT NULL, ', //
+        '"name" TEXT, ', //
+        '"num" INTEGER, ', //
+        '"key" TEXT, ', //
+        '"total_inputs" INTEGER, ', //
+        '"has_media" INTEGER DEFAULT 0, ', //
+        '"has_branches" INTEGER DEFAULT 0, ', //
+        '"is_genkey_hidden" INTEGER DEFAULT 0, ', //
+        '"entries" INTEGER DEFAULT 0, ', //
+        'FOREIGN KEY ("project_id") REFERENCES ec_projects ("_id") ON DELETE CASCADE ON ',
+        // //
+        'UPDATE CASCADE);'].join('');
+    //
+
+    //Query to create ec_branch_forms table
+    var cq_ec_branch_forms = ['', 'CREATE TABLE IF NOT EXISTS "ec_branch_forms" (',
+        // //
+        ' "_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE,', //
+        '"project_id" INTEGER NOT NULL, ', //
+        '"name" TEXT, ', //
+        '"num" INTEGER, ', //
+        '"key" TEXT, ', //
+        '"total_inputs" INTEGER, ', //
+        '"has_media" INTEGER DEFAULT 0, ', //
+        '"is_genkey_hidden" INTEGER DEFAULT 0, ', //
+        '"entries" INTEGER DEFAULT 0, ', //
+        'FOREIGN KEY ("project_id") REFERENCES ec_projects ("_id") ON DELETE CASCADE ON ',
+        // //
+        'UPDATE CASCADE);'].join('');
+    //
+
+    //Query to create ec_inputs table
+    var cq_ec_inputs = ['', //
+        'CREATE  TABLE IF NOT EXISTS "ec_inputs" (', //
+        '"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE , ', //
+        '"form_id" INTEGER NOT NULL , ', //
+        '"ref" TEXT,', //
+        '"position" INTEGER,', //
+        '"label" TEXT,', //
+        '"default_value" TEXT,', //
+        '"type" TEXT, ', //
+        '"is_primary_key" INTEGER,', //
+        '"is_genkey" INTEGER,', //
+        '"has_double_check" INTEGER,', //
+        '"max_range" TEXT,', //
+        '"min_range" TEXT , ', //
+        '"is_required" INTEGER, ', //
+        '"is_title" INTEGER,', //
+        '"is_server_local" INTEGER,', //
+        '"is_searchable" TEXT, ', //
+        '"regex" TEXT, ', //
+        '"has_jump" INTEGER,', //
+        '"jumps" TEXT,', //
+        '"has_advanced_jump" INTEGER, ', //
+        '"datetime_format" TEXT,', //
+        '"branch_form_name" TEXT,', //
+        'FOREIGN KEY ("form_id") REFERENCES ec_forms(_id) ON DELETE CASCADE ON ', //
+        'UPDATE CASCADE', //
+        ');'//
+    ].join('');
+    //
+
+    //Query to create ec_branch_inputs table
+    var cq_ec_branch_inputs = ['', //
+        'CREATE  TABLE IF NOT EXISTS "ec_branch_inputs" (', //
+        '"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE , ', //
+        '"form_id" INTEGER NOT NULL , ', //
+        '"ref" TEXT,', //
+        '"position" INTEGER,', //
+        '"label" TEXT,', //
+        '"default_value" TEXT,', //
+        '"type" TEXT, ', //
+        '"is_primary_key" INTEGER,', //
+        '"is_genkey" INTEGER,', //
+        '"has_double_check" INTEGER,', //
+        '"max_range" TEXT,', //
+        '"min_range" TEXT , ', //
+        '"is_required" INTEGER, ', //
+        '"is_title" INTEGER,', //
+        '"is_server_local" INTEGER,', //
+        '"is_searchable" TEXT, ', //
+        '"regex" TEXT, ', //
+        '"has_jump" INTEGER,', //
+        '"jumps" TEXT,', //
+        '"has_advanced_jump" INTEGER, ', //
+        '"datetime_format" TEXT,', //
+        'FOREIGN KEY ("form_id") REFERENCES ec_branch_forms(_id) ON DELETE CASCADE ON ',
+        // //
+        'UPDATE CASCADE', //
+        ');'//
+    ].join('');
+
+    //Query to create ec_group_inputs table
+    var cq_ec_group_inputs = ['', //
+        'CREATE  TABLE IF NOT EXISTS "ec_group_inputs" (', //
+        '"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE , ', //
+        '"form_id" INTEGER NOT NULL , ', //
+        '"ref" TEXT,', //
+        '"position" INTEGER,', //
+        '"label" TEXT,', //
+        '"default_value" TEXT,', //
+        '"type" TEXT, ', //
+        '"is_primary_key" INTEGER,', //
+        '"is_genkey" INTEGER,', //
+        '"has_double_check" INTEGER,', //
+        '"max_range" TEXT,', //
+        '"min_range" TEXT , ', //
+        '"is_required" INTEGER, ', //
+        '"is_title" INTEGER,', //
+        '"is_server_local" INTEGER,', //
+        '"is_searchable" TEXT, ', //
+        '"regex" TEXT, ', //
+        '"datetime_format" TEXT,', //
+        'FOREIGN KEY ("form_id") REFERENCES ec_forms(_id) ON DELETE CASCADE ON ',
+        // //
+        'UPDATE CASCADE', //
+        ');'//
+    ].join('');
+    //
+    //
+
+    //Query to create ec_input_options table
+    var cq_ec_input_options = ['', //
+        'CREATE TABLE IF NOT EXISTS "ec_input_options" (', //
+        '"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,', //
+        '"input_id" INTEGER NOT NULL , ', //
+        '"ref" TEXT NOT NULL ,', //
+        '"label" TEXT NOT NULL ,', //
+        '"value" TEXT NOT NULL , ', //
+        'FOREIGN KEY ("input_id") REFERENCES ec_inputs("_id") ON DELETE CASCADE ON ', //
+        'UPDATE CASCADE', //
+        ');'//
+    ].join('');
+
+    //Query to create ec_branch_input_options table
+    var cq_ec_branch_input_options = ['', //
+        'CREATE TABLE IF NOT EXISTS "ec_branch_input_options" (', //
+        '"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,', //
+        '"input_id" INTEGER NOT NULL , ', //
+        '"ref" TEXT NOT NULL ,', //
+        '"label" TEXT NOT NULL ,', //
+        '"value" TEXT NOT NULL , ', //
+        'FOREIGN KEY ("input_id") REFERENCES ec_branch_inputs("_id") ON DELETE CASCADE ON ',
+        // //
+        'UPDATE CASCADE', //
+        ');'//
+    ].join('');
+
+    //Query to create ec_group_input_options table
+    var cq_ec_group_input_options = ['', //
+        'CREATE TABLE IF NOT EXISTS "ec_group_input_options" (', //
+        '"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,', //
+        '"input_id" INTEGER NOT NULL , ', //
+        '"ref" TEXT NOT NULL ,', //
+        '"label" TEXT NOT NULL ,', //
+        '"value" TEXT NOT NULL , ', //
+        'FOREIGN KEY ("input_id") REFERENCES ec_group_inputs("_id") ON DELETE CASCADE ON ',
+        // //
+        'UPDATE CASCADE', //
+        ');'//
+    ].join('');
+
+    //Query to create ec_data table
+    var cq_ec_data = ['', //
+        'CREATE TABLE IF NOT EXISTS "ec_data" (', //
+        '"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,', //
+        '"input_id" INTEGER NOT NULL, ', //
+        '"form_id" INTEGER NOT NULL, ', //
+        '"position" INTEGER NOT NULL, ', //
+        '"parent" TEXT NOT NULL DEFAULT "", ', //
+        '"label" TEXT NOT NULL DEFAULT "", ', //
+        '"value" TEXT, ', //
+        '"ref" TEXT, ', //
+        '"is_title" INTEGER DEFAULT 0, ', //
+        '"entry_key" TEXT NOT NULL,', //
+        '"type" TEXT, ', //
+        '"is_data_synced" INTEGER DEFAULT 0, ', //
+        '"is_media_synced" INTEGER DEFAULT 0, ', //
+        '"is_remote" INTEGER DEFAULT 0, ', //
+        '"created_on" INTEGER, ', //
+        'FOREIGN KEY ("input_id") REFERENCES ec_inputs("_id") ON DELETE CASCADE ON ', //
+        'UPDATE CASCADE', //
+        ');'//
+    ].join('');
+
+    //Query to create ec_data table
+    var cq_ec_branch_data = ['', //
+        'CREATE TABLE IF NOT EXISTS "ec_branch_data" (', //
+        '"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE ,', //
+        '"input_id" INTEGER NOT NULL, ', //
+        '"form_id" INTEGER NOT NULL, ', //
+        '"hierarchy_entry_key_value" TEXT, ', //main form entry key value
+        '"hierarchy_entry_key_ref" TEXT, ', //main form entry key value
+        '"position" INTEGER NOT NULL, ', //
+        '"label" TEXT NOT NULL DEFAULT "", ', //
+        '"value" TEXT, ', //
+        '"ref" TEXT, ', //
+        '"is_title" INTEGER DEFAULT 0, ', //
+        '"entry_key" TEXT NOT NULL,', //
+        '"type" TEXT, ', //
+        '"is_data_synced" INTEGER DEFAULT 0, ', //
+        '"is_media_synced" INTEGER DEFAULT 0, ', //
+        '"is_remote" INTEGER DEFAULT 0, ', //if the entry has been downloaded remotely or
+        // created
+        '"is_cached" INTEGER DEFAULT 0, ', // if the etry is cached (branch form saved
+        // but not its main form)
+        '"is_stored" INTEGER DEFAULT 0, ', // if the entry and its main form is saved
+        '"created_on" INTEGER, ', //
+        'FOREIGN KEY ("input_id") REFERENCES ec_branch_inputs("_id") ON DELETE CASCADE ON ',
+        // //
+        'UPDATE CASCADE', //
+        ');'//
+    ].join('');
+
+    /**
+     * *********************** TRIGGERS
+     * *******************************************************
+     */
+
+    var tq_delete_forms = [//
+        'CREATE TRIGGER delete_forms ', //
+        'BEFORE DELETE ', //
+        'ON ec_projects ', //
+        'FOR EACH ROW ', //
+        'BEGIN ', //
+        'DELETE FROM ec_forms WHERE ec_forms.project_id = old._id; ', //
+        'END'//
+    ].join('');
+
+    var tq_delete_branch_forms = [//
+        'CREATE TRIGGER delete_branch_forms ', //
+        'BEFORE DELETE ', //
+        'ON ec_projects ', //
+        'FOR EACH ROW ', //
+        'BEGIN ', //
+        'DELETE FROM ec_branch_forms WHERE ec_branch_forms.project_id = old._id; ', //
+        'END'//
+    ].join('');
+
+    var tq_delete_inputs = [//
+        'CREATE TRIGGER delete_inputs ', //
+        'BEFORE DELETE ', //
+        'ON ec_forms ', //
+        'FOR EACH ROW ', //
+        'BEGIN ', //
+        'DELETE FROM ec_inputs WHERE ec_inputs.form_id = old._id; ', //
+        'END'//
+    ].join('');
+
+    var tq_delete_branch_inputs = [//
+        'CREATE TRIGGER delete_branch_inputs ', //
+        'BEFORE DELETE ', //
+        'ON ec_branch_forms ', //
+        'FOR EACH ROW ', //
+        'BEGIN ', //
+        'DELETE FROM ec_branch_inputs WHERE ec_branch_inputs.form_id = old._id; ', //
+        'END'//
+    ].join('');
+
+    var tq_delete_input_options = [//
+        'CREATE TRIGGER delete_input_options ', //
+        'BEFORE DELETE ', //
+        'ON ec_inputs ', //
+        'FOR EACH ROW ', //
+        'BEGIN ', //
+        'DELETE FROM ec_input_options WHERE ec_input_options.input_id = old._id; ', //
+        'END'//
+    ].join('');
+
+    var tq_delete_branch_input_options = [//
+        'CREATE TRIGGER delete_branch_input_options ', //
+        'BEFORE DELETE ', //
+        'ON ec_branch_inputs ', //
+        'FOR EACH ROW ', //
+        'BEGIN ', //
+        'DELETE FROM ec_branch_input_options WHERE ec_branch_input_options.input_id = old._id; ',
+        // //
+        'END'//
+    ].join('');
+
+    var tq_delete_ec_data = [//
+        'CREATE TRIGGER delete_ec_data ', //
+        'BEFORE DELETE ', //
+        'ON ec_inputs ', //
+        'FOR EACH ROW ', //
+        'BEGIN ', //
+        'DELETE FROM ec_data WHERE ec_data.input_id = old._id; ', //
+        'END'//
+    ].join('');
+
+    var tq_delete_ec_branch_data = [//
+        'CREATE TRIGGER delete_ec_branch_data ', //
+        'BEFORE DELETE ', //
+        'ON ec_branch_inputs ', //
+        'FOR EACH ROW ', //
+        'BEGIN ', //
+        'DELETE FROM ec_branch_data WHERE ec_branch_data.input_id = old._id; ', //
+        'END'//
+    ].join('');
+
+    /**
+     *********************** DROP TRIGGERS
+     */
+    var dtq_delete_forms = 'DROP TRIGGER IF EXISTS delete_forms ';
+    var dtq_delete_branch_forms = 'DROP TRIGGER IF EXISTS delete_branch_forms ';
+    var dtq_delete_inputs = 'DROP TRIGGER IF EXISTS delete_inputs ';
+    var dtq_delete_branch_inputs = 'DROP TRIGGER IF EXISTS delete_branch_inputs ';
+    var dtq_delete_input_options = 'DROP TRIGGER IF EXISTS delete_input_options ';
+    var dtq_delete_branch_input_options = 'DROP TRIGGER IF EXISTS delete_branch_input_options ';
+    var dtq_delete_ec_data = 'DROP TRIGGER IF EXISTS delete_ec_data ';
+    var dtq_delete_ec_branch_data = 'DROP TRIGGER IF EXISTS delete_ec_branch_data ';
+
+    //Create database if not exist
+    var _initDB = function (tx) {
+
+        //tx.executeSql("PRAGMA foreign_keys = ON;"); //apparently PRAGMA is disabled is
+        // some browsers
+
+
+
+        //create version table and add version
+        tx.executeSql(cq_ec_version);
+        tx.executeSql(iq_version);
+
+        //create tables
+        tx.executeSql(cq_ec_projects);
+        tx.executeSql(cq_ec_forms);
+        tx.executeSql(cq_ec_branch_forms);
+        tx.executeSql(cq_ec_inputs);
+        tx.executeSql(cq_ec_branch_inputs);
+        tx.executeSql(cq_ec_group_inputs);
+        tx.executeSql(cq_ec_input_options);
+        tx.executeSql(cq_ec_branch_input_options);
+        tx.executeSql(cq_ec_group_input_options);
+        tx.executeSql(cq_ec_data);
+        tx.executeSql(cq_ec_branch_data);
+
+        //drop existing triggers
+        tx.executeSql(dtq_delete_forms);
+        tx.executeSql(dtq_delete_branch_forms);
+        tx.executeSql(dtq_delete_inputs);
+        tx.executeSql(dtq_delete_branch_inputs);
+        tx.executeSql(dtq_delete_input_options);
+        tx.executeSql(dtq_delete_branch_input_options);
+        tx.executeSql(dtq_delete_ec_data);
+        tx.executeSql(dtq_delete_ec_branch_data);
+
+        //add triggers
+        tx.executeSql(tq_delete_forms);
+        tx.executeSql(tq_delete_branch_forms);
+        tx.executeSql(tq_delete_inputs);
+        tx.executeSql(tq_delete_branch_inputs);
+        tx.executeSql(tq_delete_input_options);
+        tx.executeSql(tq_delete_branch_input_options);
+        tx.executeSql(tq_delete_ec_data);
+        tx.executeSql(tq_delete_ec_branch_data);
+
+
+    };
+
+    //Global callback for a transaction error
+    var _errorCB = function (the_error) {
+        console.log(EC.Const.TRANSACTION_ERROR);
+        console.log('%c' + the_error.message, 'color: red');
+    };
+
+    //success callback when database transaction successful
+    var _initSuccessCB = function () {
+        console.log('TRANSACTION INIT SUCCESS');
+        deferred.resolve();
+    };
+
+    /* initialise database object */
+    module.createSQLiteDatabase = function () {
+
+        deferred = new $.Deferred();
+        //open or create a webSQL database (on webkit)
+        EC.db.transaction(_initDB, _errorCB, _initSuccessCB);
+
+        return deferred.promise();
+
+    };
+
+    return module;
+
+}(EC.Structure));
+
+var EC = EC || {};
+EC.Structure = EC.Structure || {};
+EC.Structure = (function (module) {
+    'use strict';
+
+    var deferred;
+
+    //Query to create version table (single row to store db version)
+    var cq_ec_version = ['', //
+        'CREATE TABLE IF NOT EXISTS "ec_version" (', //
+        ' "_id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE,', //
+        '"version" INT);'//
+    ].join('');
+
+    var iq_version = 'INSERT INTO ec_version (version) VALUES (' + EC.Const.DATABASE_VERSION + ');';
+
+
+    module.createVersionTable = function () {
+
+        deferred = new $.Deferred();
+
+        function _createVersionTableError(error) {
+            deferred.reject(error);
+
+        }
+
+        function _createVersionTableSuccess() {
+            deferred.resolve();
+        }
+
+        EC.db.transaction(function (tx) {
+                tx.executeSql(cq_ec_version);
+                tx.executeSql(iq_version);
+            },
+            _createVersionTableError,
+            _createVersionTableSuccess);
+
+        return deferred.promise();
+    };
+
+    return module;
+
+}(EC.Structure));
+
+var EC = EC || {};
+EC.Structure = EC.Structure || {};
+EC.Structure = (function (module) {
+    'use strict';
+
+    var deferred;
+    var exist;
+    var version;
+    var self = this;
+
+    function _error(error) {
+        console.log(error);
+        deferred.reject();
+    }
+
+    function _doesVersionTableExistSQLSuccess(the_tx, the_result) {
+
+        if (the_result.rows.length > 0) {
+            if (the_result.rows[0].name === EC.Const.EC_VERSION_TABLE) {
+                exist = true;
+            }
+        }
+    }
+
+    function _doesVersionTableExist(tx) {
+
+        var query = 'SELECT * FROM sqlite_master WHERE name="ec_version" AND type="table";';
+        tx.executeSql(query, [], _doesVersionTableExistSQLSuccess, _error);
+    }
+
+    function _doesVersionTableExistSuccessCB() {
+        //check the version and update accordingly (run each update since the db current version)
+
+        if (exist) {
+            console.log('version table exists');
+
+            //todo get database version
+            $.when(EC.Structure.getDatabaseVersion()).then(function (version) {
+
+                //apply update if necessary
+                if (version < EC.Const.DATABASE_VERSION) {
+
+                    console.warn('Updating database from version ' + version + ' to ' + EC.Const.DATABASE_VERSION);
+
+                    //this is update from 1 to 2 (we need to make this generic)
+                    $.when(self.createGroupTables()).then(function () {
+                        deferred.resolve();
+                    }, _error);
                 }
-
             });
+        }
+        else {
+            console.log('version table does not exist, creating...');
 
-            return deferred.promise();
+            //create version table
+            $.when(self.createVersionTable()).then(function () {
 
-        };
+                //this is update from 1 to 2 (we need to make this generic)
+                $.when(self.createGroupTables()).then(function () {
+                    deferred.resolve();
+                }, _error);
 
-        return module;
+            }, _error);
+        }
+    }
 
-    }(EC.Structure));
+    /* apply database update */
+    module.doesVersionTableExist = function () {
+
+        deferred = new $.Deferred();
+        self = this;
+        exist = false;
+
+
+        //test if the version table exist
+        EC.db.transaction(_doesVersionTableExist, _error, _doesVersionTableExistSuccessCB);
+
+        return deferred.promise();
+    };
+
+    return module;
+
+
+}(EC.Structure));
+
+
+
+
+
+var EC = EC || {};
+EC.Structure = EC.Structure || {};
+EC.Structure = (function (module) {
+    'use strict';
+
+    var deferred;
+    var version;
+    var self = this;
+
+    function _error(error) {
+        console.log(error);
+        deferred.reject();
+    }
+
+    function _getDatabaseVersionSQLSuccess(the_tx, the_result) {
+
+        if (the_result.rows.length > 0) {
+            version = the_result.rows[0].version;
+        }
+    }
+
+    function _getDatabaseVersionTX(tx) {
+
+        var query = 'SELECT version FROM ec_version LIMIT 1';
+        tx.executeSql(query, [], _getDatabaseVersionSQLSuccess, _error);
+    }
+
+    function _getDatabaseVersionSuccessCB() {
+        //check the version and update accordingly (run each update since the db current version)
+        deferred.resolve(version);
+
+    }
+
+    /* apply database update */
+    module.getDatabaseVersion = function () {
+
+        deferred = new $.Deferred();
+        self = this;
+
+        //test if the version table exist
+        EC.db.transaction(_getDatabaseVersionTX, _error, _getDatabaseVersionSuccessCB);
+
+        return deferred.promise();
+    };
+
+    return module;
+
+
+}(EC.Structure));
+
+
+
+
 
 var EC = EC || {};
 EC.Select = EC.Select || {};
@@ -13800,7 +14162,7 @@ EC.Delete = (function (module) {
     };
 
     //Delete a project and related tables: database integrity will be kept with
-    // triggers (see EC.DBAdapter)
+    // triggers (see EC.Structure.createSQLiteDatabase)
     module.deleteProject = function (the_project_id, the_project_name) {
 
         project_id = the_project_id;
@@ -16949,6 +17311,7 @@ EC.BranchInputs = (function (module) {
 
                             }
 
+                            //build file name to be stored
                             value = form_name + '_' + branch_input.ref + '_' + uuid + '_' + filename;
                         } else {
 
@@ -28762,8 +29125,8 @@ EC.Project = (function (module) {
 
 var EC = EC || {};
 EC.Project = EC.Project || {};
-EC.Project = ( function (module) {
-    "use strict";
+EC.Project = (function (module) {
+    'use strict';
 
     module.loadRemoteXML = function (the_project_name) {
 
@@ -28781,13 +29144,13 @@ EC.Project = ( function (module) {
             for (i = 0; i < iLength; i++) {
 
                 if (cached_project_names[i] === project_name) {
-                    EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("project_already_loaded"));
+                    EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('project_already_loaded'));
                     return;
                 }
             }
         } catch (error) {
             //no project yet
-            console.log("no projects on device yet");
+            console.log('no projects on device yet');
         }
 
 
@@ -28812,7 +29175,7 @@ EC.Project = ( function (module) {
         }, function () {
             //request failed
             //TODO
-            console.log("request failed");
+            console.log('request failed');
         });
 
     };
