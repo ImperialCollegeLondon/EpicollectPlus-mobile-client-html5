@@ -7,8 +7,6 @@ EC.Inputs = (function (module) {
 
     module.onNextBtnTapped = function (e, the_input) {
 
-        debugger;
-
         var self = this;
         var wls = window.localStorage;
         var edit_id = wls.edit_id || '';

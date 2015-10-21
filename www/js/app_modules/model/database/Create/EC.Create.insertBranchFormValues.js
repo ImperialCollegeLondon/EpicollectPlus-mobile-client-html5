@@ -3,13 +3,9 @@ EC.Create = EC.Create || {};
 EC.Create = (function (module) {
     'use strict';
 
-    var self;
+
     var branch_form_values = [];
-    var branch_forms_data = [];
-    var entries = [];
     var entry_key;
-    var local_branch_form_id;
-    var branch_form_total_entries;
     var deferred;
 
     //callback for a transaction error
@@ -49,28 +45,49 @@ EC.Create = (function (module) {
             query += 'is_stored, ';
             query += 'created_on, ';
             query += 'is_remote) ';
-            query += 'VALUES ("';
-            query += obj.input_id + '", "';
-            query += obj.form_id + '", "';
-            query += obj.hierarchy_entry_key_ref + '", "';
-            query += obj.hierarchy_entry_key_value + '", "';
-            query += obj.position + '", "';
-            query += obj.label + '", "';
-            query += obj.ref + '", "';
-            query += obj.value + '", "';
-            query += obj.is_title + '", "';
-            query += obj.entry_key + '", "';
-            query += obj.type + '", "';
-            query += obj.is_data_synced + '", "';
-            query += obj.is_media_synced + '", "';
-            query += is_cached + '", "';
-            query += is_stored + '", "';
-            query += obj.created_on + '", "';
-            query += remote_flag + '");';
+            query += 'VALUES (';
 
-            tx.executeSql(query, [], _insertBranchFormValuesSQLSuccessCB, _errorCB);
+            //parameterized query (webSQL only allows '?' http://www.w3.org/TR/webdatabase/)
+            query += '?,';//input_id
+            query += '?,';//form_id
+            query += '?,';//hierarchy_entry_key_ref
+            query += '?,';//hierarchy_entry_key_value
+            query += '?,';//position
+            query += '?,';//label
+            query += '?,';//ref
+            query += '?,';//value
+            query += '?,';//is_title
+            query += '?,';//entry_key
+            query += '?,';//type
+            query += '?,';//is_data_synced
+            query += '?,';//is_media_synced
+            query += '?,';//is_cached
+            query += '?,';//is_stored
+            query += '?,';//created_on
+            query += '?);';//is_remote
 
-        }//for
+            tx.executeSql(query, [
+                    obj.input_id,
+                    obj.form_id,
+                    obj.hierarchy_entry_key_ref,
+                    obj.hierarchy_entry_key_value,
+                    obj.position,
+                    obj.label,
+                    obj.ref,
+                    obj.value,
+                    obj.is_title,
+                    obj.entry_key,
+                    obj.type,
+                    obj.is_data_synced,
+                    obj.is_media_synced,
+                    is_cached,
+                    is_stored,
+                    obj.created_on,
+                    remote_flag
+                ],
+                _insertBranchFormValuesSQLSuccessCB,
+                _errorCB);
+        }
 
     };
 

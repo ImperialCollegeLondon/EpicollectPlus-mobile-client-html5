@@ -109,7 +109,24 @@ EC.Create = (function (module) {
             query += 'created_on, ';
             query += 'is_data_synced, ';
             query += 'is_media_synced) ';
-            query += 'VALUES ("';
+            query += 'VALUES (';
+
+            //parameterized query (webSQL only allows '?' http://www.w3.org/TR/webdatabase/)
+            query += '?,';//input_id
+            query += '?,';//form_id
+            query += '?,';//position
+            query += '?,';//parent
+            query += '?,';//label
+            query += '?,';//ref
+            query += '?,';//value
+            query += '?,';//is_title
+            query += '?,';//entry_key
+            query += '?,';//type
+            query += '?,';//created_on
+            query += '?,';//is_data_synced
+            query += '?);';//is_media_synced
+
+
             query += local_input_id + '", "';
             query += local_form_id + '", "';
             query += obj.position + '", "';
@@ -124,7 +141,21 @@ EC.Create = (function (module) {
             query += obj.is_data_synced + '", "';
             query += obj.is_media_synced + '");';
 
-            tx.executeSql(query, [], _insertSingleEntryValuesSQLSuccessCB, EC.Create.errorCB);
+            tx.executeSql(query, [
+                local_input_id,
+                local_form_id,
+                obj.position,
+                obj.parent,
+                obj.label,
+                obj.ref,
+                obj.value,
+                obj.is_title,
+                obj.entry_key,
+                obj.type,
+                obj.created_on,
+                obj.is_data_synced,
+                obj.is_media_synced
+            ], _insertSingleEntryValuesSQLSuccessCB, EC.Create.errorCB);
 
         }//for
     };
@@ -151,9 +182,7 @@ EC.Create = (function (module) {
                 self.insertEntries(the_forms_data_left.shift());
             });
         }
-
     };
-
     return module;
 
 }(EC.Create));

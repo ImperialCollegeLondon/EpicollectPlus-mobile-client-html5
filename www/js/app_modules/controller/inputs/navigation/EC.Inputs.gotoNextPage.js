@@ -1,9 +1,8 @@
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/
 var EC = EC || {};
 EC.Inputs = EC.Inputs || {};
-EC.Inputs = ( function (module) {
-    "use strict";
+EC.Inputs = (function (module) {
+    'use strict';
 
     var self;
     var current_input_position;
@@ -74,7 +73,6 @@ EC.Inputs = ( function (module) {
 
     module.gotoNextPage = function (evt, the_current_value) {
 
-        debugger;
 
         var current_input;
         var current_value = the_current_value;

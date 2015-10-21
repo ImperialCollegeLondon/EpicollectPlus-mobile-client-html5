@@ -6,6 +6,8 @@ EC.Inputs = (function (module) {
 
     module.buildRows = function (the_filenameToTimestamp) {
 
+        debugger;
+
         var self = this;
         var i;
         var input;
@@ -152,6 +154,19 @@ EC.Inputs = (function (module) {
                         value = value.join(', ');
                     }
                 }
+            }
+
+            //deal with group, save all the group inputs answers (array) as a json object. Quick to do it, we added groups too late to the party ;)
+            if (input.type === EC.Const.GROUP) {
+                debugger;
+
+                //for a group, value will always be an array of values
+                //todo deal with _skipp3d_ group, but are we allowing this?
+                value = JSON.stringify(value);
+
+                console.log(value);
+                console.log(input.label);
+                console.log(input.ref);
 
             }
 
@@ -175,7 +190,6 @@ EC.Inputs = (function (module) {
 
         }//for each input
 
-        //EC.Notification.showProgressDialog();
 
         console.log('rows: ' + JSON.stringify(rows));
 
