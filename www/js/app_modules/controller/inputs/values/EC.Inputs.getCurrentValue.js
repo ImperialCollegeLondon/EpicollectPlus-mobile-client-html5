@@ -242,10 +242,11 @@ EC.Inputs = (function (module) {
                 got_value = values[0];
                 break;
 
-        }//switch
-
+            case EC.Const.GROUP:
+                got_value = EC.Inputs.getGroupCurrentValues();
+                break;
+        }
         return got_value;
-
     };
 
     return module;

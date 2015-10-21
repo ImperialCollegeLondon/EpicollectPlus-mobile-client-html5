@@ -62,7 +62,6 @@ EC.Parse = (function (module) {
 
         //if no forms for this project, exit and warn user project xml is wrong
         if (raw_forms === undefined) {
-
             return false;
         }
 
@@ -273,6 +272,20 @@ EC.Parse = (function (module) {
                     self.parseInputArray(form_obj.branch, type, form_num, form_type, form_name);
                 } else {
                     self.parseInputObject(form_obj.branch, type, form_num, form_type, form_name);
+                }
+            }
+
+
+            //parse all the input tags (set as type group)
+            if (form_obj.group !== undefined) {
+
+                type = 'group';
+
+                //parse all the inputs within a <group> tag
+                if (Array.isArray(form_obj.group)) {
+                    self.parseInputArray(form_obj.group, type, form_num, form_type, form_name);
+                } else {
+                    self.parseInputObject(form_obj.group, type, form_num, form_type, form_name);
                 }
             }
 

@@ -1,7 +1,7 @@
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
 /*
- * Small library of utility function helpful when running epicollect5 on older platforms or when a custom function is necessary
+ * Small library of utility function helpful when running epicollect+ on older platforms or when a custom function is necessary
  *
  */
 var EC = window.EC || {};

@@ -5,144 +5,150 @@
  * @submodulemodule Parser
  */
 var EC = EC || {};
-EC.Parse = ( function(module) {"use strict";
+EC.Parse = (function (module) {
+    'use strict';
 
-		/**
-		 * Map the position a form input using the @ref attribute and return an array:
-		 * Doing this because when converting to json the same tags are grouped together and we lose the correct inputs order!
-		 */
+    /**
+     * Map the position a form input using the @ref attribute and return an array:
+     * Doing this because when converting to json the same tags are grouped together and we lose the correct inputs order!
+     */
 
-		module.mapPositionToInput = function(the_xml) {
+    module.mapPositionToInput = function (the_xml) {
 
-			var xml = the_xml;
-			var form_children;
-			var input_positions = [];
-			var form_num;
-			var form_position = 1;
-			var position;
-			var positions;
-			var key;
-			var main;
-			var form_name;
-			var hierarchy_skip_key;
-			var branch_skip_keys = [];
+        debugger;
 
-			$(xml).find('form').each(function(i) {
+        var xml = the_xml;
+        var form_children;
+        var input_positions = [];
+        var form_num;
+        var form_position = 1;
+        var position;
+        var positions;
+        var key;
+        var main;
+        var form_name;
+        var hierarchy_skip_key;
+        var branch_skip_keys = [];
 
-				form_children = $(this).children();
-				positions = [];
-				position = 1;
+        $(xml).find('form').each(function (i) {
 
-				//get form key value
-				key = $(this).attr('key');
+            form_children = $(this).children();
+            positions = [];
+            position = 1;
 
-				//get form main value. true: main form, false: branch form
-				main = $(this).attr('main');
+            //get form key value
+            key = $(this).attr('key');
 
-				form_num = parseInt($(this).attr('num'), 10);
+            //get form main value. true: main form, false: branch form
+            main = $(this).attr('main');
 
-				//get form name which is unique within a project
-				form_name = $(this).attr('name');
+            form_num = parseInt($(this).attr('num'), 10);
 
-				//loop all the inputs
-				$(form_children).each(function(index) {
+            //get form name which is unique within a project
+            form_name = $(this).attr('name');
 
-					var ref = $(this).attr('ref');
+            //loop all the inputs
+            $(form_children).each(function (index) {
 
-					if (form_num === 1) {
+                debugger;
 
-						if (!hierarchy_skip_key) {
-							hierarchy_skip_key = key;
-							branch_skip_keys.push(key);
-						}
+                var ref = $(this).attr('ref');
 
-						positions.push({
+                if (form_num === 1) {
 
-							form_num : form_num,
-							form_name : form_name,
-							form_position : form_position,
-							position : position,
-							ref : ref
+                    if (!hierarchy_skip_key) {
+                        hierarchy_skip_key = key;
+                        branch_skip_keys.push(key);
+                    }
 
-						});
-						position++;
+                    positions.push({
 
-					} else {
+                        form_num: form_num,
+                        form_name: form_name,
+                        form_position: form_position,
+                        position: position,
+                        ref: ref
 
-						/* remove reference to parent key from child form: we have to skip the input where the @ref is equal to the @key of the immediate parent;
-						 * that input is there on the xml for legacy reasons. It is used in the old Android client but no more on the new HTML5 implementation
-						 */
+                    });
+                    position++;
 
-						if (ref === hierarchy_skip_key) {
+                } else {
 
-							positions.push({
+                    /* remove reference to parent key from child form: we have to skip the input where the @ref is equal to the @key of the immediate parent;
+                     * that input is there on the xml for legacy reasons. It is used in the old Android client but no more on the new HTML5 implementation
+                     */
 
-								form_num : form_num,
-								form_name : form_name,
-								form_position : form_position,
-								position : "skip",
-								ref : ref
+                    if (ref === hierarchy_skip_key) {
 
-							});
-						} else {
+                        positions.push({
 
-							//check if the current form is a branch, in that case skip the input if the ref is equal to any one of the cached main keys
-							//(again to skip the useless input there for legacy reasons)
-							if (main === "false" && EC.Utils.inArray(branch_skip_keys, ref)) {
+                            form_num: form_num,
+                            form_name: form_name,
+                            form_position: form_position,
+                            position: 'skip',
+                            ref: ref
 
-								positions.push({
+                        });
+                    } else {
 
-									form_num : form_num,
-									form_name : form_name,
-									form_position : form_position,
-									position : "skip",
-									ref : ref
+                        //check if the current form is a branch, in that case skip the input if the ref is equal to any one of the cached main keys
+                        //(again to skip the useless input there for legacy reasons)
+                        if (main === 'false' && EC.Utils.inArray(branch_skip_keys, ref)) {
 
-								});
+                            positions.push({
 
-							} else {
+                                form_num: form_num,
+                                form_name: form_name,
+                                form_position: form_position,
+                                position: 'skip',
+                                ref: ref
 
-								positions.push({
+                            });
 
-									form_num : form_num,
-									form_name : form_name,
-									form_position : form_position,
-									position : position,
-									ref : ref
+                        } else {
 
-								});
-							}
+                            positions.push({
 
-							position++;
-						}
+                                form_num: form_num,
+                                form_name: form_name,
+                                form_position: form_position,
+                                position: position,
+                                ref: ref
 
-					}
+                            });
+                        }
 
-				});
+                        position++;
+                    }
 
-				/*if the form is a main one and not a branch, cache its key
-				 (as it is needed later to recognised a legacy input field to be removed)
-				 as the branch forms are in random order (lol),
-				 the hierarchy forms keys are cached in an array as we have to skip a branch input
-				 if the ref is equal to any of them */
-				if (main === "true") {
+                }
 
-					hierarchy_skip_key = key;
-					branch_skip_keys.push(key);
-				}
+            });
 
-				input_positions.push(positions);
-				form_num++;
-				form_position++;
+            /*if the form is a main one and not a branch, cache its key
+             (as it is needed later to recognised a legacy input field to be removed)
+             as the branch forms are in random order (lol),
+             the hierarchy forms keys are cached in an array as we have to skip a branch input
+             if the ref is equal to any of them */
+            if (main === 'true') {
 
-			});
+                hierarchy_skip_key = key;
+                branch_skip_keys.push(key);
+            }
 
-			console.log("input_positions");
-			console.log(input_positions, true);
+            input_positions.push(positions);
+            form_num++;
+            form_position++;
 
-			return input_positions;
-		};
+        });
 
-		return module;
 
-	}(EC.Parse));
+        console.log('input_positions');
+        console.log(input_positions, true);
+
+        return input_positions;
+    };
+
+    return module;
+
+}(EC.Parse));

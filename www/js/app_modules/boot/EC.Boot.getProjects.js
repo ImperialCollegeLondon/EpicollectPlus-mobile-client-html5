@@ -5,6 +5,10 @@ EC.Boot = EC.Boot || {};
 EC.Boot.getProjects = function () {
     'use strict';
 
+    function _error(error) {
+        console.log(error);
+    }
+
     //hide splashcreen (timeout so we have time to render the project list, 1.5 sec will be enough)
     if (!EC.Utils.isChrome()) {
         if (window.device.platform === EC.Const.IOS) {
@@ -24,33 +28,44 @@ EC.Boot.getProjects = function () {
 
             //ec_version table exist, check version and update if necessary
             //todo there is not this option now as all the apps shipped do not have that table ;)
+            //todo get database version
+            $.when(EC.Structure.getDatabaseVersion()).then(function (version) {
+
+                //apply update if necessary
+                if (version < EC.Const.DATABASE_VERSION) {
+
+                    console.warn('Updating database from version ' + version + ' to ' + EC.Const.DATABASE_VERSION);
+
+                    //this is update from 1 to 2 (we need to make this generic)
+                    $.when(EC.Structure.createGroupInputsTables()).then(function () {
+                        console.log('getting list');
+                        EC.Project.getList();
+                    }, _error);
+                }
+                else {
+                    console.log('getting list');
+                    EC.Project.getList();
+                }
+            });
 
 
         }, function () {
-            console.log('ec_version table does not exists');
+            console.log('ec_version table does not exists, creating...');
 
             //ec_version table does not exist, create it and set version to EC.Const.DATABASE_VERSION
             $.when(EC.Structure.createVersionTable()).then(function () {
                 //ec_version table created successfully
 
                 //add group tables
-                $.when(EC.Structure.createGroupTables()).then(function () {
+                $.when(EC.Structure.createGroupInputsTables()).then(function () {
                     // group tables created
 
                     console.log('getting list');
                     EC.Project.getList();
 
 
-                }, function (error) {
-                    //group tables table NOT created
-                    console.log(error);
-                });
-
-
-            }, function (error) {
-                //ec_version table NOT created
-                console.log(error);
-            });
+                }, _error);
+            }, _error);
         });
     }
     else {

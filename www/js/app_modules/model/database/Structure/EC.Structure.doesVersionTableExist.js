@@ -32,35 +32,10 @@ EC.Structure = (function (module) {
         //check the version and update accordingly (run each update since the db current version)
 
         if (exist) {
-            console.log('version table exists');
-
-            //todo get database version
-            $.when(EC.Structure.getDatabaseVersion()).then(function (version) {
-
-                //apply update if necessary
-                if (version < EC.Const.DATABASE_VERSION) {
-
-                    console.warn('Updating database from version ' + version + ' to ' + EC.Const.DATABASE_VERSION);
-
-                    //this is update from 1 to 2 (we need to make this generic)
-                    $.when(self.createGroupTables()).then(function () {
-                        deferred.resolve();
-                    }, _error);
-                }
-            });
+            deferred.resolve();
         }
         else {
-            console.log('version table does not exist, creating...');
-
-            //create version table
-            $.when(self.createVersionTable()).then(function () {
-
-                //this is update from 1 to 2 (we need to make this generic)
-                $.when(self.createGroupTables()).then(function () {
-                    deferred.resolve();
-                }, _error);
-
-            }, _error);
+            deferred.reject();
         }
     }
 
@@ -70,7 +45,6 @@ EC.Structure = (function (module) {
         deferred = new $.Deferred();
         self = this;
         exist = false;
-
 
         //test if the version table exist
         EC.db.transaction(_doesVersionTableExist, _error, _doesVersionTableExistSuccessCB);

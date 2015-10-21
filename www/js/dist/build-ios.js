@@ -5,6 +5,10 @@ EC.Boot = EC.Boot || {};
 EC.Boot.getProjects = function () {
     'use strict';
 
+    function _error(error) {
+        console.log(error);
+    }
+
     //hide splashcreen (timeout so we have time to render the project list, 1.5 sec will be enough)
     if (!EC.Utils.isChrome()) {
         if (window.device.platform === EC.Const.IOS) {
@@ -24,33 +28,44 @@ EC.Boot.getProjects = function () {
 
             //ec_version table exist, check version and update if necessary
             //todo there is not this option now as all the apps shipped do not have that table ;)
+            //todo get database version
+            $.when(EC.Structure.getDatabaseVersion()).then(function (version) {
+
+                //apply update if necessary
+                if (version < EC.Const.DATABASE_VERSION) {
+
+                    console.warn('Updating database from version ' + version + ' to ' + EC.Const.DATABASE_VERSION);
+
+                    //this is update from 1 to 2 (we need to make this generic)
+                    $.when(EC.Structure.createGroupInputsTables()).then(function () {
+                        console.log('getting list');
+                        EC.Project.getList();
+                    }, _error);
+                }
+                else {
+                    console.log('getting list');
+                    EC.Project.getList();
+                }
+            });
 
 
         }, function () {
-            console.log('ec_version table does not exists');
+            console.log('ec_version table does not exists, creating...');
 
             //ec_version table does not exist, create it and set version to EC.Const.DATABASE_VERSION
             $.when(EC.Structure.createVersionTable()).then(function () {
                 //ec_version table created successfully
 
                 //add group tables
-                $.when(EC.Structure.createGroupTables()).then(function () {
+                $.when(EC.Structure.createGroupInputsTables()).then(function () {
                     // group tables created
 
                     console.log('getting list');
                     EC.Project.getList();
 
 
-                }, function (error) {
-                    //group tables table NOT created
-                    console.log(error);
-                });
-
-
-            }, function (error) {
-                //ec_version table NOT created
-                console.log(error);
-            });
+                }, _error);
+            }, _error);
         });
     }
     else {
@@ -621,7 +636,7 @@ EC.Ui = {
     //attach vmousedown and vmouseup event to highlight buttons on tap
     bindBtnStates: function () {
         'use strict';
-        
+
         var self = this;
 
         //bind events to apply hover effect on buttons (Action Bar)
@@ -809,6 +824,15 @@ EC.Ui = {
             e.stopPropagation();
 
             $(this).css('background-color', self.colors.default_button_background);
+        });
+
+        /* Following code is a hack to make the select native widget work on
+         * Android 4.4.2 (Nexus 5)
+         */
+        //Hack: manually trigger a click on a select element.
+        // Best solution I came across
+        $('select').on('vmousedown', function (e) {
+            $(this).focus().click();
         });
     }
 };
@@ -2265,6 +2289,107 @@ EC.Utils = (function () {
 }());
 
 
+/*global $, Camera*/
+var EC = EC || {};
+EC.Datetime = EC.Datetime || {};
+EC.Datetime = (function (module) {
+    'use strict';
+
+    module.initAndroidDatetimePicker = function (the_datepicker, the_format, the_mode) {
+
+        var datepicker = the_datepicker;
+        var datetime_format = the_format;
+        var mode = the_mode;
+
+
+        /* bind input to 'vclick' insted of focus, as we set the input as readonly.
+         * this solved problem on android 2.3 where the keyboard was showing because the
+         * input is in focus when tapping 'cancel' on the DatePicker popup
+         */
+        datepicker.off().on('vclick', function (event) {
+
+            var datepicker = $(this);
+            var selected_date = new Date(datepicker.attr('data-raw-date'));
+
+            //use debouncing/throttling to avoid triggering multiple `focus` event
+            // http://goo.gl/NFdHDW
+            var now = new Date();
+            var lastFocus = datepicker.data('lastFocus');
+            if (lastFocus && (now - lastFocus) < 500) {
+                // Don't do anything
+                return;
+            }
+
+            datepicker.data('lastFocus', now);
+
+            // Same handling for iPhone and Android
+            window.plugins.datePicker.show({
+                date: selected_date,
+                mode: mode, // date or time or blank for both
+                allowOldDates: true
+            }, function (returned_date) {
+
+                var new_date;
+
+                if (returned_date !== undefined) {
+                    new_date = new Date(returned_date);
+
+                    if (mode === EC.Const.DATE) {
+                        datepicker.val(EC.Utils.parseDate(new_date, datetime_format));
+                    }
+                    else {
+                        //it is a time picker
+                        datepicker.val(EC.Utils.parseTime(new_date, datetime_format));
+                    }
+
+                    datepicker.attr('data-raw-date', new_date);
+                }
+
+                // This fixes the problem you mention at the bottom of this script with it not
+                // working a second/third time around, because it is in focus.
+                datepicker.blur();
+            });
+
+            // This fixes the problem you mention at the bottom of this script with it not
+            // working a second/third time around, because it is in focus.
+            datepicker.blur();
+        });
+    };
+
+    return module;
+}(EC.Datetime));
+
+/*global $, Camera*/
+var EC = EC || {};
+EC.Datetime = EC.Datetime || {};
+EC.Datetime = (function (module) {
+    'use strict';
+
+    //todo test this, why do we need 2 pickers???
+    module.initiOSDatetimePicker = function (the_ios_datepicker, the_datepicker, the_format, the_mode) {
+
+        var datepicker = the_datepicker;
+        var ios_datepicker = the_ios_datepicker;
+        var datetimeformat = the_format;
+
+        datepicker.off().on('vclick', function (event) {
+            ios_datepicker.focus();
+        });
+
+        ios_datepicker.off().on('blur', function (event) {
+
+            var ios_date = ios_datepicker.val();
+
+            datepicker.val(EC.Utils.parseIOSDate(ios_date, datetime_format));
+            datepicker.attr('data-raw-date', ios_date);
+        });
+
+
+    };
+
+    return module;
+}(EC.Datetime));
+
 /*global $, jQuery, cordova, device, ActivityIndicator, Connection*/
 var EC = EC || {};
 EC.DevicePosition = EC.DevicePosition || {};
@@ -2866,7 +2991,7 @@ EC.Photo = (function (module) {
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
 /*
- * Small library of utility function helpful when running epicollect5 on older platforms or when a custom function is necessary
+ * Small library of utility function helpful when running epicollect+ on older platforms or when a custom function is necessary
  *
  */
 var EC = window.EC || {};
@@ -3049,6 +3174,7 @@ EC.Const = (function () {
         VIDEO: 'video',
         PHOTO: 'photo',
         BRANCH: 'branch',
+        GROUP: 'group',
         BRANCH_PREFIX: 'branch-',
         //PHOTO_DIR : '/files/images/',
         PHOTO_DIR: '', //defined at run time
@@ -3248,147 +3374,153 @@ EC.Parse = (function (module) {
  * @submodulemodule Parser
  */
 var EC = EC || {};
-EC.Parse = ( function(module) {"use strict";
+EC.Parse = (function (module) {
+    'use strict';
 
-		/**
-		 * Map the position a form input using the @ref attribute and return an array:
-		 * Doing this because when converting to json the same tags are grouped together and we lose the correct inputs order!
-		 */
+    /**
+     * Map the position a form input using the @ref attribute and return an array:
+     * Doing this because when converting to json the same tags are grouped together and we lose the correct inputs order!
+     */
 
-		module.mapPositionToInput = function(the_xml) {
+    module.mapPositionToInput = function (the_xml) {
 
-			var xml = the_xml;
-			var form_children;
-			var input_positions = [];
-			var form_num;
-			var form_position = 1;
-			var position;
-			var positions;
-			var key;
-			var main;
-			var form_name;
-			var hierarchy_skip_key;
-			var branch_skip_keys = [];
+        debugger;
 
-			$(xml).find('form').each(function(i) {
+        var xml = the_xml;
+        var form_children;
+        var input_positions = [];
+        var form_num;
+        var form_position = 1;
+        var position;
+        var positions;
+        var key;
+        var main;
+        var form_name;
+        var hierarchy_skip_key;
+        var branch_skip_keys = [];
 
-				form_children = $(this).children();
-				positions = [];
-				position = 1;
+        $(xml).find('form').each(function (i) {
 
-				//get form key value
-				key = $(this).attr('key');
+            form_children = $(this).children();
+            positions = [];
+            position = 1;
 
-				//get form main value. true: main form, false: branch form
-				main = $(this).attr('main');
+            //get form key value
+            key = $(this).attr('key');
 
-				form_num = parseInt($(this).attr('num'), 10);
+            //get form main value. true: main form, false: branch form
+            main = $(this).attr('main');
 
-				//get form name which is unique within a project
-				form_name = $(this).attr('name');
+            form_num = parseInt($(this).attr('num'), 10);
 
-				//loop all the inputs
-				$(form_children).each(function(index) {
+            //get form name which is unique within a project
+            form_name = $(this).attr('name');
 
-					var ref = $(this).attr('ref');
+            //loop all the inputs
+            $(form_children).each(function (index) {
 
-					if (form_num === 1) {
+                debugger;
 
-						if (!hierarchy_skip_key) {
-							hierarchy_skip_key = key;
-							branch_skip_keys.push(key);
-						}
+                var ref = $(this).attr('ref');
 
-						positions.push({
+                if (form_num === 1) {
 
-							form_num : form_num,
-							form_name : form_name,
-							form_position : form_position,
-							position : position,
-							ref : ref
+                    if (!hierarchy_skip_key) {
+                        hierarchy_skip_key = key;
+                        branch_skip_keys.push(key);
+                    }
 
-						});
-						position++;
+                    positions.push({
 
-					} else {
+                        form_num: form_num,
+                        form_name: form_name,
+                        form_position: form_position,
+                        position: position,
+                        ref: ref
 
-						/* remove reference to parent key from child form: we have to skip the input where the @ref is equal to the @key of the immediate parent;
-						 * that input is there on the xml for legacy reasons. It is used in the old Android client but no more on the new HTML5 implementation
-						 */
+                    });
+                    position++;
 
-						if (ref === hierarchy_skip_key) {
+                } else {
 
-							positions.push({
+                    /* remove reference to parent key from child form: we have to skip the input where the @ref is equal to the @key of the immediate parent;
+                     * that input is there on the xml for legacy reasons. It is used in the old Android client but no more on the new HTML5 implementation
+                     */
 
-								form_num : form_num,
-								form_name : form_name,
-								form_position : form_position,
-								position : "skip",
-								ref : ref
+                    if (ref === hierarchy_skip_key) {
 
-							});
-						} else {
+                        positions.push({
 
-							//check if the current form is a branch, in that case skip the input if the ref is equal to any one of the cached main keys
-							//(again to skip the useless input there for legacy reasons)
-							if (main === "false" && EC.Utils.inArray(branch_skip_keys, ref)) {
+                            form_num: form_num,
+                            form_name: form_name,
+                            form_position: form_position,
+                            position: 'skip',
+                            ref: ref
 
-								positions.push({
+                        });
+                    } else {
 
-									form_num : form_num,
-									form_name : form_name,
-									form_position : form_position,
-									position : "skip",
-									ref : ref
+                        //check if the current form is a branch, in that case skip the input if the ref is equal to any one of the cached main keys
+                        //(again to skip the useless input there for legacy reasons)
+                        if (main === 'false' && EC.Utils.inArray(branch_skip_keys, ref)) {
 
-								});
+                            positions.push({
 
-							} else {
+                                form_num: form_num,
+                                form_name: form_name,
+                                form_position: form_position,
+                                position: 'skip',
+                                ref: ref
 
-								positions.push({
+                            });
 
-									form_num : form_num,
-									form_name : form_name,
-									form_position : form_position,
-									position : position,
-									ref : ref
+                        } else {
 
-								});
-							}
+                            positions.push({
 
-							position++;
-						}
+                                form_num: form_num,
+                                form_name: form_name,
+                                form_position: form_position,
+                                position: position,
+                                ref: ref
 
-					}
+                            });
+                        }
 
-				});
+                        position++;
+                    }
 
-				/*if the form is a main one and not a branch, cache its key
-				 (as it is needed later to recognised a legacy input field to be removed)
-				 as the branch forms are in random order (lol),
-				 the hierarchy forms keys are cached in an array as we have to skip a branch input
-				 if the ref is equal to any of them */
-				if (main === "true") {
+                }
 
-					hierarchy_skip_key = key;
-					branch_skip_keys.push(key);
-				}
+            });
 
-				input_positions.push(positions);
-				form_num++;
-				form_position++;
+            /*if the form is a main one and not a branch, cache its key
+             (as it is needed later to recognised a legacy input field to be removed)
+             as the branch forms are in random order (lol),
+             the hierarchy forms keys are cached in an array as we have to skip a branch input
+             if the ref is equal to any of them */
+            if (main === 'true') {
 
-			});
+                hierarchy_skip_key = key;
+                branch_skip_keys.push(key);
+            }
 
-			console.log("input_positions");
-			console.log(input_positions, true);
+            input_positions.push(positions);
+            form_num++;
+            form_position++;
 
-			return input_positions;
-		};
+        });
 
-		return module;
 
-	}(EC.Parse));
+        console.log('input_positions');
+        console.log(input_positions, true);
+
+        return input_positions;
+    };
+
+    return module;
+
+}(EC.Parse));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -3397,216 +3529,384 @@ EC.Parse = ( function(module) {"use strict";
  * @submodulemodule Parser
  */
 var EC = EC || {};
-EC.Parse = ( function(module) {"use strict";
+EC.Parse = (function (module) {
+    'use strict';
 
-		var self;
+    var self;
 
-		/*
-		 * Return the position of an input within a form based on form name AND the input @ref (uniqueness is given by the composite key)
-		 */
-		var _getInputPosition = function(the_ref, the_form_name) {
+    /*
+     * Return the position of an input within a form based on form name AND the input @ref (uniqueness is given by the composite key)
+     */
+    var _getInputPosition = function (the_ref, the_form_name) {
 
-			var ref = the_ref;
-			var form_name = the_form_name;
-			var input_position;
-			var i;
-			var iLength = self.form_inputs_positions.length;
-			var j;
-			var jLength;
-			var current_num;
-			var current_ref;
-			var inputs;
+        var ref = the_ref;
+        var form_name = the_form_name;
+        var input_position;
+        var i;
+        var iLength = self.form_inputs_positions.length;
+        var j;
+        var jLength;
+        var current_num;
+        var current_ref;
+        var inputs;
 
-			//loop all forms
-			for ( i = 0; i < iLength; i++) {
+        //loop all forms
+        for (i = 0; i < iLength; i++) {
 
-				//loop all inputs within a form
-				inputs = self.form_inputs_positions[i];
-				jLength = inputs.length;
-				for ( j = 0; j < jLength; j++) {
+            //loop all inputs within a form
+            inputs = self.form_inputs_positions[i];
+            jLength = inputs.length;
+            for (j = 0; j < jLength; j++) {
 
-					if (inputs[j].form_name === form_name && inputs[j].ref === ref) {
+                if (inputs[j].form_name === form_name && inputs[j].ref === ref) {
 
-						return inputs[j].position;
+                    return inputs[j].position;
 
-					}
+                }
 
-				}
+            }
 
-			}
+        }
 
-		};
-		
-		/*
-		 * Get an array of objects to loop and pass to "parseInputObject" for parsing
-		 */
-		module.parseInputArray = function(the_raw_array, the_type, the_form_num, the_form_type, the_form_name) {
+    };
 
-			var self = this;
+    /*
+     * Get an array of objects to loop and pass to "parseInputObject" for parsing
+     */
+    module.parseInputArray = function (the_raw_array, the_type, the_form_num, the_form_type, the_form_name) {
 
-			$.each(the_raw_array, function(key, value) {
-				self.parseInputObject(value, the_type, the_form_num, the_form_type, the_form_name);
-			});
-		};
+        var self = this;
+
+        $.each(the_raw_array, function (key, value) {
+            self.parseInputObject(value, the_type, the_form_num, the_form_type, the_form_name);
+        });
+    };
 
 
-		module.parseInputObject = function(the_raw_input, the_type, the_form_num, the_form_type, the_form_name) {
+    module.parseInputObject = function (the_raw_input, the_type, the_form_num, the_form_type, the_form_name) {
 
-			var i;
-			var iLength;
-			var j;
-			var jLenght;
-			var input_position;
-			var ref;
-			var form_num;
-			var form_type;
-			var form_name;
-			var is_genkey_hidden;
+        var i;
+        var iLength;
+        var j;
+        var jLenght;
+        var input_position;
+        var ref;
+        var form_num;
+        var form_type;
+        var form_name;
+        var is_genkey_hidden;
+        var type = the_type;
 
-			self = this;
-			ref = the_raw_input["@ref"];
-			form_num = the_form_num;
-			form_type = the_form_type;
-			form_name = the_form_name;
+        self = this;
+        ref = the_raw_input['@ref'];
+        form_num = the_form_num;
+        form_type = the_form_type;
+        form_name = the_form_name;
 
-			//get input position
-			input_position = _getInputPosition(ref, form_name);
+        //get input position
+        input_position = _getInputPosition(ref, form_name);
 
-			//skip this input if position is set to 'skip'
-			if (input_position === "skip") {
-				return;
-			}
+        //skip this input if position is set to 'skip'
+        if (input_position === 'skip') {
+            return;
+        }
 
-			var parsed_input = {
+        var parsed_input = {
 
-				position : input_position,
-				label : the_raw_input.label,
-				type : the_type,
-				ref : ref,
-				datetime_format : "",
-				has_jump : "",
-				jumps : "",
-				has_advanced_jump : ""
+            position: input_position,
+            label: the_raw_input.label,
+            type: the_type,
+            ref: ref,
+            datetime_format: '',
+            has_jump: '',
+            jumps: '',
+            has_advanced_jump: ''
 
-			};
+        };
 
-			parsed_input.is_genkey = (the_raw_input["@genkey"] === undefined) ? "" : 1;
 
-			is_genkey_hidden = (the_raw_input["@display"] === undefined) ? 0 : 1;
+        parsed_input.is_genkey = (the_raw_input['@genkey'] === undefined) ? '' : 1;
 
-			if (parsed_input.is_genkey === 1 && is_genkey_hidden === 1) {
-				self.is_form_genkey_hidden = 1;
-			}
+        is_genkey_hidden = (the_raw_input['@display'] === undefined) ? 0 : 1;
 
-			//Set primary key flag to true  if the input is the primary key for current form
-			parsed_input.is_primary_key = (parsed_input.ref === self.form_key) ? 1 : 0;
-			
-			//#handle a bug in the form builder when a NOT autogenerated key can be hidden (LOL): when a primary key input is hidden, force it to be autogenerated
-			if(parsed_input.is_primary_key === 1 && is_genkey_hidden === 1){
-				self.is_form_genkey_hidden = 1;
-			}
+        if (parsed_input.is_genkey === 1 && is_genkey_hidden === 1) {
+            self.is_form_genkey_hidden = 1;
+        }
 
-			//if @default is present, there is a default value set for this input
-			parsed_input.default_value = (the_raw_input["@default"] === undefined) ? "" : parsed_input.default_value = the_raw_input["@default"];
+        //Set primary key flag to true  if the input is the primary key for current form
+        parsed_input.is_primary_key = (parsed_input.ref === self.form_key) ? 1 : 0;
 
-			//if @integer is present, convert the type to integer (it defaults to text)
-			if (the_raw_input["@integer"] !== undefined) {
-				parsed_input.type = "integer";
+        //#handle a bug in the form builder when a NOT autogenerated key can be hidden (LOL): when a primary key input is hidden, force it to be autogenerated
+        if (parsed_input.is_primary_key === 1 && is_genkey_hidden === 1) {
+            self.is_form_genkey_hidden = 1;
+        }
 
-			}
+        //if @default is present, there is a default value set for this input
+        parsed_input.default_value = (the_raw_input['@default'] === undefined) ? '' : parsed_input.default_value = the_raw_input['@default'];
 
-			//if @decimal is present, convert the type to integer (it defaults to text)
-			if (the_raw_input["@decimal"] !== undefined) {
-				parsed_input.type = "decimal";
+        //if @integer is present, convert the type to integer (it defaults to text)
+        if (the_raw_input['@integer'] !== undefined) {
+            parsed_input.type = 'integer';
 
-			}
+        }
 
-			//if @setdate or @date  is present, convert the type to date (it defaults to text) and add the "format" attribute
-			if (the_raw_input["@setdate"] !== undefined || the_raw_input["@date"] !== undefined) {
+        //if @decimal is present, convert the type to integer (it defaults to text)
+        if (the_raw_input['@decimal'] !== undefined) {
+            parsed_input.type = 'decimal';
 
-				parsed_input.type = "date";
-				parsed_input.datetime_format = the_raw_input["@setdate"] || the_raw_input["@date"];
+        }
 
-				//also add the setdate value as default to indicate it needs to default to current date
-				parsed_input.default_value = the_raw_input["@setdate"] || "";
+        //if @setdate or @date  is present, convert the type to date (it defaults to text) and add the 'format' attribute
+        if (the_raw_input['@setdate'] !== undefined || the_raw_input['@date'] !== undefined) {
 
-			}
+            parsed_input.type = 'date';
+            parsed_input.datetime_format = the_raw_input['@setdate'] || the_raw_input['@date'];
 
-			//if @settime or @time is present, convert the type to time (it defaults to text) and add the "format" attribute
-			if (the_raw_input["@settime"] !== undefined || the_raw_input["@time"] !== undefined) {
+            //also add the setdate value as default to indicate it needs to default to current date
+            parsed_input.default_value = the_raw_input['@setdate'] || '';
 
-				parsed_input.type = "time";
-				parsed_input.datetime_format = the_raw_input["@settime"] || the_raw_input["@time"];
+        }
 
-				//also add the settime value as default to indicate it needs to default to current time
-				parsed_input.default_value = the_raw_input["@settime"] || "";
-			}
+        //if @settime or @time is present, convert the type to time (it defaults to text) and add the 'format' attribute
+        if (the_raw_input['@settime'] !== undefined || the_raw_input['@time'] !== undefined) {
 
-			//set regex if any @regex is specified
-			parsed_input.regex = (the_raw_input["@regex"] === undefined) ? "" : the_raw_input["@regex"];
+            parsed_input.type = 'time';
+            parsed_input.datetime_format = the_raw_input['@settime'] || the_raw_input['@time'];
 
-			//set max and min value if any specified (not numeric fields will get "none")
-			parsed_input.max_range = (the_raw_input["@max"] === undefined) ? "" : the_raw_input["@max"];
-			parsed_input.min_range = (the_raw_input["@min"] === undefined) ? "" : the_raw_input["@min"];
+            //also add the settime value as default to indicate it needs to default to current time
+            parsed_input.default_value = the_raw_input['@settime'] || '';
+        }
 
-			//set is_required to true or false based on the @required present or not
-			parsed_input.is_required = (the_raw_input["@required"] === undefined) ? 0 : 1;
+        //set regex if any @regex is specified
+        parsed_input.regex = (the_raw_input['@regex'] === undefined) ? '' : the_raw_input['@regex'];
 
-			//set search flag: this will be used for the advanced search function
-			parsed_input.is_searchable = (the_raw_input["@search"] === undefined) ? 0 : 1;
+        //set max and min value if any specified (not numeric fields will get 'none')
+        parsed_input.max_range = (the_raw_input['@max'] === undefined) ? '' : the_raw_input['@max'];
+        parsed_input.min_range = (the_raw_input['@min'] === undefined) ? '' : the_raw_input['@min'];
 
-			/*
-			 * set title to true or false based on the @title present or not
-			 *
-			 * !--XML form builder needs to force at least one occurrence of @title --!
-			 */
-			parsed_input.is_title = (the_raw_input["@title"] === undefined) ? 0 : 1;
+        //set is_required to true or false based on the @required present or not
+        parsed_input.is_required = (the_raw_input['@required'] === undefined) ? 0 : 1;
 
-			//set is_double_entry flag based on @verify present or not
-			parsed_input.has_double_check = (the_raw_input["@verify"] === undefined) ? 0 : 1;
+        //set search flag: this will be used for the advanced search function
+        parsed_input.is_searchable = (the_raw_input['@search'] === undefined) ? 0 : 1;
 
-			if (the_raw_input["@jump"] !== undefined) {
+        /*
+         * set title to true or false based on the @title present or not
+         *
+         * !--XML form builder needs to force at least one occurrence of @title --!
+         */
+        parsed_input.is_title = (the_raw_input['@title'] === undefined) ? 0 : 1;
 
-				//Set flag about this input triggering a jump or not
-				parsed_input.has_jump = 1;
+        //set is_double_entry flag based on @verify present or not
+        parsed_input.has_double_check = (the_raw_input['@verify'] === undefined) ? 0 : 1;
 
-				parsed_input.jumps = the_raw_input["@jump"];
-			}
+        if (the_raw_input['@jump'] !== undefined) {
 
-			//<radio>, <select> (checkbox), <select1>(select) will have list of available options attached as "item" array
-			if (the_type === EC.Const.RADIO || the_type === EC.Const.CHECKBOX || the_type === EC.Const.DROPDOWN) {
+            //Set flag about this input triggering a jump or not
+            parsed_input.has_jump = 1;
 
-				//add set of options to options array, to link back to each input using @ref, @num
+            parsed_input.jumps = the_raw_input['@jump'];
+        }
 
-				//options for hierarchy forms (main)
-				if (form_type === "main") {
-					self.options.push({
-						num : the_form_num,
-						ref : the_raw_input["@ref"],
-						options : the_raw_input.item
-					});
-				} else {
+        //<radio>, <select> (checkbox), <select1>(select) will have list of available options attached as 'item' array
+        if (type === EC.Const.RADIO || type === EC.Const.CHECKBOX || type === EC.Const.DROPDOWN) {
 
-					//options for branch form
-					self.branch_options.push({
-						num : the_form_num,
-						ref : the_raw_input["@ref"],
-						options : the_raw_input.item
-					});
-				}
+            //add set of options to options array, to link back to each input using @ref, @num
 
-			}//if
+            //options for hierarchy forms (main)
+            if (form_type === 'main') {
+                self.options.push({
+                    num: the_form_num,
+                    ref: the_raw_input['@ref'],
+                    options: the_raw_input.item
+                });
+            } else {
 
-			//if the type is branch, set branch_form value
-			parsed_input.branch_form_name = (the_raw_input["@branch_form"] === undefined) ? "" : the_raw_input["@branch_form"];
+                //options for branch form
+                self.branch_options.push({
+                    num: the_form_num,
+                    ref: the_raw_input['@ref'],
+                    options: the_raw_input.item
+                });
+            }
 
-			//store input
-			self.input_list.push(parsed_input);
-		};
+        }//if
 
-		return module;
+        //if the type is branch, set branch_form value
+        parsed_input.branch_form_name = (the_raw_input['@branch_form'] === undefined) ? '' : the_raw_input['@branch_form'];
 
-	}(EC.Parse));
+        //if the type is 'group', parse inputs withing the group
+        if (type === EC.Const.GROUP) {
+
+            var raw_group_inputs = the_raw_input.input;
+            var parsed_group_inputs = [];
+
+            //get label for groups, it is an attribute, not a tag
+            parsed_input.label = the_raw_input['@label'];
+
+            //are there any <textarea> inputs?
+            if (the_raw_input.textarea) {
+                //ok, add them as inputs (could be array or object if only one)
+                if (Array.isArray(the_raw_input.textarea)) {
+
+                    //we need to ad type textarea here #dechrissify, as the Epicollect+ formbuilder does not add a type to the inputs, how marvelous is that?
+                    $.each(the_raw_input.textarea, function (index, single_group_textarea) {
+                        single_group_textarea.type = EC.Const.TEXTAREA;
+                    });
+                    raw_group_inputs = raw_group_inputs.concat(the_raw_input.textarea);
+                }
+                else {
+                    the_raw_input.textarea.type = EC.Const.TEXTAREA;
+                    raw_group_inputs.push(the_raw_input.textarea);
+                }
+            }
+
+
+            //todo are there any <radio> inputs?
+            if (the_raw_input.radio) {
+                //ok, add them as inputs (could be array or object if only one)
+                if (Array.isArray(the_raw_input.radio)) {
+
+                    //we need to ad type radio here #dechrissify, as the Epicollect+ formbuilder does not add a type to the inputs, how marvelous is that?
+                    $.each(the_raw_input.radio, function (index, single_group_radio) {
+                        single_group_radio.type = EC.Const.RADIO;
+                    });
+                    raw_group_inputs = raw_group_inputs.concat(the_raw_input.radio);
+                }
+                else {
+                    the_raw_input.radio.type = EC.Const.RADIO;
+                    raw_group_inputs.push(the_raw_input.radio);
+                }
+            }
+
+
+
+            //are there any <select> inputs? In their infinite wisdom, original Epicollect+ developers decided to use the <select> tag to render a checkbox. Yes, really :/ #dechrissify
+            if (the_raw_input.select) {
+                //ok, add them as inputs (could be array or object if only one)
+                if (Array.isArray(the_raw_input.select)) {
+
+                    //we need to add type checkbox here #dechrissify, as the Epicollect+ formbuilder does not add a type to the inputs, how marvelous is that?
+                    $.each(the_raw_input.select, function (index, single_group_select) {
+                        single_group_select.type = EC.Const.CHECKBOX;
+                    });
+                    raw_group_inputs = raw_group_inputs.concat(the_raw_input.select);
+                }
+                else {
+                    the_raw_input.select.type = EC.Const.CHECKBOX;
+                    raw_group_inputs.push(the_raw_input.select);
+                }
+            }
+
+
+
+            //are there any <select1> inputs?
+            // You will not believe this: after overriding <select> to show a checkbox, Epicollect+ original developers suddenly realised they still needed a dropdown (which is what <select> has been for the past 30 years), so they created a <select1> tag! Please kill me :/
+            if (the_raw_input.select1) {
+                //ok, add them as inputs (could be array or object if only one)
+                if (Array.isArray(the_raw_input.select1)) {
+
+                    //we need to add type dropdown here #dechrissify, as the Epicollect+ formbuilder does not add a type to the inputs, how marvelous is that?
+                    $.each(the_raw_input.select1, function (index, single_group_select1) {
+                        single_group_select1.type = EC.Const.DROPDOWN;
+                    });
+                    raw_group_inputs = raw_group_inputs.concat(the_raw_input.select1);
+                }
+                else {
+                    the_raw_input.select1.type = EC.Const.DROPDOWN;
+                    raw_group_inputs.push(the_raw_input.select1);
+                }
+            }
+
+
+            //parse all the inputs nested withing the <group> tag
+            $.each(raw_group_inputs, function (index, single_group_input) {
+
+                //parse attributes into object properties. We are not parsing position, is it still needed?
+
+
+                single_group_input.ref = single_group_input['@ref'];
+                //delete @ref property as not used
+                delete single_group_input['@ref'];
+
+                //default type is 'text' (if it is not set already, see <textarea>)
+                if (!single_group_input.type) {
+                    single_group_input.type = EC.Const.TEXT;
+                }
+
+
+                //if @integer is present, convert the type to integer (it defaults to text)
+                if (single_group_input['@integer'] !== undefined) {
+                    single_group_input.type = 'integer';
+
+                }
+
+                //if @decimal is present, convert the type to integer (it defaults to text)
+                if (single_group_input['@decimal'] !== undefined) {
+                    single_group_input.type = 'decimal';
+
+                }
+
+                //if @setdate or @date  is present, convert the type to date (it defaults to text) and add the 'format' attribute
+                if (single_group_input['@setdate'] !== undefined || single_group_input['@date'] !== undefined) {
+
+                    single_group_input.type = 'date';
+                    single_group_input.datetime_format = single_group_input['@setdate'] || single_group_input['@date'];
+
+                    //also add the setdate value as default to indicate it needs to default to current date
+                    single_group_input.default_value = single_group_input['@setdate'] || '';
+
+                }
+
+                //if @settime or @time is present, convert the type to time (it defaults to text) and add the 'format' attribute
+                if (single_group_input['@settime'] !== undefined || single_group_input['@time'] !== undefined) {
+
+                    single_group_input.type = 'time';
+                    single_group_input.datetime_format = single_group_input['@settime'] || single_group_input['@time'];
+
+                    //also add the settime value as default to indicate it needs to default to current time
+                    single_group_input.default_value = single_group_input['@settime'] || '';
+                }
+
+                //if @default is present, there is a default value set for this input
+                single_group_input.default_value = (single_group_input['@default'] === undefined) ? '' : single_group_input.default_value;
+
+                single_group_input.has_double_check = (single_group_input['@verify'] === undefined) ? 0 : 1;
+                //set is_required to true or false based on the @required present or not
+                single_group_input.is_required = (single_group_input['@required'] === undefined) ? 0 : 1;
+
+                //set max and min value if any specified (not numeric fields will get 'none')
+                single_group_input.max_range = (single_group_input['@max'] === undefined) ? '' : single_group_input['@max'];
+                single_group_input.min_range = (single_group_input['@min'] === undefined) ? '' : single_group_input['@min'];
+
+                //set regex if any @regex is specified
+                single_group_input.regex = (single_group_input['@regex'] === undefined) ? '' : single_group_input['@regex'];
+
+                //add a value property to store the answer to this input question
+                single_group_input.value = '';
+
+
+                //rename <item> to options to keep consistency
+                single_group_input.options = single_group_input.item || [];
+                //delete item property as not used
+                delete single_group_input.item;
+
+
+                parsed_group_inputs.push(single_group_input);
+            });
+
+            //add group_inputs to main input
+            parsed_input.group_inputs = parsed_group_inputs;
+
+        }
+
+        //store input
+        self.input_list.push(parsed_input);
+    };
+
+    return module;
+
+}(EC.Parse));
 
 /*global $, jQuery, cordova, device, xml2json*/
 /*
@@ -3672,7 +3972,6 @@ EC.Parse = (function (module) {
 
         //if no forms for this project, exit and warn user project xml is wrong
         if (raw_forms === undefined) {
-
             return false;
         }
 
@@ -3883,6 +4182,20 @@ EC.Parse = (function (module) {
                     self.parseInputArray(form_obj.branch, type, form_num, form_type, form_name);
                 } else {
                     self.parseInputObject(form_obj.branch, type, form_num, form_type, form_name);
+                }
+            }
+
+
+            //parse all the input tags (set as type group)
+            if (form_obj.group !== undefined) {
+
+                type = 'group';
+
+                //parse all the inputs within a <group> tag
+                if (Array.isArray(form_obj.group)) {
+                    self.parseInputArray(form_obj.group, type, form_num, form_type, form_name);
+                } else {
+                    self.parseInputObject(form_obj.group, type, form_num, form_type, form_name);
                 }
             }
 
@@ -5998,7 +6311,6 @@ EC.Hierarchy = ( function(module) {"use strict";
 
 	}(EC.Hierarchy));
 
-/*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
 /*
  *   @module Hierarchy
@@ -6007,153 +6319,168 @@ EC.Hierarchy = ( function(module) {"use strict";
 
 var EC = EC || {};
 EC.Hierarchy = EC.Hierarchy || {};
-EC.Hierarchy = ( function(module) {
-        "use strict";
+EC.Hierarchy = (function (module) {
+    'use strict';
 
-        var self;
-        var deferred;
+    var self;
+    var deferred;
 
-        //track inputs IDs
-        var inputs_IDs = [];
+    //track inputs IDs
+    var inputs_IDs = [];
 
-        //we need to keep track of the input option @ref to be linked with
-        // whatever ID it gets after being entered to the the db
-        var input_option_index;
+    //we need to keep track of the input option @ref to be linked with
+    // whatever ID it gets after being entered to the the db
+    var input_option_index;
 
-        //store inputs object
-        var inputs;
+    //store inputs object
+    var inputs;
 
-        var forms_with_media = [];
-        var forms_IDs = [];
+    var forms_with_media = [];
+    var forms_IDs = [];
 
-        //Transaction to save all the inputs for each form to database
-        var _commitInputsTX = function(tx) {
+    //Transaction to save all the inputs for each form to database
+    var _commitInputsTX = function (tx) {
 
-            var i;
-            var j;
-            var k;
-            var iLength;
-            var jLength;
-            var kLength;
-            var current_form_num;
-            var current_form_id;
-            var input_list;
-            var input_type;
-            var input_ref;
-            var query;
+        var i;
+        var j;
+        var k;
+        var iLength;
+        var jLength;
+        var kLength;
+        var current_form_num;
+        var current_form_id;
+        var input_list;
+        var input_type;
+        var input_ref;
+        var query;
 
-            //loop input array, one element per form . Each element contains an
-            // input list and the @num attribute
-            for ( i = 0, iLength = inputs.length; i < iLength; i++) {
+        //loop input array, one element per form . Each element contains an
+        // input list and the @num attribute
+        for (i = 0, iLength = inputs.length; i < iLength; i++) {
 
-                //get the database ID for the current form
-                current_form_num = inputs[i].num;
-                for ( j = 0, jLength = forms_IDs.length; j < jLength; j++) {
+            //get the database ID for the current form
+            current_form_num = inputs[i].num;
+            for (j = 0, jLength = forms_IDs.length; j < jLength; j++) {
 
-                    if (forms_IDs[j].num === current_form_num) {
+                if (forms_IDs[j].num === current_form_num) {
 
-                        //exit loop as soon as we get a match
-                        current_form_id = forms_IDs[j].id;
-                        break;
-                    }
+                    //exit loop as soon as we get a match
+                    current_form_id = forms_IDs[j].id;
+                    break;
+                }
+            }
+
+            //loop each input for the current element(form) and commit it
+            kLength = inputs[i].input_list.length;
+            for (k = 0; k < kLength; k++) {
+
+
+
+                input_type = inputs[i].input_list[k].type;
+                input_ref = inputs[i].input_list[k].ref;
+
+                //save input within a group tag as a json string
+                if (input_type === EC.Const.GROUP) {
+                    inputs[i].input_list[k].group_inputs = JSON.stringify(inputs[i].input_list[k].group_inputs);
+                }
+                else {
+                   //no group_inputs on normal inputs, set to ''
+                    inputs[i].input_list[k].group_inputs = '';
                 }
 
-                //loop each input for the current element(form) and commit it
-                kLength = inputs[i].input_list.length;
-                for ( k = 0; k < kLength; k++) {
+                query = 'INSERT INTO ec_inputs (';
+                query += 'form_id, ';
+                query += 'label, ';
+                query += 'default_value, ';
+                query += 'type, ';
+                query += 'ref, ';
+                query += 'position, ';
+                query += 'is_primary_key, ';
+                query += 'is_genkey, ';
+                query += 'regex, ';
+                query += 'max_range, ';
+                query += 'min_range, ';
+                query += 'is_required, ';
+                query += 'is_title, ';
+                query += 'has_jump, ';
+                query += 'jumps, ';
+                query += 'group_inputs, ';
+                query += 'has_advanced_jump, ';
+                query += 'datetime_format, ';
+                query += 'branch_form_name, ';
+                query += 'has_double_check) ';
+                query += 'VALUES (';
+                //parameterized query (webSQL only allows '?' http://www.w3.org/TR/webdatabase/)
+                //
+                query += '?,';
+                //current_form_id
+                //
+                query += '?,';
+                //label
+                //
+                query += '?,';
+                //default_value
+                //
+                query += '?,';
+                //type
+                //
+                query += '?,';
+                //ref
+                //
+                query += '?,';
+                //position
+                //
+                query += '?,';
+                //is_primary_key
+                //
+                query += '?,';
+                //is_gen_key
+                //
+                query += '?,';
+                //regex
+                //
+                query += '?,';
+                //max_range
+                //
+                query += '?,';
+                //min_range
+                //
+                query += '?,';
+                //is_required
+                //
+                query += '?,';
+                //is_title
+                //
+                query += '?,';
+                //has_jump
+                //
+                query += '?,';
+                //jumps
+                //
+                query += '?,';
+                //group_inputs
+                //
+                query += '?,';
+                //has_advanced_jump
+                //
+                query += '?,';
+                //datetime_format
+                //
+                query += '?,';
+                //branch_form_name
+                //
+                query += '?);';
+                //has_double_check
 
-                    input_type = inputs[i].input_list[k].type;
-                    input_ref = inputs[i].input_list[k].ref;
+                //keep track of current input @ref
+                inputs_IDs.push({
+                    ref: input_ref,
+                    form_id: current_form_id,
+                    form_num: current_form_num,
+                    id: ''//fill this after INSERT
+                });
 
-                    query = 'INSERT INTO ec_inputs (';
-                    query += 'form_id, ';
-                    query += 'label, ';
-                    query += 'default_value, ';
-                    query += 'type, ';
-                    query += 'ref, ';
-                    query += 'position, ';
-                    query += 'is_primary_key, ';
-                    query += 'is_genkey, ';
-                    query += 'regex, ';
-                    query += 'max_range, ';
-                    query += 'min_range, ';
-                    query += 'is_required, ';
-                    query += 'is_title, ';
-                    query += 'has_jump, ';
-                    query += 'jumps, ';
-                    query += 'has_advanced_jump, ';
-                    query += 'datetime_format, ';
-                    query += 'branch_form_name, ';
-                    query += 'has_double_check) ';
-                    query += 'VALUES (';
-                    //parameterized query (webSQL only allows '?' http://www.w3.org/TR/webdatabase/)
-                    //
-                    query += '?,';
-                    //current_form_id
-                    //
-                    query += '?,';
-                    //label
-                    //
-                    query += '?,';
-                    //default_value
-                    //
-                    query += '?,';
-                    //type
-                    //
-                    query += '?,';
-                    //ref
-                    //
-                    query += '?,';
-                    //position
-                    //
-                    query += '?,';
-                    //is_primary_key
-                    //
-                    query += '?,';
-                    //is_gen_key
-                    //
-                    query += '?,';
-                    //regex
-                    //
-                    query += '?,';
-                    //max_range
-                    //
-                    query += '?,';
-                    //min_range
-                    //
-                    query += '?,';
-                    //is_required
-                    //
-                    query += '?,';
-                    //is_title
-                    //
-                    query += '?,';
-                    //has_jump
-                    //
-                    query += '?,';
-                    //jumps
-                    //
-                    query += '?,';
-                    //has_advanced_jump
-                    //
-                    query += '?,';
-                    //datetime_format
-                    //
-                    query += '?,';
-                    //branch_form_name
-                    //
-                    query += '?);';
-                    //has_double_check
-
-                    //keep track of current input @ref
-                    inputs_IDs.push({
-                        ref : input_ref,
-                        form_id : current_form_id,
-                        form_num : current_form_num,
-                        id : ""//fill this after INSERT
-                    });
-
-                    tx.executeSql(query, [//
+                tx.executeSql(query, [//
                     current_form_id, //
                     inputs[i].input_list[k].label, //
                     inputs[i].input_list[k].default_value, //
@@ -6169,69 +6496,70 @@ EC.Hierarchy = ( function(module) {
                     inputs[i].input_list[k].is_title, //
                     inputs[i].input_list[k].has_jump, //
                     inputs[i].input_list[k].jumps, //
+                    inputs[i].input_list[k].group_inputs, //
                     inputs[i].input_list[k].has_advanced_jump, //
                     inputs[i].input_list[k].datetime_format, //
                     inputs[i].input_list[k].branch_form_name, //
                     inputs[i].input_list[k].has_double_check//
 
-                    ], _commitInputsSQLSuccess, _errorCB);
+                ], _commitInputsSQLSuccess, _errorCB);
 
-                }//for each input
-            }// for each form
+            }//for each input
+        }// for each form
 
-        };
+    };
 
-        /* Callback called each time an input executeSql is successful
-         *
-         * here the input ID (geerated from the query when entering the input) is
-         * linked to its input @ref
-         */
-        var _commitInputsSQLSuccess = function(the_tx, the_result) {
+    /* Callback called each time an input executeSql is successful
+     *
+     * here the input ID (geerated from the query when entering the input) is
+     * linked to its input @ref
+     */
+    var _commitInputsSQLSuccess = function (the_tx, the_result) {
 
-            //link each row ID to its input
-            inputs_IDs[input_option_index].id = the_result.insertId;
-            input_option_index++;
+        //link each row ID to its input
+        inputs_IDs[input_option_index].id = the_result.insertId;
+        input_option_index++;
 
-            console.log("executeSql SUCCESS HIERARCHY INPUTS");
+        console.log('executeSql SUCCESS HIERARCHY INPUTS');
 
-        };
+    };
 
-        var _commitInputsSuccessCB = function() {
+    var _commitInputsSuccessCB = function () {
 
-            deferred.resolve(inputs_IDs);
+        deferred.resolve(inputs_IDs);
 
-            forms_with_media.length = 0;
-            inputs.length = 0;
+        forms_with_media.length = 0;
+        inputs.length = 0;
 
-        };
+    };
 
-        var _errorCB = function(the_tx, the_result) {
+    var _errorCB = function (the_tx, the_result) {
 
-            console.log(EC.Utils.TRANSACTION_ERROR);
-            console.log(the_tx);
-            console.log(the_result);
-        };
+        console.log(EC.Utils.TRANSACTION_ERROR);
+        console.log(the_tx);
+        console.log(the_result);
+    };
 
-        module.commitInputs = function(the_inputs_object, the_forms_ids) {
+    module.commitInputs = function (the_inputs_object, the_forms_ids) {
 
-            self = this;
-            deferred = new $.Deferred();
-            inputs = the_inputs_object;
-            forms_IDs = the_forms_ids;
+        self = this;
+        deferred = new $.Deferred();
+        inputs = the_inputs_object;
+        forms_IDs = the_forms_ids;
 
-            inputs_IDs = [];
-            forms_with_media = [];
-            input_option_index = 0;
+        inputs_IDs = [];
+        forms_with_media = [];
+        input_option_index = 0;
 
-            EC.db.transaction(_commitInputsTX, _errorCB, _commitInputsSuccessCB);
+        EC.db.transaction(_commitInputsTX, _errorCB, _commitInputsSuccessCB);
 
-            return deferred.promise();
+        return deferred.promise();
 
-        };
+    };
 
-        return module;
+    return module;
 
-    }(EC.Hierarchy));
+}(EC.Hierarchy));
 
 /*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery, cordova, device*/
@@ -6378,6 +6706,8 @@ EC.Structure = (function (module) {
                     var hierarchy_inputs = EC.Parse.inputs;
                     var branch_inputs = EC.Parse.branch_inputs;
 
+                    debugger;
+
                     $.when(EC.Hierarchy.commitInputs(hierarchy_inputs, hierarchy_forms_IDs), EC.Branch.commitBranchInputs(branch_inputs, branch_forms_IDs)).then(function (hierarchy_inputs_IDs, branch_inputs_IDs) {
 
                         var branch_options = EC.Parse.branch_options;
@@ -6476,25 +6806,19 @@ EC.Structure = (function (module) {
     var cq_ec_group_inputs = ['', //
         'CREATE  TABLE IF NOT EXISTS "ec_group_inputs" (', //
         '"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE , ', //
-        '"form_id" INTEGER NOT NULL , ', //
+        '"input_id" INTEGER NOT NULL , ', //
         '"ref" TEXT,', //
         '"position" INTEGER,', //
         '"label" TEXT,', //
         '"default_value" TEXT,', //
         '"type" TEXT, ', //
-        '"is_primary_key" INTEGER,', //
-        '"is_genkey" INTEGER,', //
         '"has_double_check" INTEGER,', //
         '"max_range" TEXT,', //
         '"min_range" TEXT , ', //
         '"is_required" INTEGER, ', //
-        '"is_title" INTEGER,', //
-        '"is_server_local" INTEGER,', //
-        '"is_searchable" TEXT, ', //
         '"regex" TEXT, ', //
         '"datetime_format" TEXT,', //
-        'FOREIGN KEY ("form_id") REFERENCES ec_forms(_id) ON DELETE CASCADE ON ',
-        // //
+        'FOREIGN KEY ("input_id") REFERENCES ec_inputs(_id) ON DELETE CASCADE ON ',
         'UPDATE CASCADE', //
         ');'//
     ].join('');
@@ -6508,21 +6832,20 @@ EC.Structure = (function (module) {
         '"label" TEXT NOT NULL ,', //
         '"value" TEXT NOT NULL , ', //
         'FOREIGN KEY ("input_id") REFERENCES ec_group_inputs("_id") ON DELETE CASCADE ON ',
-        // //
         'UPDATE CASCADE', //
         ');'//
     ].join('');
 
-    function _createGroupTablesError(error) {
+    function _createGroupInputsTablesError(error) {
         deferred.reject(error);
     }
 
-    function _createGroupTablesSuccess() {
+    function _createGroupInputsTablesSuccess() {
         deferred.resolve();
     }
 
     //create only group tables, for a device with the old app already installed
-    module.createGroupTables = function () {
+    module.createGroupInputsTables = function () {
 
         deferred = new $.Deferred();
 
@@ -6538,8 +6861,8 @@ EC.Structure = (function (module) {
                 tx.executeSql(cq_ec_group_inputs);
                 tx.executeSql(cq_ec_group_input_options);
             },
-            _createGroupTablesError,
-            _createGroupTablesSuccess);
+            _createGroupInputsTablesError,
+            _createGroupInputsTablesSuccess);
 
         return deferred.promise();
     };
@@ -6548,11 +6871,7 @@ EC.Structure = (function (module) {
 
 }(EC.Structure));
 
-/*
- * @module CreateSQLiteDatabase
- *
- *
- *   Cordova uses Web SQL specifications on the Chrome browser (Android)
+/* Cordova uses Web SQL specifications on the Chrome browser (Android)
  *
  */
 
@@ -6656,6 +6975,7 @@ EC.Structure = (function (module) {
         '"is_searchable" TEXT, ', //
         '"regex" TEXT, ', //
         '"has_jump" INTEGER,', //
+        '"group_inputs" TEXT,', //
         '"jumps" TEXT,', //
         '"has_advanced_jump" INTEGER, ', //
         '"datetime_format" TEXT,', //
@@ -6700,30 +7020,22 @@ EC.Structure = (function (module) {
     var cq_ec_group_inputs = ['', //
         'CREATE  TABLE IF NOT EXISTS "ec_group_inputs" (', //
         '"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE , ', //
-        '"form_id" INTEGER NOT NULL , ', //
+        '"input_id" INTEGER NOT NULL , ', //
         '"ref" TEXT,', //
         '"position" INTEGER,', //
         '"label" TEXT,', //
         '"default_value" TEXT,', //
         '"type" TEXT, ', //
-        '"is_primary_key" INTEGER,', //
-        '"is_genkey" INTEGER,', //
         '"has_double_check" INTEGER,', //
         '"max_range" TEXT,', //
         '"min_range" TEXT , ', //
         '"is_required" INTEGER, ', //
-        '"is_title" INTEGER,', //
-        '"is_server_local" INTEGER,', //
-        '"is_searchable" TEXT, ', //
         '"regex" TEXT, ', //
         '"datetime_format" TEXT,', //
-        'FOREIGN KEY ("form_id") REFERENCES ec_forms(_id) ON DELETE CASCADE ON ',
-        // //
+        'FOREIGN KEY ("input_id") REFERENCES ec_inputs(_id) ON DELETE CASCADE ON ',
         'UPDATE CASCADE', //
         ');'//
     ].join('');
-    //
-    //
 
     //Query to create ec_input_options table
     var cq_ec_input_options = ['', //
@@ -7069,35 +7381,10 @@ EC.Structure = (function (module) {
         //check the version and update accordingly (run each update since the db current version)
 
         if (exist) {
-            console.log('version table exists');
-
-            //todo get database version
-            $.when(EC.Structure.getDatabaseVersion()).then(function (version) {
-
-                //apply update if necessary
-                if (version < EC.Const.DATABASE_VERSION) {
-
-                    console.warn('Updating database from version ' + version + ' to ' + EC.Const.DATABASE_VERSION);
-
-                    //this is update from 1 to 2 (we need to make this generic)
-                    $.when(self.createGroupTables()).then(function () {
-                        deferred.resolve();
-                    }, _error);
-                }
-            });
+            deferred.resolve();
         }
         else {
-            console.log('version table does not exist, creating...');
-
-            //create version table
-            $.when(self.createVersionTable()).then(function () {
-
-                //this is update from 1 to 2 (we need to make this generic)
-                $.when(self.createGroupTables()).then(function () {
-                    deferred.resolve();
-                }, _error);
-
-            }, _error);
+            deferred.reject();
         }
     }
 
@@ -7107,7 +7394,6 @@ EC.Structure = (function (module) {
         deferred = new $.Deferred();
         self = this;
         exist = false;
-
 
         //test if the version table exist
         EC.db.transaction(_doesVersionTableExist, _error, _doesVersionTableExistSuccessCB);
@@ -23990,7 +24276,10 @@ EC.Inputs = (function (module) {
 
         percentage_txt.text(ratio + '%');
         percentage_bar.css('width', ratio + '%');
+
     };
+
+
 
     return module;
 
@@ -24219,199 +24508,208 @@ EC.Inputs = ( function(module) {"use strict";
 /*global $, jQuery*/
 var EC = EC || {};
 EC.Inputs = EC.Inputs || {};
-EC.Inputs = ( function(module) {"use strict";
+EC.Inputs = ( function (module) {
+    "use strict";
 
-		var self;
-		var current_input_position;
-		var is_jump_found;
+    var self;
+    var current_input_position;
+    var is_jump_found;
 
-		/*
-		 * check if a selected value triggers a jump. If multiple jumps are true, the first triggered jump will win, according to the jump checking sequence
-		 */
-		function _checkJumps(the_jumps, the_current_value) {
+    /*
+     * check if a selected value triggers a jump. If multiple jumps are true, the first triggered jump will win, according to the jump checking sequence
+     */
+    function _checkJumps(the_jumps, the_current_value) {
 
-			var jumps = the_jumps;
-			var i;
-			var iLength = jumps.length;
-			var destination_position;
-			var destination;
-			var current_value = the_current_value;
-			var inputs_length = self.inputs.length;
+        var jumps = the_jumps;
+        var i;
+        var iLength = jumps.length;
+        var destination_position;
+        var destination;
+        var current_value = the_current_value;
+        var inputs_length = self.inputs.length;
 
-			//if not any jump conditions match, set destination to the next input as default
-			destination_position = current_input_position + 1;
+        //if not any jump conditions match, set destination to the next input as default
+        destination_position = current_input_position + 1;
 
-			for ( i = 0; i < iLength; i++) {
+        for (i = 0; i < iLength; i++) {
 
-				//check if we jump always
-				if (jumps[i].jump_when === EC.Const.JUMP_ALWAYS) {
+            //check if we jump always
+            if (jumps[i].jump_when === EC.Const.JUMP_ALWAYS) {
 
-					is_jump_found = true;
-					destination = jumps[i].jump_to;
-					destination_position = (destination === EC.Const.END_OF_FORM) ? inputs_length : self.getJumpDestinationPosition(destination);
-					break;
-				}
+                is_jump_found = true;
+                destination = jumps[i].jump_to;
+                destination_position = (destination === EC.Const.END_OF_FORM) ? inputs_length : self.getJumpDestinationPosition(destination);
+                break;
+            }
 
-				//check if we jump whan a value is not selected (not selected values are set to null for consistency)
-				//TODO: check this
-				if (jumps[i].jump_when === EC.Const.JUMP_FIELD_IS_BLANK && (current_value === null || current_value === EC.Const.NO_OPTION_SELECTED)) {
+            //check if we jump whan a value is not selected (not selected values are set to null for consistency)
+            //TODO: check this
+            if (jumps[i].jump_when === EC.Const.JUMP_FIELD_IS_BLANK && (current_value === null || current_value === EC.Const.NO_OPTION_SELECTED)) {
 
-					is_jump_found = true;
-					destination = jumps[i].jump_to;
-					destination_position = (destination === EC.Const.END_OF_FORM) ? inputs_length : self.getJumpDestinationPosition(destination);
-					break;
-				}
+                is_jump_found = true;
+                destination = jumps[i].jump_to;
+                destination_position = (destination === EC.Const.END_OF_FORM) ? inputs_length : self.getJumpDestinationPosition(destination);
+                break;
+            }
 
-				//jump when the value IS: the jump is performed by index so the index of the <option> tag is to be checked against the "jump_value"
-				if (jumps[i].jump_when === EC.Const.JUMP_VALUE_IS && current_value.toString() === jumps[i].jump_value.toString()) {
+            //jump when the value IS: the jump is performed by index so the index of the <option> tag is to be checked against the "jump_value"
+            if (jumps[i].jump_when === EC.Const.JUMP_VALUE_IS && current_value.toString() === jumps[i].jump_value.toString()) {
 
-					is_jump_found = true;
-					destination = jumps[i].jump_to;
-					destination_position = (destination === EC.Const.END_OF_FORM) ? inputs_length : self.getJumpDestinationPosition(destination);
-					break;
-				}
+                is_jump_found = true;
+                destination = jumps[i].jump_to;
+                destination_position = (destination === EC.Const.END_OF_FORM) ? inputs_length : self.getJumpDestinationPosition(destination);
+                break;
+            }
 
-				if (jumps[i].jump_when === EC.Const.JUMP_VALUE_IS_NOT && current_value.toString() !== jumps[i].jump_value.toString()) {
+            if (jumps[i].jump_when === EC.Const.JUMP_VALUE_IS_NOT && current_value.toString() !== jumps[i].jump_value.toString()) {
 
-					is_jump_found = true;
-					destination = jumps[i].jump_to;
-					destination_position = (destination === EC.Const.END_OF_FORM) ? inputs_length : self.getJumpDestinationPosition(destination);
-					break;
-				}
+                is_jump_found = true;
+                destination = jumps[i].jump_to;
+                destination_position = (destination === EC.Const.END_OF_FORM) ? inputs_length : self.getJumpDestinationPosition(destination);
+                break;
+            }
 
-			}
+        }
 
-			//override current_input_position with the position of the input set by the jump (-1 because we are adding +1 later)
-			current_input_position = destination_position - 1;
+        //override current_input_position with the position of the input set by the jump (-1 because we are adding +1 later)
+        current_input_position = destination_position - 1;
 
-			return destination;
+        return destination;
 
-		}
+    }
 
-		module.gotoNextPage = function(evt, the_current_value) {
+    module.gotoNextPage = function (evt, the_current_value) {
 
-			var current_input;
-			var current_value = the_current_value;
-			var next_input;
-			var next_page;
-			var options;
-			var obj;
-			var destination;
-			var jumps;
-			var is_genkey_hidden = EC.Utils.isFormGenKeyHidden(parseInt(window.localStorage.form_id, 10));
-			var next_value;
-			var i;
-			var iLength;
-			var is_checkbox = false;
+        debugger;
 
-			self = this;
-			current_input_position = parseInt(window.localStorage.current_position, 10);
-			
-			/* DROPDOWN/RADIO*/
-			//get index from object in the case of a dropdown/radio (object is like {label:"<label>", index:"<value>"})
-			if (current_value.hasOwnProperty("index")) {
-				current_value = current_value.index;
-			}
-            
-            /* CHECKBOX*/
-			//if current value is an array, we have checkbox values to parse and check each of them against jumps
-			if (Array.isArray(current_value)) {
-				is_checkbox = true;
-			}
+        var current_input;
+        var current_value = the_current_value;
+        var next_input;
+        var next_page;
+        var options;
+        var obj;
+        var destination;
+        var jumps;
+        var is_genkey_hidden = EC.Utils.isFormGenKeyHidden(parseInt(window.localStorage.form_id, 10));
+        var next_value;
+        var i;
+        var iLength;
+        var is_checkbox = false;
+        var is_group = true;
 
-			//check if we have reached the end of the form
-			if (current_input_position === self.inputs.length) {
-				next_page = EC.Const.INPUT_VIEWS_DIR + EC.Const.SAVE_CONFIRM_VIEW;
-			} else {
+        self = this;
+        current_input_position = parseInt(window.localStorage.current_position, 10);
 
-				//check if the current input triggers a jump
-				current_input = self.getInputAt(current_input_position);
+        /* DROPDOWN/RADIO*/
+        //get index from object in the case of a dropdown/radio (object is like {label:"<label>", index:"<value>"})
+        if (current_value.hasOwnProperty('index')) {
+            current_value = current_value.index;
+        }
 
-				if (parseInt(current_input.has_jump, 10) === 1) {
+        /* CHECKBOX*/
+        //if current value is an array, we have checkbox values to parse and check each of them against jumps
+        //if 'ref' property is present for any element of the array, this is not a checkbox but group form values
+        if (Array.isArray(current_value) && !current_value[0].hasOwnProperty('ref')) {
+            is_checkbox = true;
+        }
 
-					//get jumps
-					jumps = EC.Utils.parseJumpString(current_input.jumps);
+        /* GROUP */
+        if (current_value[0].hasOwnProperty('ref')) {
+            is_group = true;
+        }
 
-					//if we have an arry of values (checkboxes) check each of them if it triggers a jump
-					if (is_checkbox) {
+        //check if we have reached the end of the form
+        if (current_input_position === self.inputs.length) {
+            next_page = EC.Const.INPUT_VIEWS_DIR + EC.Const.SAVE_CONFIRM_VIEW;
+        } else {
 
-						is_jump_found = false;
-						iLength = current_value.length;
+            //skip jumps if it is a group
+            if (!is_group) {
+                //check if the current input triggers a jump
+                current_input = self.getInputAt(current_input_position);
 
-						//loop each selected value until the first jump is found (or no more elements to check against)
-						for ( i = 0; i < iLength; i++) {
+                if (parseInt(current_input.has_jump, 10) === 1) {
+                    //get jumps
+                    jumps = EC.Utils.parseJumpString(current_input.jumps);
 
-							destination = _checkJumps(jumps, current_value[i].value);
-							if (is_jump_found) {
-								break;
-							}
-						}
+                    //if we have an arry of values (checkboxes) check each of them if it triggers a jump
+                    if (is_checkbox) {
 
-					} else {
-						//single value
-						destination = _checkJumps(jumps, current_value);
+                        is_jump_found = false;
+                        iLength = current_value.length;
 
-					}
+                        //loop each selected value until the first jump is found (or no more elements to check against)
+                        for (i = 0; i < iLength; i++) {
 
-				}//if has jump
+                            destination = _checkJumps(jumps, current_value[i].value);
+                            if (is_jump_found) {
+                                break;
+                            }
+                        }
+                    } else {
+                        //single value
+                        destination = _checkJumps(jumps, current_value);
+                    }
+                }
+            }
 
-				if (destination === EC.Const.END_OF_FORM) {
-					next_page = EC.Const.INPUT_VIEWS_DIR + EC.Const.SAVE_CONFIRM_VIEW;
-				} else {
-					next_input = self.getInputAt(current_input_position + 1);
+            if (destination === EC.Const.END_OF_FORM) {
+                next_page = EC.Const.INPUT_VIEWS_DIR + EC.Const.SAVE_CONFIRM_VIEW;
+            } else {
+                next_input = self.getInputAt(current_input_position + 1);
 
-					/*
-					 * if is_genkey_hidden = 1, the from creator decided to hide the auto genkey
-					 * The nasty form builder allows users to drag the primary key input fields to any position (lol)
-					 * therefore we have to test each input if it is a primary key field
-					 * We have to skip the next input (from the user) but add an entry to inputs_values, inputs_trail with the UUID
-					 *
-					 */
+                /*
+                 * if is_genkey_hidden = 1, the from creator decided to hide the auto genkey
+                 * The nasty form builder allows users to drag the primary key input fields to any position (lol)
+                 * therefore we have to test each input if it is a primary key field
+                 * We have to skip the next input (from the user) but add an entry to inputs_values, inputs_trail with the UUID
+                 *
+                 */
 
-					if (is_genkey_hidden && next_input.is_primary_key === 1) {
+                if (is_genkey_hidden && next_input.is_primary_key === 1) {
 
-						//add skipped genkey entry also in inputs_trail
-						self.pushInputsTrail(next_input);
+                    //add skipped genkey entry also in inputs_trail
+                    self.pushInputsTrail(next_input);
 
-						//add an entry with UUID to inputs_values if we are entering a new entry
-						next_value = EC.Utils.getGenKey();
+                    //add an entry with UUID to inputs_values if we are entering a new entry
+                    next_value = EC.Utils.getGenKey();
 
-						//cache next value in localStorage
-						self.setCachedInputValue(next_value, current_input_position + 1, next_input.type, next_input.is_primary_key);
+                    //cache next value in localStorage
+                    self.setCachedInputValue(next_value, current_input_position + 1, next_input.type, next_input.is_primary_key);
 
-						//go to the next  input AFTER the hidden primary key (if it exists, otherwise the save confirm page)
-						next_input = self.getInputAt(current_input_position + 2);
-						if (!next_input) {
-							next_page = EC.Const.INPUT_VIEWS_DIR + EC.Const.SAVE_CONFIRM_VIEW;
-						}
+                    //go to the next  input AFTER the hidden primary key (if it exists, otherwise the save confirm page)
+                    next_input = self.getInputAt(current_input_position + 2);
+                    if (!next_input) {
+                        next_page = EC.Const.INPUT_VIEWS_DIR + EC.Const.SAVE_CONFIRM_VIEW;
+                    }
 
-						//update current input position in session (store confirm screen will get a position = array.length)
-						window.localStorage.current_position = current_input_position + 2;
+                    //update current input position in session (store confirm screen will get a position = array.length)
+                    window.localStorage.current_position = current_input_position + 2;
 
-					} else {
+                } else {
 
-						//update current input position in session (store confirm screen will get a position = array.length)
-						window.localStorage.current_position = current_input_position + 1;
+                    //update current input position in session (store confirm screen will get a position = array.length)
+                    window.localStorage.current_position = current_input_position + 1;
 
-					}
+                }
 
-					if (next_input) {
-						next_page = EC.Const.INPUT_VIEWS_DIR + next_input.type + EC.Const.HTML_FILE_EXT;
-					}
+                if (next_input) {
+                    next_page = EC.Const.INPUT_VIEWS_DIR + next_input.type + EC.Const.HTML_FILE_EXT;
+                }
 
-				}
+            }
 
-			}
+        }
 
-			EC.Routing.changePage(next_page);
+        EC.Routing.changePage(next_page);
 
-			//avoid events triggering multiple times
-			evt.preventDefault();
+        //avoid events triggering multiple times
+        evt.preventDefault();
 
-		};
-		return module;
+    };
+    return module;
 
-	}(EC.Inputs));
+}(EC.Inputs));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -24465,56 +24763,58 @@ EC.Inputs = ( function(module) {"use strict";
 
 	}(EC.Inputs));
 
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/
 
 var EC = EC || {};
 EC.Inputs = EC.Inputs || {};
-EC.Inputs = ( function(module) {"use strict";
+EC.Inputs = (function (module) {
+    'use strict';
 
-		module.onNextBtnTapped = function(e, the_input) {
+    module.onNextBtnTapped = function (e, the_input) {
 
-			var self = this;
-			var wls = window.localStorage;
-			var edit_id = wls.edit_id || "";
-			var edit_type = wls.edit_type || "";
-			var input = the_input;
-			var current_value = self.getCurrentValue(input.type);
-			var current_position = parseInt(wls.current_position, 10);
-			var cached_value = EC.Inputs.getCachedInputValue(current_position);
-			var validation = self.validateValue(input, current_value, current_position);
+        debugger;
 
-			//back to same screen if invalid value
-			if (!validation.is_valid) {
-				
-				//warn user about the type of error. IMP: validation.message comes localised already
-				EC.Notification.showAlert(EC.Localise.getTranslation("error"), validation.message);
-				return;
-			}
+        var self = this;
+        var wls = window.localStorage;
+        var edit_id = wls.edit_id || '';
+        var edit_type = wls.edit_type || '';
+        var input = the_input;
+        var current_value = self.getCurrentValue(input.type);
+        var current_position = parseInt(wls.current_position, 10);
+        var cached_value = EC.Inputs.getCachedInputValue(current_position);
+        var validation = self.validateValue(input, current_value, current_position);
 
-			//When editing, if the value of a field triggering a jump was changed, disable intermediate "Store Edit" button from now on
-			if (wls.edit_mode && parseInt(input.has_jump, 10) === 1) {
-				if (!self.valuesMatch(cached_value, current_value, input.type)) {
-					//set flag as from now until saving the form, store edit from an intermediate screen is disabled
-					wls.has_new_jump_sequence = 1;
-				}
-			}
+        //back to same screen if invalid value
+        if (!validation.is_valid) {
 
-			//cache current value in localStorage
-			self.setCachedInputValue(current_value, current_position, input.type, input.is_primary_key);
+            //warn user about the type of error. IMP: validation.message comes localised already
+            EC.Notification.showAlert(EC.Localise.getTranslation('error'), validation.message);
+            return;
+        }
 
-			self.pushInputsTrail(input);
-			
-			//remove flag that helps to handle back button when user is just dismissing barcode scanner
-			window.localStorage.removeItem('is_dismissing_barcode');
+        //When editing, if the value of a field triggering a jump was changed, disable intermediate 'Store Edit' button from now on
+        if (wls.edit_mode && parseInt(input.has_jump, 10) === 1) {
+            if (!self.valuesMatch(cached_value, current_value, input.type)) {
+                //set flag as from now until saving the form, store edit from an intermediate screen is disabled
+                wls.has_new_jump_sequence = 1;
+            }
+        }
 
-			self.gotoNextPage(e, current_value);
+        //cache current value in localStorage
+        self.setCachedInputValue(current_value, current_position, input.type, input.is_primary_key);
 
-		};
+        self.pushInputsTrail(input);
 
-		return module;
+        //remove flag that helps to handle back button when user is just dismissing barcode scanner
+        window.localStorage.removeItem('is_dismissing_barcode');
 
-	}(EC.Inputs));
+        self.gotoNextPage(e, current_value);
+
+    };
+
+    return module;
+
+}(EC.Inputs));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -25272,6 +25572,12 @@ EC.Inputs = (function (module) {
             case EC.Const.VIDEO:
 
                 EC.InputTypes.video(value, input);
+                break;
+
+            //render group: more inputs on same page
+            case EC.Const.GROUP:
+
+                EC.InputTypes.group(value, input);
                 break;
 
             case EC.Const.BRANCH:
@@ -26488,238 +26794,236 @@ EC.InputTypes = ( function(module) {
 
 var EC = EC || {};
 EC.InputTypes = EC.InputTypes || {};
-EC.InputTypes = ( function(module) {"use strict";
+EC.InputTypes = (function (module) {
+    'use strict';
 
-		module.checkbox = function(the_value, the_input) {
+    module.checkbox = function (the_value, the_input) {
 
-			//to cache dom lookups
-			var obj;
-			var span_label = $('div#checkbox span.label');
-			var clone = $('div.clone');
-			var double_entry;
-			var value = the_value;
-			var input = the_input;
-			var CHECKBOX_CHECKED = "";
-			var DISABLED = "";
-			var SELECTED = "";
-			var HTML = "";
+        //to cache dom lookups
+        var obj;
+        var span_label = $('div#checkbox span.label');
+        var clone = $('div.clone');
+        var value = the_value;
+        var input = the_input;
+        var CHECKBOX_CHECKED = '';
+        var DISABLED = '';
+        var HTML = '';
 
-			//update label text
-			span_label.text(input.label);
-			
-			//Localise
-			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
-				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
-			}
+        //update label text
+        span_label.text(input.label);
 
-			//Add attribute to flag the primary key input field
-			if (parseInt(input.is_primary_key, 10) === 1) {
-				span_label.attr('data-primary-key', 'true');
-			} else {
-				//reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
-				span_label.attr('data-primary-key', '');
-			}
 
-			//check if we need to replicate this input
-			double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
+        //Localise
+        if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
+            EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
+        }
 
-			//if in editing mode, do not allow changes either if the field is a primary key or it triggers a jump
-			if (window.localStorage.edit_mode && (input.is_primary_key === '1' || input.has_jump === '1')) {
-				DISABLED = 'disabled="disabled"';
-			}
+        //Add attribute to flag the primary key input field
+        if (parseInt(input.is_primary_key, 10) === 1) {
+            span_label.attr('data-primary-key', 'true');
+        } else {
+            //reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
+            span_label.attr('data-primary-key', '');
+        }
 
-			//display all checkboxes options
-			$(input.options).each(function(index) {
+        //if in editing mode, do not allow changes either if the field is a primary key or it triggers a jump
+        if (window.localStorage.edit_mode && (input.is_primary_key === '1' || input.has_jump === '1')) {
+            DISABLED = 'disabled="disabled"';
+        }
 
-				var name = "choice";
-				var option_value = this.value.trim();
-				var option_label = this.label.trim();
-				var option_id = 'checkbox-choice-' + (index + 1);
-				var i;
-				var iLength = value.length;
+        //display all checkboxes options
+        $(input.options).each(function (index) {
 
-				//check if we have any value stored. For checkboxes, 'value' will be an array
-				for ( i = 0; i < iLength; i++) {
+            var name = 'choice';
+            var option_value = this.value.trim();
+            var option_label = this.label.trim();
+            var option_id = 'checkbox-choice-' + (index + 1);
+            var i;
+            var iLength = value.length;
 
-					CHECKBOX_CHECKED = "";
-					//if any match is found, pre-select that checkbox in the markup
-					if (value[i].trim() === option_value) {
-						CHECKBOX_CHECKED = 'checked="checked"';
-						break;
-					}
-				}
+            //check if we have any value stored. For checkboxes, 'value' will be an array
+            for (i = 0; i < iLength; i++) {
 
-				HTML += '<label>';
-				HTML += '<input type="checkbox" ' + CHECKBOX_CHECKED + ' ' + DISABLED + ' name="' + name;
-				HTML += '" id="' + option_id;
-				HTML += '" value="' + option_value;
-				HTML += '" data-label="' + option_label;
-				HTML += '" />' + option_label;
-				HTML += '</label>';
+                CHECKBOX_CHECKED = '';
+                //if any match is found, pre-select that checkbox in the markup
+                if (value[i].trim() === option_value) {
+                    CHECKBOX_CHECKED = 'checked="checked"';
+                    break;
+                }
+            }
 
-			});
+            HTML += '<label>';
+            HTML += '<input type="checkbox" ' + CHECKBOX_CHECKED + ' ' + DISABLED + ' name="' + name;
+            HTML += '" id="' + option_id;
+            HTML += '" value="' + option_value;
+            HTML += '" data-label="' + option_label;
+            HTML += '" />' + option_label;
+            HTML += '</label>';
 
-			span_label.append(HTML);
-			$('div#input-checkbox').trigger("create");
+        });
 
-		};
+        span_label.append(HTML);
+        $('div#input-checkbox').trigger('create');
 
-		return module;
+    };
 
-	}(EC.InputTypes));
+    return module;
 
-/*jslint vars: true, nomen: true devel: true, plusplus: true*/
+}(EC.InputTypes));
+
 /*global $, jQuery, cordova, device */
 
 var EC = EC || {};
 EC.InputTypes = EC.InputTypes || {};
-EC.InputTypes = ( function(module) {
-		"use strict";
+EC.InputTypes = (function (module) {
+    'use strict';
 
-		module.date = function(the_value, the_input) {
+    module.date = function (the_value, the_input) {
 
-			var datepicker;
-			var ios_datepicker;
-			var span_label = $('span.label');
-			var clone = $('div.clone');
-			var double_entry;
-			var value = the_value;
-			var input = the_input;
-			var datebox_format;
-			var default_date;
+        var datepicker;
+        var ios_datepicker;
+        var span_label = $('span.label');
+        var clone = $('div.clone');
+        var double_entry;
+        var value = the_value;
+        var input = the_input;
+        var datebox_format;
+        var default_date;
 
-			//update label text
-			span_label.text(input.label + " - " + input.datetime_format);
+        //update label text
+        span_label.text(input.label + ' - ' + input.datetime_format);
 
-			//Localise
-			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
-				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
-			}
+        //Localise
+        if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
+            EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
+        }
 
-			//Add attribute to flag the primary key input field
-			if (parseInt(input.is_primary_key, 10) === 1) {
-				span_label.attr('data-primary-key', 'true');
-			}
-			else {
+        //Add attribute to flag the primary key input field
+        if (parseInt(input.is_primary_key, 10) === 1) {
+            span_label.attr('data-primary-key', 'true');
+        }
+        else {
 
-				//reset the attribute to empty if not a primary key (JQM caches pages and we
-				// recycle views)
-				span_label.attr('data-primary-key', '');
-			}
+            //reset the attribute to empty if not a primary key (JQM caches pages and we
+            // recycle views)
+            span_label.attr('data-primary-key', '');
+        }
 
-			//check if we need to replicate this input
-			double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
+        //check if we need to replicate this input
+        double_entry = (parseInt(input.has_double_check, 10) === 1);
 
-			//Android Phonegap DatePicker plugin http://goo.gl/xLrqZl
-			datepicker = $('div#input-date input.nativedatepicker');
+        //Android Phonegap DatePicker plugin http://goo.gl/xLrqZl
+        datepicker = $('div#input-date input.nativedatepicker');
 
-			//iOS uses the HTML5 input type="date"
-			ios_datepicker = $('div#input-date input.ios-date');
+        //iOS uses the HTML5 input type='date'
+        ios_datepicker = $('div#input-date input.ios-date');
 
-			//hide immediate ios date input parent (JQM quirk, this is to hide the div
-			// element border wrapping the input after JQM enhanced the markup)
-			ios_datepicker.parent().addClass("no-border");
+        //hide immediate ios date input parent (JQM quirk, this is to hide the div
+        // element border wrapping the input after JQM enhanced the markup)
+        //todo maybe this is not needed anymore after the css hask
+        ios_datepicker.parent().addClass('no-border');
 
-			/* Set current date in custom data attribute.
-			 * Important: since Epicollect+  for some bizzarre reason does not store the
-			 * timestamps yet, but a formatted date,
-			 * it is impossible to trigger the datapicker to the right data/time value after
-			 * a saving, as the timestamp is lost
-			 * i.e. if I save save 25th march 1988 just as 25/3, I will never get the year
-			 * back :/ and it will default to the current date
-			 * TODO: save date and time values with a timestamp attached
-			 */
+        /* Set current date in custom data attribute.
+         * Important: since Epicollect+  for some bizzarre reason does not store the
+         * timestamps yet, but a formatted date,
+         * it is impossible to trigger the datapicker to the right data/time value after
+         * a saving, as the timestamp is lost
+         * i.e. if I save save 25th march 1988 just as 25/3, I will never get the year
+         * back :/ and it will default to the current date
+         * TODO: save date and time values with a timestamp attached
+         */
 
-			datepicker.attr("data-raw-date", new Date());
+        datepicker.attr('data-raw-date', new Date());
 
-			/*show default date if input.value = input.datetime_format:
-			 *if the option to show the current date as default is selected in the web form
-			 * builder,
-			 * the input value gets the value of datetime_format when parsing the xml
-			 */
-			if (value === input.datetime_format) {
-				datepicker.val(EC.Utils.parseDate(new Date(), input.datetime_format));
-			}
-			else {
-				datepicker.val(value);
-			}
+        /*show default date if input.value = input.datetime_format:
+         *if the option to show the current date as default is selected in the web form
+         * builder,
+         * the input value gets the value of datetime_format when parsing the xml
+         */
+        if (value === input.datetime_format) {
+            datepicker.val(EC.Utils.parseDate(new Date(), input.datetime_format));
+        }
+        else {
+            datepicker.val(value);
+        }
 
-			/*****************************************************************************************
-			 * Android uses the Phonegap official DatePicker plugin
-			 ****************************************************************************************/
-			if (window.device.platform === EC.Const.ANDROID) {
+        /*****************************************************************************************
+         * Android uses the Phonegap official DatePicker plugin
+         ****************************************************************************************/
+        if (window.device.platform === EC.Const.ANDROID) {
 
-				/* bind input to 'vclick' insted of focus, as we set the input as readonly.
-				 * this solved problem on android 2.3 where the keyboard was showing because the
-				 * input is in focus when tapping "cancel"
-				 * on the DatePicker popup
-				 */
-				datepicker.off().on('vclick', function(event) {
+            EC.Datetime.initAndroidDatetimePicker(datepicker, input.datetime_format);
 
-					var datepicker = $(this);
-					var selected_date = new Date(datepicker.attr("data-raw-date"));
+            ///* bind input to 'vclick' insted of focus, as we set the input as readonly.
+            // * this solved problem on android 2.3 where the keyboard was showing because the
+            // * input is in focus when tapping 'cancel' on the DatePicker popup
+            // */
+            //datepicker.off().on('vclick', function (event) {
+            //
+            //    var datepicker = $(this);
+            //    var selected_date = new Date(datepicker.attr('data-raw-date'));
+            //
+            //    //use debouncing/throttling to avoid triggering multiple `focus` event
+            //    // http://goo.gl/NFdHDW
+            //    var now = new Date();
+            //    var lastFocus = datepicker.data('lastFocus');
+            //    if (lastFocus && (now - lastFocus) < 500) {
+            //        // Don't do anything
+            //        return;
+            //    }
+            //
+            //    datepicker.data('lastFocus', now);
+            //
+            //    // Same handling for iPhone and Android
+            //    window.plugins.datePicker.show({
+            //        date: selected_date,
+            //        mode: 'date', // date or time or blank for both
+            //        allowOldDates: true
+            //    }, function (returned_date) {
+            //
+            //        var new_date;
+            //
+            //        if (returned_date !== undefined) {
+            //            new_date = new Date(returned_date);
+            //
+            //            datepicker.val(EC.Utils.parseDate(new_date, input.datetime_format));
+            //            datepicker.attr('data-raw-date', new_date);
+            //        }
+            //
+            //        // This fixes the problem you mention at the bottom of this script with it not
+            //        // working a second/third time around, because it is in focus.
+            //        datepicker.blur();
+            //    });
+            //
+            //    // This fixes the problem you mention at the bottom of this script with it not
+            //    // working a second/third time around, because it is in focus.
+            //    datepicker.blur();
+            //});
 
-					//use debouncing/throttling to avoid triggering multiple `focus` event
-					// http://goo.gl/NFdHDW
-					var now = new Date();
-					var lastFocus = datepicker.data("lastFocus");
-					if (lastFocus && (now - lastFocus) < 500) {
-						// Don't do anything
-						return;
-					}
+        }
 
-					datepicker.data("lastFocus", now);
+        /*****************************************************************************************
+         * iOS uses the official HTML5 input type='date'
+         ****************************************************************************************/
+        if (window.device.platform === EC.Const.IOS) {
 
-					// Same handling for iPhone and Android
-					window.plugins.datePicker.show({
-						date : selected_date,
-						mode : 'date', // date or time or blank for both
-						allowOldDates : true
-					}, function(returned_date) {
+            datepicker.off().on('vclick', function (event) {
+                ios_datepicker.focus();
+            });
 
-						var new_date;
+            ios_datepicker.off().on('blur', function (event) {
 
-						if (returned_date !== undefined) {
-							new_date = new Date(returned_date);
+                var ios_date = ios_datepicker.val();
 
-							datepicker.val(EC.Utils.parseDate(new_date, input.datetime_format));
-							datepicker.attr("data-raw-date", new_date);
-						}
+                datepicker.val(EC.Utils.parseIOSDate(ios_date, input.datetime_format));
+                datepicker.attr('data-raw-date', ios_date);
+            });
+        }
+    };
 
-						// This fixes the problem you mention at the bottom of this script with it not
-						// working a second/third time around, because it is in focus.
-						datepicker.blur();
-					});
+    return module;
 
-					// This fixes the problem you mention at the bottom of this script with it not
-					// working a second/third time around, because it is in focus.
-					datepicker.blur();
-				});
-
-			}
-
-			/*****************************************************************************************
-			 * iOS uses the official HTML5 input type="date"
-			 ****************************************************************************************/
-			if (window.device.platform === EC.Const.IOS) {
-
-				datepicker.off().on('vclick', function(event) {
-					ios_datepicker.focus();
-				});
-
-				ios_datepicker.off().on('blur', function(event) {
-
-					var ios_date = ios_datepicker.val();
-
-					datepicker.val(EC.Utils.parseIOSDate(ios_date, input.datetime_format));
-					datepicker.attr("data-raw-date", ios_date);
-				});
-			}
-		};
-
-		return module;
-
-	}(EC.InputTypes));
+}(EC.InputTypes));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -26838,206 +27142,479 @@ EC.InputTypes = ( function(module) {
 
     }(EC.InputTypes));
 
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/
 var EC = EC || {};
 EC.InputTypes = EC.InputTypes || {};
-EC.InputTypes = ( function(module) {
-        "use strict";
+EC.InputTypes = (function (module) {
+    'use strict';
 
-        module.dropdown = function(the_value, the_input) {
+    module.dropdown = function (the_value, the_input) {
 
-            var obj;
-            var span_label = $('div#select span.label');
-            var clone = $('div.clone');
-            var double_entry;
-            var value = the_value;
-            var input = the_input;
-            var DISABLED = "";
-            var SELECTED = "";
-            var HTML = "";
+        var span_label = $('div#select span.label');
+        var clone = $('div.clone');
+        var double_entry;
+        var value = the_value;
+        var input = the_input;
+        var disabled = '';
+        var selected = '';
+        var html = '';
 
-            //update label text
-            span_label.text(input.label);
+        //update label text
+        span_label.text(input.label);
 
-            //Localise
-            if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
-                EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
+        //Localise
+        if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
+            EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
+        }
+
+        //Add attribute to flag the primary key input field
+        if (parseInt(input.is_primary_key, 10) === 1) {
+            span_label.attr('data-primary-key', 'true');
+        } else {
+            //reset the attribute to empty if not a primary key (JQM caches
+            // pages and we recycle views)
+            span_label.attr('data-primary-key', '');
+        }
+
+        //check if we need to replicate this input
+        double_entry = (parseInt(input.has_double_check, 10) === 1);
+
+        //if in editing mode, do not allow changes either if the field is a
+        // primary key or it triggers a jump
+        if (window.localStorage.edit_mode && (input.is_primary_key === '1' || input.has_jump === '1')) {
+            disabled = 'disabled="disabled"';
+        }
+
+        //set the cached value as the selcted option
+        selected = (value === '') ? 'selected' : '';
+
+        //TODO: check markup on jqm docs for select. Fastclick: is needclick needed?
+        html += '<select id="selection" name="selection" data-native-menu="true" >';
+        html += '<option value ="0"' + selected + ' data-index="0">';
+        html += EC.Localise.getTranslation(EC.Const.NO_OPTION_selected);
+        html += '</option>';
+
+        $(input.options).each(function (index) {
+
+            var option_value = this.value;
+            var option_index = (index + 1);
+            var option_label = this.label;
+            var option_id = 'select-choice-' + (index + 1);
+
+            //check if we have a value cached and pre-select that input
+            selected = (value === option_value) ? 'selected' : '';
+
+            html += '<option ' + selected + ' ' + disabled + ' value ="' + option_value + '" data-index="' + option_index + '">' + option_label + '</option>';
+
+        });
+
+        html += '</select>';
+
+        span_label.append(html);
+        $('div#input-dropdown').trigger('create');
+    };
+
+    return module;
+
+}(EC.InputTypes));
+
+/*global $, jQuery*/
+var EC = EC || {};
+EC.InputTypes = EC.InputTypes || {};
+EC.InputTypes = (function (module) {
+    'use strict';
+
+    module.group = function (the_value, the_input) {
+
+        debugger;
+
+        var span_label = $('span.label');
+        var clone = $('div.clone');
+        var value = the_value;
+        var input = the_input;
+
+        var group_wrapper = $('div#input-group');
+        var RADIO_CHECKED = '';
+        var SELECTED = '';
+        var CHECKBOX_CHECKED = '';
+        var datepicker;
+        var timepicker;
+        var ios_datepicker;
+        var ios_timepicker;
+        var html;
+
+        //clear any previous group dom
+        group_wrapper.empty();
+
+        //update label text
+        span_label.text(input.label);
+
+        //parse group_inputs (if they are not parsed already)
+        if (!Array.isArray(input.group_inputs)) {
+            input.group_inputs = JSON.parse(input.group_inputs);
+        }
+
+        //Localise
+        if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
+            EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
+        }
+
+        //add group title
+        group_wrapper.append('<span class="group-header label">' + input.label + '</span>');
+
+        html = '';
+
+        //if value is an array, we have some cached group values to map, as on first load is a string
+        //todo what about when we edit existing data?
+        if (Array.isArray(value)) {
+            input.group_inputs = EC.Inputs.mapGroupCachedValues(input.group_inputs, value);
+        }
+
+        //render all inputs for the group dinamically
+        $.each(input.group_inputs, function (index, single_group_input) {
+
+            single_group_input.value = (single_group_input.value) ? single_group_input.value : '';
+
+
+            switch (single_group_input.type) {
+
+                //render text inputs
+                case EC.Const.TEXT:
+
+                    html += '<div class="group-text" data-input-ref="' + single_group_input.ref + '">';
+                    html += '<span class="label">' + single_group_input.label + '</span>';
+                    html += '<input type="text" name="the_name" value="' + single_group_input.value + '"/>';
+                    html += '</div>';
+                    break;
+
+                //render textarea inputs
+                case EC.Const.TEXTAREA:
+
+                    html += '<div class="group-textarea" data-input-ref="' + single_group_input.ref + '">';
+                    html += '<span class="label">' + single_group_input.label + '</span>';
+                    html += '<textarea>' + single_group_input.value + '</textarea>';
+                    html += '</div>';
+                    break;
+
+                //render checkbox inputs
+                case EC.Const.CHECKBOX:
+
+                    html += '<div class="group-checkbox" data-input-ref="' + single_group_input.ref + '">';
+                    html += '<span class="label">' + single_group_input.label + '</span>';
+                    //List of checkbox options  generated dynamically
+
+                    //display all checkboxes options
+                    $(single_group_input.options).each(function (index) {
+
+                        var name = 'choice';
+                        var option_value = this.value.trim();
+                        var option_label = this.label.trim();
+                        var option_id = 'checkbox-choice-' + (index + 1);
+                        var i;
+                        var iLength = single_group_input.value.length;
+
+                        //check if we have any value stored. For checkboxes, 'value' will be an array
+                        for (i = 0; i < iLength; i++) {
+
+                            CHECKBOX_CHECKED = '';
+                            //if any match is found, pre-select that checkbox in the markup
+                            if (single_group_input.value[i].trim() === option_value) {
+                                CHECKBOX_CHECKED = 'checked="checked"';
+                                break;
+                            }
+                        }
+
+                        html += '<label>';
+                        html += '<input type="checkbox" ' + CHECKBOX_CHECKED + ' name="' + name;
+                        html += '" id="' + option_id;
+                        html += '" value="' + option_value;
+                        html += '" data-label="' + option_label;
+                        html += '" />' + option_label;
+                        html += '</label>';
+
+                    });
+
+                    html += '</div>';
+                    break;
+
+                //render date inputs
+                case EC.Const.DATE:
+
+                    //set default value to date input
+                    if (single_group_input.value === input.datetime_format) {
+                        single_group_input.value = EC.Utils.parseDate(new Date(), input.datetime_format);
+                    }
+
+
+                    html += '<div class="group-date" data-input-ref="' + single_group_input.ref + '">';
+                    html += '<span class="label">' + single_group_input.label + '</span>';
+                    html += '<input type="text" name="the_name" class="nativedatepicker" data-datetimeformat="' + single_group_input.datetime_format + '" data-raw-date="' + new Date() + '" readonly value="' + single_group_input.value + '"/>';
+                    html += '<input type="date" name="the_date" class="ios-date" style="position:absolute; top:-200em;" value="' + single_group_input.value + '"/>';
+                    html += '</div>';
+                    break;
+
+                //render decimal inputs
+                case EC.Const.DECIMAL:
+
+                    //todo add decimal logic, messy with more on the same page?
+                    html += '<div class="group-decimal" data-input-ref="' + single_group_input.ref + '">';
+                    html += '<span class="label">' + single_group_input.label + '</span>';
+
+                    html += '<span class="min-range hidden"></span>';
+                    html += '<span class="max-range hidden"></span>';
+
+                    //Input for decimals is set as text to avoid the browser built-in validation
+                    html += ' <input type="text" name="the_name" value="' + single_group_input.value + '"/>';
+                    html += '</div>';
+                    break;
+
+                //render integer inputs
+                case EC.Const.INTEGER:
+
+                    //todo add integer logic, messy with more on the same page?
+                    html += '<div class="group-integer" data-input-ref="' + single_group_input.ref + '">';
+                    html += '<span class="label">' + single_group_input.label + '</span>';
+
+                    html += '<span class="min-range hidden"></span>';
+                    html += '<span class="max-range hidden"></span>';
+
+                    //Input for decimals is set as text to avoid the browser built-in validation
+                    html += ' <input type="number" name="the_name" value="' + single_group_input.value + '"/>';
+                    html += '</div>';
+                    break;
+
+                //render radio inputs
+                case EC.Const.RADIO:
+
+                    //todo add radio logic, messy with more on the same page?
+                    html += '<div class="group-radio" data-input-ref="' + single_group_input.ref + '">';
+                    html += '<span class="label">' + single_group_input.label + '</span>';
+
+
+                    //List of radio buttons  generated dynamically
+                    html += '<fieldset data-role="controlgroup">';
+
+                    //render list of options
+                    $(single_group_input.options).each(function (index) {
+
+                        //increase value by 1, as we use value = 0 when no option is selected (like for select/dropdown) We are using the index as radio jumps are mapped against the index of the value
+                        var option_value = this.value;
+                        var option_index = (index + 1);
+                        var option_label = this.label;
+                        var option_id = 'radio-choice-' + (index + 1);
+
+                        //pre select an element if the value matches the cached value
+                        RADIO_CHECKED = (single_group_input.value === option_value) ? 'checked="checked"' : '';
+
+                        html += '<input type="radio" name="radio-options" id="' + option_id + '" value="' + option_value + '"' + RADIO_CHECKED + ' data-index="' + option_index + '">';
+                        html += '<label for="' + option_id + '">' + option_label + '</label>';
+                    });
+
+                    html += '</fieldset>';
+                    html += '</div>';
+                    break;
+
+                //render dropdown inputs
+                case EC.Const.DROPDOWN:
+
+                    //todo add dropdown logic, messy with more on the same page?
+                    html += '<div class="group-dropdown" data-input-ref="' + single_group_input.ref + '">';
+                    html += '<span class="label">' + single_group_input.label + '</span>';
+
+                    //List of dropdown options  generated dynamically
+                    //set the cached value as the selcted option
+                    SELECTED = (single_group_input.value === '') ? 'selected' : '';
+
+                    //TODO: check markup on jqm docs for select. Fastclick: is needclick
+                    // needed?
+                    html += '<select id="selection" name="selection" data-native-menu="true" >';
+                    html += '<option value ="0"' + SELECTED + ' data-index="0">';
+                    html += EC.Localise.getTranslation(EC.Const.NO_OPTION_SELECTED);
+                    html += '</option>';
+
+                    $(single_group_input.options).each(function (index) {
+
+                        var option_value = this.value;
+                        var option_index = (index + 1);
+                        var option_label = this.label;
+                        var option_id = 'select-choice-' + (index + 1);
+
+                        //check if we have a value cached and pre-select that input
+                        SELECTED = (single_group_input.value === option_value) ? 'selected' : '';
+
+                        html += '<option ' + SELECTED + ' value ="' + option_value + '" data-index="' + option_index + '">' + option_label + '</option>';
+
+                    });
+
+                    html += '</select>';
+                    html += '</div>';
+                    break;
+
+                //render time inputs
+                case EC.Const.TIME:
+
+                    //set default value to date input
+                    if (single_group_input.value === input.datetime_format) {
+                        single_group_input.value = EC.Utils.parseDate(new Date(), input.datetime_format);
+                    }
+
+
+                    html += '<div class="group-time" data-input-ref="' + single_group_input.ref + '">';
+                    html += '<span class="label">' + single_group_input.label + '</span>';
+                    html += '<input type="text" name="the_name" class="nativedatepicker" data-datetimeformat="' + single_group_input.datetime_format + '" data-raw-date="' + new Date() + '" readonly value="' + single_group_input.value + '"/>';
+                    html += '<input type="time" name="the_date" class="ios-time" style="position:absolute; top:-200em;" value="' + single_group_input.value + '"/>';
+                    html += '</div>';
+                    break;
+
             }
+        });
 
-            //Add attribute to flag the primary key input field
-            if (parseInt(input.is_primary_key, 10) === 1) {
-                span_label.attr('data-primary-key', 'true');
-            } else {
-                //reset the attribute to empty if not a primary key (JQM caches
-                // pages and we recycle views)
-                span_label.attr('data-primary-key', '');
+        console.log(html);
+
+        //append the whole html
+        group_wrapper.append(html);
+
+        //add jquery mobile styling when dom is ready
+        group_wrapper.trigger('create');
+
+        //Android DatePicker plugin http://goo.gl/xLrqZl
+        datepicker = $('div.group-date input.nativedatepicker');
+        timepicker = $('div.group-time input.nativedatepicker');
+
+        //iOS uses the HTML5 input type='date'
+        ios_datepicker = $('div.group-date input.ios-date');
+        ios_timepicker = $('div.group-time input.ios-time');
+
+        if (window.device) {
+            /*****************************************************************************************
+             * Android uses the Phonegap official DatePicker plugin
+             ****************************************************************************************/
+            if (window.device.platform === EC.Const.ANDROID) {
+
+                console.log('datepicker length: ' + datepicker.length);
+
+                //attach events to each date input
+                datepicker.each(function () {
+                    EC.Datetime.initAndroidDatetimePicker($(this), $(this).attr('data-datetimeformat'), EC.Const.DATE);
+                });
+                //attach event to all time inputs
+                timepicker.each(function () {
+                    EC.Datetime.initAndroidDatetimePicker($(this), $(this).attr('data-datetimeformat'), EC.Const.TIME);
+                });
             }
-
-            //check if we need to replicate this input
-            double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
-
-            //if in editing mode, do not allow changes either if the field is a
-            // primary key or it triggers a jump
-            if (window.localStorage.edit_mode && (input.is_primary_key === '1' || input.has_jump === '1')) {
-                DISABLED = 'disabled="disabled"';
+            /*****************************************************************************************
+             * iOS uses the official HTML5 input type='date'
+             ****************************************************************************************/
+            //todo text this on iOS
+            if (window.device.platform === EC.Const.IOS) {
+                //attach events to each date input
+                ios_datepicker.each(function () {
+                    EC.Datetime.initiOSDatetimePicker($(this), $(this).attr('data-datetimeformat'), EC.Const.DATE);
+                });
+                //attach event to all time inputs
+                ios_timepicker.each(function () {
+                    EC.Datetime.initiOSDatetimePicker($(this), $(this).attr('data-datetimeformat'), EC.Const.TIME);
+                });
             }
+        }
+    };
+    return module;
 
-            //set the cached value as the selcted option
-            SELECTED = (value === "") ? 'selected' : "";
-
-            //TODO: check markup on jqm docs for select. Fastclick: is needclick
-            // needed?
-            HTML += '<select id="selection" name="selection" data-native-menu="true" >';
-            HTML += '<option value ="0"' + SELECTED + ' data-index="0">';
-            HTML += EC.Localise.getTranslation(EC.Const.NO_OPTION_SELECTED);
-            HTML += '</option>';
-
-            $(input.options).each(function(index) {
-
-                var option_value = this.value;
-                var option_index = (index + 1);
-                var option_label = this.label;
-                var option_id = 'select-choice-' + (index + 1);
-
-                //check if we have a value cached and pre-select that input
-                SELECTED = (value === option_value) ? 'selected' : "";
-
-                HTML += '<option ' + SELECTED + ' ' + DISABLED + ' value ="' + option_value + '" data-index="' + option_index + '">' + option_label + '</option>';
-
-            });
-
-            HTML += '</select>';
-
-            span_label.append(HTML);
-            $('div#input-dropdown').trigger("create");
-
-            /*****************************************************************************************************
-             *	Following code is a hack to make the select native widget work on
-             * Android 4.4.2 (Nexus 5)
-             */
-            //Add needclick to all the markup as Fastclick is interfering and the
-            // native popup with the list of options is never triggered
-            // $("div#input-dropdown").addClass("needsclick");
-            // $("div#input-dropdown div.ui-select").addClass("needsclick");
-            // $("div#input-dropdown div.ui-btn").addClass("needsclick");
-            // $("div#input-dropdown div.ui-btn
-            // span.ui-btn-inner").addClass("needsclick");
-            // $("div#input-dropdown div.ui-btn span.ui-btn-inner
-            // span.ui-btn-text").addClass("needsclick");
-            // $("div#input-dropdown div.ui-btn span.ui-btn-inner
-            // span.ui-btn-text span").addClass("needsclick");
-            // $("div#input-dropdown div.ui-btn span.ui-btn-inner
-            // span.ui-icon").addClass("needsclick");
-
-            //Manually trigger a click on a select element. Best solution I came
-            // across
-            $("select").on('vmousedown', function(e) {
-                $(this).focus().click();
-            });
-
-            /*****************************************************************************************************
-             * End hack
-             */
-
-        };
-
-        return module;
-
-    }(EC.InputTypes));
+}(EC.InputTypes));
 
 var EC = EC || {};
 EC.InputTypes = EC.InputTypes || {};
-EC.InputTypes = ( function(module) {"use strict";
+EC.InputTypes = (function (module) {
+    'use strict';
 
-		module.integer = function(the_value, the_input) {
+    module.integer = function (the_value, the_input) {
 
-			var obj;
-			var span_label = $('span.label');
-			var clone = $('div.clone');
-			var double_entry;
-			var value = parseInt(the_value, 10);
-			var input = the_input;
-			var min_range = $('span.min-range');
-			var max_range = $('span.max-range');
+        var obj;
+        var span_label = $('span.label');
+        var clone = $('div.clone');
+        var double_entry;
+        var value = parseInt(the_value, 10);
+        var input = the_input;
+        var min_range = $('span.min-range');
+        var max_range = $('span.max-range');
 
-			//update label text
-			span_label.text(input.label);
+        //update label text
+        span_label.text(input.label);
 
-			//Localise
-			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
-				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
-			}
+        //Localise
+        if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
+            EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
+        }
 
-			//Add attribute to flag the primary key input field
-			if (parseInt(input.is_primary_key, 10) === 1) {
-				span_label.attr('data-primary-key', 'true');
-			} else {
+        //Add attribute to flag the primary key input field
+        if (parseInt(input.is_primary_key, 10) === 1) {
+            span_label.attr('data-primary-key', 'true');
+        } else {
 
-				//reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
-				span_label.attr('data-primary-key', '');
-			}
+            //reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
+            span_label.attr('data-primary-key', '');
+        }
 
-			//check if we need to replicate this input
-			double_entry = (parseInt(input.has_double_check, 10) == 1);
+        //check if we need to replicate this input
+        double_entry = (parseInt(input.has_double_check, 10) === 1);
 
-			//trigger numeric keyboard on iOS
-			if (window.device.platform === EC.Const.IOS) {
-				$('div#input-integer input').attr('pattern', '[0-9]*');
-			}
+        //trigger numeric keyboard on iOS
+        if (window.device.platform === EC.Const.IOS) {
+            $('div#input-integer input').attr('pattern', '[0-9]*');
+        }
 
-			//hide elements not needed
-			clone.addClass('hidden');
-			min_range.addClass('hidden');
-			max_range.addClass('hidden');
+        //hide elements not needed
+        clone.addClass('hidden');
+        min_range.addClass('hidden');
+        max_range.addClass('hidden');
 
-			//check if we need to render a double entry for this input
-			if (double_entry) {
+        //check if we need to render a double entry for this input
+        if (double_entry) {
 
-				//duplicate integer input
-				clone.removeClass('hidden');
-				$('div.clone input').val(value  = isNaN(value) ? "" : value);
+            //duplicate integer input
+            clone.removeClass('hidden');
+            $('div.clone input').val(value = isNaN(value) ? '' : value);
 
-				//if in editing mode, do not allow changes either if the field is a primary key
-				if (window.localStorage.edit_mode && input.is_primary_key === 1) {
+            //if in editing mode, do not allow changes either if the field is a primary key
+            if (window.localStorage.edit_mode && input.is_primary_key === 1) {
 
-					$('div.clone input').attr('disabled', 'disabled');
-				}
+                $('div.clone input').attr('disabled', 'disabled');
+            }
 
-			}
-			//show min range if any
-			if (input.min_range !== "") {
+        }
+        //show min range if any
+        if (input.min_range !== '') {
 
-				min_range.removeClass('hidden');
-				min_range.text('Min: ' + input.min_range);
+            min_range.removeClass('hidden');
+            min_range.text('Min: ' + input.min_range);
 
-			}
+        }
 
-			//show max range if any
-			if (input.max_range !== "") {
+        //show max range if any
+        if (input.max_range !== '') {
 
-				max_range.removeClass('hidden');
-				max_range.text('Max: ' + input.max_range);
+            max_range.removeClass('hidden');
+            max_range.text('Max: ' + input.max_range);
 
-			}
+        }
 
-			$('div#input-integer input').val(value  = isNaN(value) ? "" : value);
+        $('div#input-integer input').val(value = isNaN(value) ? '' : value);
 
-			//if in editing mode, do not allow changes either if the field is a primary key
-			if (window.localStorage.edit_mode && input.is_primary_key === 1) {
-				$('div#input-integer input').attr('disabled', 'disabled');
-				$('div#input-integer p.primary-key-not-editable').removeClass("hidden");
-			} else {
-				//re-enable input if needed
-				$('div#input-integer input').removeAttr('disabled');
-				$('div#input-integer p.primary-key-not-editable').addClass("hidden");
-			}
+        //if in editing mode, do not allow changes either if the field is a primary key
+        if (window.localStorage.edit_mode && input.is_primary_key === 1) {
+            $('div#input-integer input').attr('disabled', 'disabled');
+            $('div#input-integer p.primary-key-not-editable').removeClass('hidden');
+        } else {
+            //re-enable input if needed
+            $('div#input-integer input').removeAttr('disabled');
+            $('div#input-integer p.primary-key-not-editable').addClass('hidden');
+        }
 
-		};
+    };
 
-		return module;
+    return module;
 
-	}(EC.InputTypes));
+}(EC.InputTypes));
 
 /*global $, jQuery*/
 var EC = EC || {};
@@ -27384,389 +27961,383 @@ EC.InputTypes = (function (module) {
 
 var EC = EC || {};
 EC.InputTypes = EC.InputTypes || {};
-EC.InputTypes = ( function(module) {"use strict";
+EC.InputTypes = (function (module) {
+    'use strict';
 
-		module.radio = function(the_value, the_input) {
+    module.radio = function (the_value, the_input) {
 
-			var obj;
-			var span_label = $('div#radio div#input-radio span.label');
-			var clone = $('div.clone');
-			var double_entry;
-			var value = the_value;
-			var old_cached_value;
-			var input = the_input;
-			var HTML = "";
-			var RADIO_CHECKED = "";
-			var DISABLED = "";
+        var obj;
+        var span_label = $('div#radio div#input-radio span.label');
+        var clone = $('div.clone');
+        var double_entry;
+        var value = the_value;
+        var old_cached_value;
+        var input = the_input;
+        var HTML = "";
+        var RADIO_CHECKED = "";
+        var DISABLED = "";
 
-			//update label text
-			span_label.text(input.label);
-			
-			//Localise
-			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
-				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
-			}
+        //update label text
+        span_label.text(input.label);
 
-			//Add attribute to flag the primary key input field
-			if (parseInt(input.is_primary_key, 10) === 1) {
-				span_label.attr('data-primary-key', 'true');
-			} else {
-				//reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
-				span_label.attr('data-primary-key', '');
-			}
+        //Localise
+        if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
+            EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
+        }
 
-			//check if we need to replicate this input
-			double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
+        //Add attribute to flag the primary key input field
+        if (parseInt(input.is_primary_key, 10) === 1) {
+            span_label.attr('data-primary-key', 'true');
+        } else {
+            //reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
+            span_label.attr('data-primary-key', '');
+        }
 
-			//if in editing mode, do not allow changes if the field is a primary key
-			if (window.localStorage.edit_mode && parseInt(input.is_primary_key, 10) === 1) {
-				DISABLED = 'disabled="disabled"';
-			}
-			
-			HTML += '<fieldset data-role="controlgroup">';
+        //check if we need to replicate this input
+        double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
 
-			//render list of options
-			$(input.options).each(function(index) {
+        //if in editing mode, do not allow changes if the field is a primary key
+        if (window.localStorage.edit_mode && parseInt(input.is_primary_key, 10) === 1) {
+            DISABLED = 'disabled="disabled"';
+        }
 
-				//increase value by 1, as we use value = 0 when no option is selected (like for select/dropdown) We are using the index as radio jumps are mapped against the index of the value
-				var option_value = this.value;
-				var option_index = (index + 1);
-				var option_label = this.label;
-				var option_id = 'radio-choice-' + (index + 1);
+        HTML += '<fieldset data-role="controlgroup">';
 
-				//pre select an element if the value matches the cached value
-				RADIO_CHECKED = (value === option_value) ? 'checked="checked"' : "";
+        //render list of options
+        $(input.options).each(function (index) {
 
-				HTML += '<input type="radio" name="radio-options" id="' + option_id + '" value="' + option_value + '"' + RADIO_CHECKED + ' ' + DISABLED + ' data-index="' + option_index + '">';
-				HTML += '<label for="' + option_id + '">' + option_label + '</label>';
-			});
+            //increase value by 1, as we use value = 0 when no option is selected (like for select/dropdown) We are using the index as radio jumps are mapped against the index of the value
+            var option_value = this.value;
+            var option_index = (index + 1);
+            var option_label = this.label;
+            var option_id = 'radio-choice-' + (index + 1);
 
-			HTML += '</fieldset>';
+            //pre select an element if the value matches the cached value
+            RADIO_CHECKED = (value === option_value) ? 'checked="checked"' : "";
 
-			span_label.append(HTML);
-			$('div#input-radio').trigger("create");
-		};
+            HTML += '<input type="radio" name="radio-options" id="' + option_id + '" value="' + option_value + '"' + RADIO_CHECKED + ' ' + DISABLED + ' data-index="' + option_index + '">';
+            HTML += '<label for="' + option_id + '">' + option_label + '</label>';
+        });
 
-		return module;
+        HTML += '</fieldset>';
 
-	}(EC.InputTypes));
+        span_label.append(HTML);
+        $('div#input-radio').trigger("create");
+    };
 
-/*jslint vars: true , nomen: true, devel: true, plusplus:true*/
-/*global $, jQuery*/
-var EC = EC || {};
-EC.InputTypes = EC.InputTypes || {};
-EC.InputTypes = ( function(module) {"use strict";
-	
-	module.text = function(the_value, the_input) {
+    return module;
 
-			//to cache dom lookups
-			var obj;
-			var span_label = $('span.label');
-			var clone = $('div.clone');
-			var double_entry;
-			var value = the_value;
-			var input = the_input;
-
-			//update label text
-			span_label.text(input.label);
-			
-			//Localise
-			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
-				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
-			}
-
-			//Add attribute to flag the primary key input field
-			if (parseInt(input.is_primary_key, 10) === 1) {
-
-				span_label.attr('data-primary-key', 'true');
-
-			} else {
-
-				//reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
-				span_label.attr('data-primary-key', '');
-			}
-
-			//check if we need to replicate this input
-			double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
-
-			//re-enable input if needed
-			$('div#input-text input').removeAttr('disabled');
-
-			if (double_entry) {
-
-				//duplicate text input
-				clone.removeClass('hidden');
-				$('div.clone input').val(value);
-
-				//if in editing mode, do not allow changes  if the field is a primary key
-				console.log( typeof input.is_primary_key);
-				console.log( typeof input.has_jump);
-
-				if (window.localStorage.edit_mode && input.is_primary_key === 1) {
-
-					$('div.clone input').attr('disabled', 'disabled');
-				}
-
-			} else {
-
-				//add hidden class if missing
-				clone.addClass('hidden');
-
-			}
-
-			$('div#input-text input').val(value);
-
-			//if it is a genkey field, disable input and pre-fill it with the genkey
-			if (parseInt(input.is_genkey,10) === 1 && value === "") {
-
-				$('div#input-text input').attr('disabled', 'disabled').val(EC.Utils.getGenKey());
-				return;
-
-			}
-
-			//if in editing mode, do not allow changes if the field is a primary key 
-			if (window.localStorage.edit_mode && input.is_primary_key === 1) {
-				$('div#input-text input').attr('disabled', 'disabled');
-				$('div#input-text p.primary-key-not-editable').removeClass("hidden");
-			}
-			else{
-				$('div#input-text p.primary-key-not-editable').addClass("hidden");
-			}
-			
-
-		};
-
-	
-	return module;
-	
 }(EC.InputTypes));
-/*jslint vars: true , nomen: true, devel: true, plusplus:true*/
+
 /*global $, jQuery*/
 var EC = EC || {};
 EC.InputTypes = EC.InputTypes || {};
-EC.InputTypes = ( function(module) {"use strict";
+EC.InputTypes = (function (module) {
+    'use strict';
 
-		module.textarea = function(the_value, the_input) {
+    module.text = function (the_value, the_input) {
 
-			//to cache dom lookups
-			var obj;
-			var span_label = $('span.label');
-			var clone = $('div.clone');
-			var double_entry;
-			var value = the_value;
-			var input = the_input;
+        //to cache dom lookups
+        var obj;
+        var span_label = $('span.label');
+        var clone = $('div.clone');
+        var double_entry;
+        var value = the_value;
+        var input = the_input;
 
-			//update label text
-			span_label.text(input.label);
-			
-			//Localise
-			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
-				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
-			}
+        //update label text
+        span_label.text(input.label);
 
-			//Add attribute to flag the primary key input field
-			if (parseInt(input.is_primary_key, 10) === 1) {
+        //Localise
+        if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
+            EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
+        }
 
-				span_label.attr('data-primary-key', 'true');
+        //Add attribute to flag the primary key input field
+        if (parseInt(input.is_primary_key, 10) === 1) {
 
-			} else {
+            span_label.attr('data-primary-key', 'true');
 
-				//reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
-				span_label.attr('data-primary-key', '');
-			}
+        } else {
 
-			//check if we need to replicate this input
-			double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
+            //reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
+            span_label.attr('data-primary-key', '');
+        }
 
-			//re-enable input if needed
-			$('div#input-textarea textarea').removeAttr('disabled');
+        //check if we need to replicate this input
+        double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
 
-			if (double_entry) {
+        //re-enable input if needed
+        $('div#input-text input').removeAttr('disabled');
 
-				//duplicate textarea input
-				clone.removeClass('hidden');
-				$('div.clone textarea').val(value);
+        if (double_entry) {
 
-				//if in editing mode, do not allow changes  if the field is a primary key
-				if (window.localStorage.edit_mode && input.is_primary_key === 1) {
+            //duplicate text input
+            clone.removeClass('hidden');
+            $('div.clone input').val(value);
 
-					$('div.clone textarea').attr('disabled', 'disabled');
-				}
+            //if in editing mode, do not allow changes  if the field is a primary key
+            console.log(typeof input.is_primary_key);
+            console.log(typeof input.has_jump);
 
-			} else {
+            if (window.localStorage.edit_mode && input.is_primary_key === 1) {
 
-				//add hidden class if missing
-				clone.addClass('hidden');
+                $('div.clone input').attr('disabled', 'disabled');
+            }
 
-			}
+        } else {
+            //add hidden class if missing
+            clone.addClass('hidden');
+        }
 
-			//Set value
-			$('div#input-textarea textarea').val(value);
+        $('div#input-text input').val(value);
 
-			//if in editing mode, do not allow changes either if the field is a primary key
-			if (window.localStorage.edit_mode && input.is_primary_key === 1) {
+        //if it is a genkey field, disable input and pre-fill it with the genkey
+        if (parseInt(input.is_genkey, 10) === 1 && value === '') {
 
-				$('div#input-textarea textarea').attr('disabled', 'disabled');
-				$('div#input-textarea p.primary-key-not-editable').removeClass("hidden");
-			}
-			else{
-				$('div#input-textarea p.primary-key-not-editable').addClass("hidden");
-			}
-			
-			
+            $('div#input-text input').attr('disabled', 'disabled').val(EC.Utils.getGenKey());
+            return;
 
-		};
+        }
 
-		return module;
+        //if in editing mode, do not allow changes if the field is a primary key
+        if (window.localStorage.edit_mode && input.is_primary_key === 1) {
+            $('div#input-text input').attr('disabled', 'disabled');
+            $('div#input-text p.primary-key-not-editable').removeClass('hidden');
+        }
+        else {
+            $('div#input-text p.primary-key-not-editable').addClass('hidden');
+        }
+    };
 
-	}(EC.InputTypes)); 
+
+    return module;
+
+}(EC.InputTypes));
+
+/*global $, jQuery*/
+var EC = EC || {};
+EC.InputTypes = EC.InputTypes || {};
+EC.InputTypes = (function (module) {
+    'use strict';
+
+    module.textarea = function (the_value, the_input) {
+
+        //to cache dom lookups
+        var obj;
+        var span_label = $('span.label');
+        var clone = $('div.clone');
+        var double_entry;
+        var value = the_value;
+        var input = the_input;
+
+        //update label text
+        span_label.text(input.label);
+
+        //Localise
+        if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
+            EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
+        }
+
+        //Add attribute to flag the primary key input field
+        if (parseInt(input.is_primary_key, 10) === 1) {
+            span_label.attr('data-primary-key', 'true');
+        } else {
+            //reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
+            span_label.attr('data-primary-key', '');
+        }
+
+        //check if we need to replicate this input
+        double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
+
+        //re-enable input if needed
+        $('div#input-textarea textarea').removeAttr('disabled');
+
+        if (double_entry) {
+
+            //duplicate textarea input
+            clone.removeClass('hidden');
+            $('div.clone textarea').val(value);
+
+            //if in editing mode, do not allow changes  if the field is a primary key
+            if (window.localStorage.edit_mode && input.is_primary_key === 1) {
+
+                $('div.clone textarea').attr('disabled', 'disabled');
+            }
+
+        } else {
+
+            //add hidden class if missing
+            clone.addClass('hidden');
+
+        }
+
+        //Set value
+        $('div#input-textarea textarea').val(value);
+
+        //if in editing mode, do not allow changes either if the field is a primary key
+        if (window.localStorage.edit_mode && input.is_primary_key === 1) {
+
+            $('div#input-textarea textarea').attr('disabled', 'disabled');
+            $('div#input-textarea p.primary-key-not-editable').removeClass('hidden');
+        }
+        else {
+            $('div#input-textarea p.primary-key-not-editable').addClass('hidden');
+        }
+
+
+    };
+
+    return module;
+
+}(EC.InputTypes));
 /*jslint vars: true, nomen: true devel: true, plusplus: true*/
 /*global $, jQuery, cordova, device*/
 
 var EC = EC || {};
 EC.InputTypes = EC.InputTypes || {};
-EC.InputTypes = ( function(module) {
-		"use strict";
+EC.InputTypes = ( function (module) {
+    "use strict";
 
-		module.time = function(the_value, the_input) {
+    module.time = function (the_value, the_input) {
 
-			var timepicker;
-			var ios_timepicker;
-			var span_label = $('span.label');
-			var clone = $('div.clone');
-			var double_entry;
-			var value = the_value;
-			var input = the_input;
-			var datebox_format;
+        var timepicker;
+        var ios_timepicker;
+        var span_label = $('span.label');
+        var clone = $('div.clone');
+        var double_entry;
+        var value = the_value;
+        var input = the_input;
+        var datebox_format;
 
-			//update label text
-			span_label.text(input.label + " - " + input.datetime_format);
+        //update label text
+        span_label.text(input.label + " - " + input.datetime_format);
 
-			//Localise
-			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
-				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
-			}
+        //Localise
+        if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
+            EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
+        }
 
-			//Add attribute to flag the primary key input field
-			if (parseInt(input.is_primary_key, 10) === 1) {
+        //Add attribute to flag the primary key input field
+        if (parseInt(input.is_primary_key, 10) === 1) {
 
-				span_label.attr('data-primary-key', 'true');
+            span_label.attr('data-primary-key', 'true');
 
-			}
-			else {
+        }
+        else {
 
-				//reset the attribute to empty if not a primary key (JQM caches pages and we
-				// recycle views)
-				span_label.attr('data-primary-key', '');
-			}
+            //reset the attribute to empty if not a primary key (JQM caches pages and we
+            // recycle views)
+            span_label.attr('data-primary-key', '');
+        }
 
-			//check if we need to replicate this input
-			double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
+        //check if we need to replicate this input
+        double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
 
-			//Android Phonegap timepicker plugin http://goo.gl/xLrqZl
-			timepicker = $('div#input-time input.nativedatepicker');
+        //Android Phonegap timepicker plugin http://goo.gl/xLrqZl
+        timepicker = $('div#input-time input.nativedatepicker');
 
-			//iOS uses the HTML5 input type="time"
-			ios_timepicker = $('div#input-time input.ios-time');
+        //iOS uses the HTML5 input type="time"
+        ios_timepicker = $('div#input-time input.ios-time');
 
-			//hide immediate ios time input parent (JQM quirk, this is to hide the div
-			// element border wrapping the input after JQM enhanced the markup)
-			ios_timepicker.parent().addClass("no-border");
+        //hide immediate ios time input parent (JQM quirk, this is to hide the div
+        // element border wrapping the input after JQM enhanced the markup)
+        ios_timepicker.parent().addClass("no-border");
 
-			/*show current time if value = input.datetime_format:
-			 *if the option to show the current time as default is selected in the web form
-			 * builder,
-			 * the input value gets the value of datetime_format when parsing the xml
-			 */
-			if (value === input.datetime_format) {
-				timepicker.val(EC.Utils.parseTime(new Date(), input.datetime_format));
-			}
-			else {
-				//show cached value
-				timepicker.val(value);
-			}
+        /*show current time if value = input.datetime_format:
+         *if the option to show the current time as default is selected in the web form
+         * builder,
+         * the input value gets the value of datetime_format when parsing the xml
+         */
+        if (value === input.datetime_format) {
+            timepicker.val(EC.Utils.parseTime(new Date(), input.datetime_format));
+        }
+        else {
+            //show cached value
+            timepicker.val(value);
+        }
 
-			/*****************************************************************************************
-			 * Android uses the Phonegap official DatePicker plugin
-			 ****************************************************************************************/
-			if (window.device.platform === EC.Const.ANDROID) {
-				/* bind input to 'vclick' insted of focus, as we set the input as readonly.
-				 * this solved problem on android 2.3 where the keyboard was showing because the
-				 * input is in focus when tapping "cancel"
-				 * on the DatePicker popup
-				 */
-				timepicker.off().on('vclick', function(e) {
+        /*****************************************************************************************
+         * Android uses the Phonegap official DatePicker plugin
+         ****************************************************************************************/
+        if (window.device.platform === EC.Const.ANDROID) {
+            /* bind input to 'vclick' insted of focus, as we set the input as readonly.
+             * this solved problem on android 2.3 where the keyboard was showing because the
+             * input is in focus when tapping "cancel"
+             * on the DatePicker popup
+             */
+            timepicker.off().on('vclick', function (e) {
 
-					var timepicker = $(this);
-					var selected_date = Date.parse(timepicker.val()) || new Date();
+                var timepicker = $(this);
+                var selected_date = Date.parse(timepicker.val()) || new Date();
 
-					//use debouncing/throttling to avoid triggering multiple `focus` event
-					// http://goo.gl/NFdHDW
-					var now = new Date();
-					var lastFocus = timepicker.data("lastFocus");
-					if (lastFocus && (now - lastFocus) < 500) {
-						// Don't do anything
-						return;
-					}
-					timepicker.data("lastFocus", now);
+                //use debouncing/throttling to avoid triggering multiple `focus` event
+                // http://goo.gl/NFdHDW
+                var now = new Date();
+                var lastFocus = timepicker.data("lastFocus");
+                if (lastFocus && (now - lastFocus) < 500) {
+                    // Don't do anything
+                    return;
+                }
+                timepicker.data("lastFocus", now);
 
-					// Same handling for iPhone and Android
-					window.plugins.datePicker.show({
-						date : selected_date,
-						mode : 'time', // date or time or blank for both
-						allowOldDates : true
-					}, function(returned_date) {
-						
-						var new_date;
+                // Same handling for iPhone and Android
+                window.plugins.datePicker.show({
+                    date: selected_date,
+                    mode: 'time', // date or time or blank for both
+                    allowOldDates: true
+                }, function (returned_date) {
 
-						if (returned_date !== undefined) {
+                    var new_date;
 
-							new_date = new Date(returned_date);
+                    if (returned_date !== undefined) {
 
-							timepicker.val(EC.Utils.parseTime(new_date, input.datetime_format));
-						}
+                        new_date = new Date(returned_date);
 
-						// This fixes the problem you mention at the bottom of this script with it not
-						// working a second/third time around, because it is in focus.
-						timepicker.blur();
-					});
-				});
-			}
+                        timepicker.val(EC.Utils.parseTime(new_date, input.datetime_format));
+                    }
 
-			/*****************************************************************************************
-			 * iOS uses the official HTML5 input type="time", only hours and minutes are
-			 * returned
-			 ****************************************************************************************/
-			if (window.device.platform === EC.Const.IOS) {
+                    // This fixes the problem you mention at the bottom of this script with it not
+                    // working a second/third time around, because it is in focus.
+                    timepicker.blur();
+                });
+            });
+        }
 
-				timepicker.off().on('vclick', function(event) {
+        /*****************************************************************************************
+         * iOS uses the official HTML5 input type="time", only hours and minutes are
+         * returned
+         ****************************************************************************************/
+        if (window.device.platform === EC.Const.IOS) {
 
-					ios_timepicker.focus();
+            timepicker.off().on('vclick', function (event) {
 
-				});
+                ios_timepicker.focus();
 
-				ios_timepicker.off().on('blur', function(event) {
+            });
 
-					var ios_time = ios_timepicker.val();
+            ios_timepicker.off().on('blur', function (event) {
 
-					//get seconds (based on current time)
-					var date = new Date(event.timeStamp);
-					var seconds = date.getSeconds();
+                var ios_time = ios_timepicker.val();
 
-					//add seconds to have a string like HH:mm:ss
-					ios_time = ios_time + ":" + seconds;
+                //get seconds (based on current time)
+                var date = new Date(event.timeStamp);
+                var seconds = date.getSeconds();
 
-					timepicker.val(EC.Utils.parseIOSTime(ios_time, input.datetime_format));
-					timepicker.attr("data-raw-date", ios_time);
+                //add seconds to have a string like HH:mm:ss
+                ios_time = ios_time + ":" + seconds;
 
-				});
-			}
+                timepicker.val(EC.Utils.parseIOSTime(ios_time, input.datetime_format));
+                timepicker.attr("data-raw-date", ios_time);
 
-		};
+            });
+        }
 
-		return module;
+    };
 
-	}(EC.InputTypes));
+    return module;
+
+}(EC.InputTypes));
 
 /*global $, jQuery, LocalFileSystem, cordova*/
 var EC = EC || {};
@@ -28048,80 +28619,81 @@ EC.InputTypes = (function (module) {
  */
 var EC = EC || {};
 EC.Inputs = EC.Inputs || {};
-EC.Inputs = ( function(module) {"use strict";
+EC.Inputs = ( function (module) {
+    "use strict";
 
-		/*
-		 * get cache value from localStorage by the passed position
-		 *
-		 * @method getCachedInputValue
-		 * @param {int} the input position attribute in the form input sequence
-		 * @return {Object} {_id: <the input id>, type: <the input type>, value: <the current value cached>, position : <the input position property>}
-		 */
-		module.getCachedInputValue = function(the_position) {
+    /*
+     * get cache value from localStorage by the passed position
+     *
+     * @method getCachedInputValue
+     * @param {int} the input position attribute in the form input sequence
+     * @return {Object} {_id: <the input id>, type: <the input type>, value: <the current value cached>, position : <the input position property>}
+     */
+    module.getCachedInputValue = function (the_position) {
 
-			var values;
-			var position = parseInt(the_position, 10);
-			var index = position - 1;
-			var i;
-			var iLength;
-			var empty_value = {
-				_id : "",
-				type : "",
-				value : EC.Const.SKIPPED,
-				position : "",
-				is_primary_key : ""
-			};
+        var values;
+        var position = parseInt(the_position, 10);
+        var index = position - 1;
+        var i;
+        var iLength;
+        var empty_value = {
+            _id: "",
+            type: "",
+            value: EC.Const.SKIPPED,
+            position: "",
+            is_primary_key: ""
+        };
 
-			//catch Chrome error `Uncaught SyntaxError: Unexpected end of input` when parsing empty content
-			try {
-				values = JSON.parse(window.localStorage.inputs_values);
+        //catch Chrome error `Uncaught SyntaxError: Unexpected end of input` when parsing empty content
+        try {
+            values = JSON.parse(window.localStorage.inputs_values);
 
-				/* if index is out of bounds return false as value cannot be found:
-				 * a case scenario is when the user leaves a form half way through it but he wants to save the progress
-				 * Any value not found will be saved as empty string in the db
-				 */
-				if (values[index] === undefined) {
-					return empty_value;
-				}
+            /* if index is out of bounds return false as value cannot be found:
+             * a case scenario is when the user leaves a form half way through it but he wants to save the progress
+             * Any value not found will be saved as empty string in the db
+             */
+            if (values[index] === undefined) {
+                return empty_value;
+            }
 
-				//search all values where the passed position matches
-				iLength = values.length;
-				for ( i = 0; i < iLength; i++) {
+            //search all values where the passed position matches
+            iLength = values.length;
+            for (i = 0; i < iLength; i++) {
 
-					//if values[i] is null, this input was skipped by a jump so create an empty one
-					if (values[i] === null) {
-						values[i] = empty_value;
-					}
+                //if values[i] is null, this input was skipped by a jump so create an empty one
+                if (values[i] === null) {
+                    values[i] = empty_value;
+                }
 
-					//@bug Android 2.3 :/ should be solved parsing values to integer
-					if (parseInt(values[i].position, 10) === position) {
+                //@bug Android 2.3 :/ should be solved parsing values to integer
+                if (parseInt(values[i].position, 10) === position) {
 
-						if (window.localStorage.edit_mode) {
+                    if (window.localStorage.edit_mode) {
 
-							window.localStorage.edit_id = values[i]._id;
-							window.localStorage.edit_type = values[i].type;
-						}
+                        window.localStorage.edit_id = values[i]._id;
+                        window.localStorage.edit_type = values[i].type;
+                    }
 
-						//return the value object found
-						return values[i];
+                    //return the value object found
+                    return values[i];
 
-					}
+                }
 
-				}//end for each input values
+            }//end for each input values
 
-				//return an empty value if no position match found, meaning the value was not cache because skipped by a jump
-				return empty_value;
+            //return an empty value if no position match found, meaning the value was not cache because skipped by a jump
+            return empty_value;
 
-			} catch(error) {
-				//Handle errors here
-				return false;
-			}
+        } catch (error) {
+            //Handle errors here
+            return false;
+        }
 
-		};
+    };
 
-		return module;
+    return module;
 
-	}(EC.Inputs));
+}(EC.Inputs));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -28413,13 +28985,217 @@ EC.Inputs = (function (module) {
                 got_value = values[0];
                 break;
 
-        }//switch
-
+            case EC.Const.GROUP:
+                got_value = EC.Inputs.getGroupCurrentValues();
+                break;
+        }
         return got_value;
+    };
+
+    return module;
+
+}(EC.Inputs));
+
+/*global $, jQuery*/
+/**
+ *
+ * @module EC
+ * @submodule Inputs
+ *
+ */
+var EC = EC || {};
+EC.Inputs = EC.Inputs || {};
+EC.Inputs = (function (module) {
+    'use strict';
+
+    module.getGroupCurrentValues = function () {
+
+        debugger;
+
+        //for a group, we need to loop all the inputs, per each type
+        var group_text_inputs = $('div.group-text');
+        var group_textarea_inputs = $('div.group-textarea');
+        var group_integer_inputs = $('div.group-integer');
+        var group_decimal_inputs = $('div.group-decimal');
+        var group_date_inputs = $('div.group-date');
+        var group_time_inputs = $('div.group-time');
+        var group_dropdown_inputs = $('div.group-dropdown');
+        var group_radio_inputs = $('div.group-radio');
+        var group_checkbox_inputs = $('div.group-checkbox');
+        var group_values = [];
+
+        $.each(group_text_inputs, function () {
+
+            var ref = $(this).attr('data-input-ref');
+            var value = $(this).find('input').val();
+            console.log(ref, value);
+            group_values.push({ref: ref, value: value});
+        });
+
+        $.each(group_textarea_inputs, function () {
+
+            var ref = $(this).attr('data-input-ref');
+            var value = $(this).find('textarea').val();
+            console.log(ref, value);
+            group_values.push({ref: ref, value: value});
+
+        });
+
+        $.each(group_integer_inputs, function () {
+
+            var ref = $(this).attr('data-input-ref');
+            var value = $(this).find('input').val();
+            console.log(ref, value);
+            group_values.push({ref: ref, value: value});
+
+        });
+
+        $.each(group_decimal_inputs, function () {
+
+            var ref = $(this).attr('data-input-ref');
+            var value = $(this).find('input').val();
+            console.log(ref, value);
+            group_values.push({ref: ref, value: value});
+
+        });
+
+        $.each(group_date_inputs, function () {
+
+            var ref = $(this).attr('data-input-ref');
+            var value;
+
+            if (window.device) {
+                if (window.device.platform === EC.Const.ANDROID) {
+                    value = $(this).find('input.nativedatepicker').val() || '';
+                }
+                if (window.device.platform === EC.Const.IOS) {
+                    value = $(this).find('input.ios-date').val() || '';
+                }
+            }
+            else {
+                //testing on Chrome
+                value = '';
+            }
+            console.log(ref, value);
+            group_values.push({ref: ref, value: value});
+        });
+
+        $.each(group_time_inputs, function () {
+
+            var ref = $(this).attr('data-input-ref');
+            var value;
+
+            if (window.device) {
+                if (window.device.platform === EC.Const.ANDROID) {
+                    value = $(this).find('input.nativedatepicker').val() || '';
+                }
+                if (window.device.platform === EC.Const.IOS) {
+                    value = $(this).find('input.ios-time').val() || '';
+                }
+            }
+            else {
+                //testing on Chrome
+                value = '';
+            }
+
+            console.log(ref, value);
+            group_values.push({ref: ref, value: value});
+        });
+
+        $.each(group_checkbox_inputs, function () {
+
+            var ref = $(this).attr('data-input-ref');
+            var input_holder = $(this).find('input[type=checkbox]:checked');
+
+            //single checkbox
+            var checkbox_value = {
+                value: '',
+                ref: ref
+            };
+
+            //list of selected options for a single checkbox
+            var checkboxes_values = [];
+
+            $(input_holder).each(function () {
+
+                //todo why are we caching the label?
+                //checkboxes_values.push({
+                //    value: $(this).val().trim(),
+                //    label: $(this).parent().text().trim()
+                //});
+                checkboxes_values.push(
+                    $(this).val().trim()
+                );
+            });
+
+            //cache empty string if no checkboxes are selected
+            checkbox_value.value = (checkboxes_values.length === 0) ? EC.Const.NO_OPTION_SELECTED : checkboxes_values;
+
+            group_values.push(checkbox_value);
+        });
+
+        $.each(group_dropdown_inputs, function () {
+
+            var ref = $(this).attr('data-input-ref');
+            var input_holder = $(this).find('select').find('option:selected');
+
+            /* single selection dropdown' grab both value and index:
+             * index is needed for the jumps/validation and value will be saved and displayed to users (linked to label)
+             */
+            var dropdown_value = {
+                value: '',
+                index: '',
+                ref: ref
+            };
+
+            dropdown_value.value = input_holder.val();
+            dropdown_value.index = input_holder.attr('data-index');
+
+            //if the value is '0', for consistency set it to a default for unselected option
+            if (dropdown_value.index === '0') {
+                dropdown_value.index = EC.Const.NO_OPTION_SELECTED;
+            }
+
+            group_values.push(dropdown_value);
+
+        });
+
+        $.each(group_radio_inputs, function () {
+
+            var ref = $(this).attr('data-input-ref');
+            var input_holder = $(this).find('input[type=radio]:checked');
+
+            /* single selection dropdown' grab both value and index:
+             * index is needed for the jumps/validation and value will be saved and displayed to users (linked to label)
+             */
+            var radio_value = {
+                value: '',
+                index: '',
+                ref: ref
+            };
+
+            radio_value.value = input_holder.val();
+            radio_value.index = input_holder.attr('data-index');
+
+            //if no value selected among the radio options, create an empty object with NO_OPTION_SELECTED label
+            if (radio_value.value === undefined) {
+                radio_value.value = EC.Const.NO_OPTION_SELECTED;
+                radio_value.index = EC.Const.NO_OPTION_SELECTED;
+            } else {
+                radio_value.value.trim();
+                radio_value.index.trim();
+            }
+
+            group_values.push(radio_value);
+
+        });
+
+        return group_values;
 
     };
 
     return module;
+
 
 }(EC.Inputs));
 
@@ -28494,7 +29270,58 @@ EC.Inputs = ( function(module) {"use strict";
 
 	}(EC.Inputs));
 
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
+/*global $, jQuery*/
+/**
+ *
+ * @module EC
+ * @submodule Inputs
+ *
+ */
+var EC = EC || {};
+EC.Inputs = EC.Inputs || {};
+EC.Inputs = (function (module) {
+    'use strict';
+
+    module.mapGroupCachedValues = function (the_group_inputs, the_cached_values) {
+
+        debugger;
+
+        var group_inputs = the_group_inputs;
+        var values = the_cached_values;
+
+
+        $.each(values, function (index, single_value) {
+
+            $.each(group_inputs, function (index, single_group_input) {
+
+                //map each cached value to its group input value
+                if (single_group_input.ref === single_value.ref) {
+
+                    //checkboxs need a different mapping
+                    if (single_group_input.type === EC.Const.CHECKBOX) {
+                        single_group_input.value = single_value.value;
+                    }
+                    else {
+                        //any othe input gets  a single value
+                        single_group_input.value = single_value.value;
+                    }
+
+
+                }
+            });
+        });
+
+
+        return group_inputs;
+
+
+    };
+
+    return module;
+
+
+}(EC.Inputs));
+
 /*global $, jQuery*/
 
 /**
@@ -28505,101 +29332,102 @@ EC.Inputs = ( function(module) {"use strict";
  */
 var EC = EC || {};
 EC.Inputs = EC.Inputs || {};
-EC.Inputs = ( function(module) {"use strict";
+EC.Inputs = (function (module) {
+    'use strict';
 
-		module.setCachedInputValue = function(the_value, the_position, the_type, is_primary_key_flag) {
-			
-			var wls = window.localStorage;
-			var values;
-			var value = the_value;
-			var checkbox_values = [];
-			var position = parseInt(the_position, 10);
-			var index = position - 1;
-			var type;
-			var _id;
-			var is_primary_key = is_primary_key_flag;
-			var is_genkey_hidden = EC.Utils.isFormGenKeyHidden(window.localStorage.form_id);
-			var i;
-			var iLength;
+    module.setCachedInputValue = function (the_value, the_position, the_type, is_primary_key_flag) {
 
-			if (wls.edit_mode) {
+        var wls = window.localStorage;
+        var values;
+        var value = the_value;
+        var checkbox_values = [];
+        var position = parseInt(the_position, 10);
+        var index = position - 1;
+        var type;
+        var _id;
+        var is_primary_key = is_primary_key_flag;
+        var is_genkey_hidden = EC.Utils.isFormGenKeyHidden(window.localStorage.form_id);
+        var i;
+        var iLength;
 
-				_id = wls.edit_id;
-				type = wls.edit_type;
+        if (wls.edit_mode) {
 
-			} else {
+            _id = wls.edit_id;
+            type = wls.edit_type;
 
-				_id = '';
-				type = the_type;
+        } else {
 
-			}
+            _id = '';
+            type = the_type;
 
-			//if the value is an object from either dropdown or radio inputs, cache the value only (index is needed only for jumps)
-			if (type === EC.Const.DROPDOWN || type === EC.Const.RADIO) {
-				value = value.value;
-			}
+        }
 
-			//if the value is an array from checkboxes, cache an array of the labels
-			if (type === EC.Const.CHECKBOX) {
+        //if the value is an object from either dropdown or radio inputs, cache the value only (index is needed only for jumps)
+        if (type === EC.Const.DROPDOWN || type === EC.Const.RADIO) {
+            value = value.value;
+        }
 
-				//if any checkbox was selected, get it, otherwise do nothing and let the value be EC.Const.NO_OPTION_SELECTED
-				if (value !== EC.Const.NO_OPTION_SELECTED) {
+        //if the value is an array from checkboxes, cache an array of the labels
+        if (type === EC.Const.CHECKBOX) {
 
-					iLength = value.length;
-					for ( i = 0; i < iLength; i++) {
-						checkbox_values.push(value[i].value);
-					}
+            //if any checkbox was selected, get it, otherwise do nothing and let the value be EC.Const.NO_OPTION_SELECTED
+            if (value !== EC.Const.NO_OPTION_SELECTED) {
 
-					value = checkbox_values;
-				}
-			}
+                iLength = value.length;
+                for (i = 0; i < iLength; i++) {
+                    checkbox_values.push(value[i].value);
+                }
 
-			//catch Chrome error `Uncaught SyntaxError: Unexpected end of input` when parsing empty content
-			try {
-				values = JSON.parse(wls.inputs_values);
+                value = checkbox_values;
+            }
+        }
 
-			} catch(error) {
-				//Handle errors here
-				values = [];
-			}
-			
-			//TODO: check against values length??? try when hidden key is last element of the form
-			if (values[index] !== null && index < values.length) {
+        //catch Chrome error `Uncaught SyntaxError: Unexpected end of input` when parsing empty content
+        try {
+            values = JSON.parse(wls.inputs_values);
 
-				//if the values already is cached in inputs_values AND it is a primary_key AND it is a hidden auto generated key, do not override it but use that same value
-				//This happens when the user is editing a form with an autogen key hidden, we do no want to override it
-				if (values[index].is_primary_key === 1 && is_genkey_hidden === 1) {
-					value = values[index].value;
-				} else {
+        } catch (error) {
+            //Handle errors here
+            values = [];
+        }
 
-					values[index] = {
-						_id : _id,
-						type : type,
-						value : value,
-						position : position,
-						is_primary_key : is_primary_key
-					};
-				}
+        //TODO: check against values length??? try when hidden key is last element of the form
+        if (values[index] !== null && index < values.length) {
 
-			} else {
+            //if the values already is cached in inputs_values AND it is a primary_key AND it is a hidden auto generated key, do not override it but use that same value
+            //This happens when the user is editing a form with an autogen key hidden, we do no want to override it
+            if (values[index].is_primary_key === 1 && is_genkey_hidden === 1) {
+                value = values[index].value;
+            } else {
 
-				values[index] = {
-					_id : _id,
-					type : type,
-					value : value,
-					position : position,
-					is_primary_key : is_primary_key
-				};
-			}
+                values[index] = {
+                    _id: _id,
+                    type: type,
+                    value: value,
+                    position: position,
+                    is_primary_key: is_primary_key
+                };
+            }
 
-			wls.inputs_values = JSON.stringify(values);
-			console.log("input_values: " + wls.inputs_values);
+        } else {
 
-		};
+            values[index] = {
+                _id: _id,
+                type: type,
+                value: value,
+                position: position,
+                is_primary_key: is_primary_key
+            };
+        }
 
-		return module;
+        wls.inputs_values = JSON.stringify(values);
+        console.log('input_values: ' + wls.inputs_values);
 
-	}(EC.Inputs));
+    };
+
+    return module;
+
+}(EC.Inputs));
 
 /*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/
@@ -28989,9 +29817,7 @@ EC.Project = (function (module) {
                 });
 
             }
-
         });
-
     };
 
     module.renderList = function (the_projects) {

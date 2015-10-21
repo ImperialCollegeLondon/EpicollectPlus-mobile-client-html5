@@ -1,89 +1,85 @@
-/*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
 var EC = EC || {};
 EC.InputTypes = EC.InputTypes || {};
-EC.InputTypes = ( function(module) {"use strict";
-	
-	module.text = function(the_value, the_input) {
+EC.InputTypes = (function (module) {
+    'use strict';
 
-			//to cache dom lookups
-			var obj;
-			var span_label = $('span.label');
-			var clone = $('div.clone');
-			var double_entry;
-			var value = the_value;
-			var input = the_input;
+    module.text = function (the_value, the_input) {
 
-			//update label text
-			span_label.text(input.label);
-			
-			//Localise
-			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
-				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
-			}
+        //to cache dom lookups
+        var obj;
+        var span_label = $('span.label');
+        var clone = $('div.clone');
+        var double_entry;
+        var value = the_value;
+        var input = the_input;
 
-			//Add attribute to flag the primary key input field
-			if (parseInt(input.is_primary_key, 10) === 1) {
+        //update label text
+        span_label.text(input.label);
 
-				span_label.attr('data-primary-key', 'true');
+        //Localise
+        if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
+            EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
+        }
 
-			} else {
+        //Add attribute to flag the primary key input field
+        if (parseInt(input.is_primary_key, 10) === 1) {
 
-				//reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
-				span_label.attr('data-primary-key', '');
-			}
+            span_label.attr('data-primary-key', 'true');
 
-			//check if we need to replicate this input
-			double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
+        } else {
 
-			//re-enable input if needed
-			$('div#input-text input').removeAttr('disabled');
+            //reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
+            span_label.attr('data-primary-key', '');
+        }
 
-			if (double_entry) {
+        //check if we need to replicate this input
+        double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
 
-				//duplicate text input
-				clone.removeClass('hidden');
-				$('div.clone input').val(value);
+        //re-enable input if needed
+        $('div#input-text input').removeAttr('disabled');
 
-				//if in editing mode, do not allow changes  if the field is a primary key
-				console.log( typeof input.is_primary_key);
-				console.log( typeof input.has_jump);
+        if (double_entry) {
 
-				if (window.localStorage.edit_mode && input.is_primary_key === 1) {
+            //duplicate text input
+            clone.removeClass('hidden');
+            $('div.clone input').val(value);
 
-					$('div.clone input').attr('disabled', 'disabled');
-				}
+            //if in editing mode, do not allow changes  if the field is a primary key
+            console.log(typeof input.is_primary_key);
+            console.log(typeof input.has_jump);
 
-			} else {
+            if (window.localStorage.edit_mode && input.is_primary_key === 1) {
 
-				//add hidden class if missing
-				clone.addClass('hidden');
+                $('div.clone input').attr('disabled', 'disabled');
+            }
 
-			}
+        } else {
+            //add hidden class if missing
+            clone.addClass('hidden');
+        }
 
-			$('div#input-text input').val(value);
+        $('div#input-text input').val(value);
 
-			//if it is a genkey field, disable input and pre-fill it with the genkey
-			if (parseInt(input.is_genkey,10) === 1 && value === "") {
+        //if it is a genkey field, disable input and pre-fill it with the genkey
+        if (parseInt(input.is_genkey, 10) === 1 && value === '') {
 
-				$('div#input-text input').attr('disabled', 'disabled').val(EC.Utils.getGenKey());
-				return;
+            $('div#input-text input').attr('disabled', 'disabled').val(EC.Utils.getGenKey());
+            return;
 
-			}
+        }
 
-			//if in editing mode, do not allow changes if the field is a primary key 
-			if (window.localStorage.edit_mode && input.is_primary_key === 1) {
-				$('div#input-text input').attr('disabled', 'disabled');
-				$('div#input-text p.primary-key-not-editable').removeClass("hidden");
-			}
-			else{
-				$('div#input-text p.primary-key-not-editable').addClass("hidden");
-			}
-			
+        //if in editing mode, do not allow changes if the field is a primary key
+        if (window.localStorage.edit_mode && input.is_primary_key === 1) {
+            $('div#input-text input').attr('disabled', 'disabled');
+            $('div#input-text p.primary-key-not-editable').removeClass('hidden');
+        }
+        else {
+            $('div#input-text p.primary-key-not-editable').addClass('hidden');
+        }
+    };
 
-		};
 
-	
-	return module;
-	
+    return module;
+
 }(EC.InputTypes));

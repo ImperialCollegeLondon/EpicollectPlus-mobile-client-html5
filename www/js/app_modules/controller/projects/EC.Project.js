@@ -189,9 +189,7 @@ EC.Project = (function (module) {
                 });
 
             }
-
         });
-
     };
 
     module.renderList = function (the_projects) {

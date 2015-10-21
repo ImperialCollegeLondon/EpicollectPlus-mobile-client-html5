@@ -44,6 +44,7 @@ EC.Const = (function () {
         VIDEO: 'video',
         PHOTO: 'photo',
         BRANCH: 'branch',
+        GROUP: 'group',
         BRANCH_PREFIX: 'branch-',
         //PHOTO_DIR : '/files/images/',
         PHOTO_DIR: '', //defined at run time

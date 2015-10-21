@@ -32,6 +32,8 @@ EC.Structure = (function (module) {
                     var hierarchy_inputs = EC.Parse.inputs;
                     var branch_inputs = EC.Parse.branch_inputs;
 
+                    debugger;
+
                     $.when(EC.Hierarchy.commitInputs(hierarchy_inputs, hierarchy_forms_IDs), EC.Branch.commitBranchInputs(branch_inputs, branch_forms_IDs)).then(function (hierarchy_inputs_IDs, branch_inputs_IDs) {
 
                         var branch_options = EC.Parse.branch_options;

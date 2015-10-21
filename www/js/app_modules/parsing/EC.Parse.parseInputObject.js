@@ -5,213 +5,381 @@
  * @submodulemodule Parser
  */
 var EC = EC || {};
-EC.Parse = ( function(module) {"use strict";
+EC.Parse = (function (module) {
+    'use strict';
 
-		var self;
+    var self;
 
-		/*
-		 * Return the position of an input within a form based on form name AND the input @ref (uniqueness is given by the composite key)
-		 */
-		var _getInputPosition = function(the_ref, the_form_name) {
+    /*
+     * Return the position of an input within a form based on form name AND the input @ref (uniqueness is given by the composite key)
+     */
+    var _getInputPosition = function (the_ref, the_form_name) {
 
-			var ref = the_ref;
-			var form_name = the_form_name;
-			var input_position;
-			var i;
-			var iLength = self.form_inputs_positions.length;
-			var j;
-			var jLength;
-			var current_num;
-			var current_ref;
-			var inputs;
+        var ref = the_ref;
+        var form_name = the_form_name;
+        var input_position;
+        var i;
+        var iLength = self.form_inputs_positions.length;
+        var j;
+        var jLength;
+        var current_num;
+        var current_ref;
+        var inputs;
 
-			//loop all forms
-			for ( i = 0; i < iLength; i++) {
+        //loop all forms
+        for (i = 0; i < iLength; i++) {
 
-				//loop all inputs within a form
-				inputs = self.form_inputs_positions[i];
-				jLength = inputs.length;
-				for ( j = 0; j < jLength; j++) {
+            //loop all inputs within a form
+            inputs = self.form_inputs_positions[i];
+            jLength = inputs.length;
+            for (j = 0; j < jLength; j++) {
 
-					if (inputs[j].form_name === form_name && inputs[j].ref === ref) {
+                if (inputs[j].form_name === form_name && inputs[j].ref === ref) {
 
-						return inputs[j].position;
+                    return inputs[j].position;
 
-					}
+                }
 
-				}
+            }
 
-			}
+        }
 
-		};
-		
-		/*
-		 * Get an array of objects to loop and pass to "parseInputObject" for parsing
-		 */
-		module.parseInputArray = function(the_raw_array, the_type, the_form_num, the_form_type, the_form_name) {
+    };
 
-			var self = this;
+    /*
+     * Get an array of objects to loop and pass to "parseInputObject" for parsing
+     */
+    module.parseInputArray = function (the_raw_array, the_type, the_form_num, the_form_type, the_form_name) {
 
-			$.each(the_raw_array, function(key, value) {
-				self.parseInputObject(value, the_type, the_form_num, the_form_type, the_form_name);
-			});
-		};
+        var self = this;
+
+        $.each(the_raw_array, function (key, value) {
+            self.parseInputObject(value, the_type, the_form_num, the_form_type, the_form_name);
+        });
+    };
 
 
-		module.parseInputObject = function(the_raw_input, the_type, the_form_num, the_form_type, the_form_name) {
+    module.parseInputObject = function (the_raw_input, the_type, the_form_num, the_form_type, the_form_name) {
 
-			var i;
-			var iLength;
-			var j;
-			var jLenght;
-			var input_position;
-			var ref;
-			var form_num;
-			var form_type;
-			var form_name;
-			var is_genkey_hidden;
+        var i;
+        var iLength;
+        var j;
+        var jLenght;
+        var input_position;
+        var ref;
+        var form_num;
+        var form_type;
+        var form_name;
+        var is_genkey_hidden;
+        var type = the_type;
 
-			self = this;
-			ref = the_raw_input["@ref"];
-			form_num = the_form_num;
-			form_type = the_form_type;
-			form_name = the_form_name;
+        self = this;
+        ref = the_raw_input['@ref'];
+        form_num = the_form_num;
+        form_type = the_form_type;
+        form_name = the_form_name;
 
-			//get input position
-			input_position = _getInputPosition(ref, form_name);
+        //get input position
+        input_position = _getInputPosition(ref, form_name);
 
-			//skip this input if position is set to 'skip'
-			if (input_position === "skip") {
-				return;
-			}
+        //skip this input if position is set to 'skip'
+        if (input_position === 'skip') {
+            return;
+        }
 
-			var parsed_input = {
+        var parsed_input = {
 
-				position : input_position,
-				label : the_raw_input.label,
-				type : the_type,
-				ref : ref,
-				datetime_format : "",
-				has_jump : "",
-				jumps : "",
-				has_advanced_jump : ""
+            position: input_position,
+            label: the_raw_input.label,
+            type: the_type,
+            ref: ref,
+            datetime_format: '',
+            has_jump: '',
+            jumps: '',
+            has_advanced_jump: ''
 
-			};
+        };
 
-			parsed_input.is_genkey = (the_raw_input["@genkey"] === undefined) ? "" : 1;
 
-			is_genkey_hidden = (the_raw_input["@display"] === undefined) ? 0 : 1;
+        parsed_input.is_genkey = (the_raw_input['@genkey'] === undefined) ? '' : 1;
 
-			if (parsed_input.is_genkey === 1 && is_genkey_hidden === 1) {
-				self.is_form_genkey_hidden = 1;
-			}
+        is_genkey_hidden = (the_raw_input['@display'] === undefined) ? 0 : 1;
 
-			//Set primary key flag to true  if the input is the primary key for current form
-			parsed_input.is_primary_key = (parsed_input.ref === self.form_key) ? 1 : 0;
-			
-			//#handle a bug in the form builder when a NOT autogenerated key can be hidden (LOL): when a primary key input is hidden, force it to be autogenerated
-			if(parsed_input.is_primary_key === 1 && is_genkey_hidden === 1){
-				self.is_form_genkey_hidden = 1;
-			}
+        if (parsed_input.is_genkey === 1 && is_genkey_hidden === 1) {
+            self.is_form_genkey_hidden = 1;
+        }
 
-			//if @default is present, there is a default value set for this input
-			parsed_input.default_value = (the_raw_input["@default"] === undefined) ? "" : parsed_input.default_value = the_raw_input["@default"];
+        //Set primary key flag to true  if the input is the primary key for current form
+        parsed_input.is_primary_key = (parsed_input.ref === self.form_key) ? 1 : 0;
 
-			//if @integer is present, convert the type to integer (it defaults to text)
-			if (the_raw_input["@integer"] !== undefined) {
-				parsed_input.type = "integer";
+        //#handle a bug in the form builder when a NOT autogenerated key can be hidden (LOL): when a primary key input is hidden, force it to be autogenerated
+        if (parsed_input.is_primary_key === 1 && is_genkey_hidden === 1) {
+            self.is_form_genkey_hidden = 1;
+        }
 
-			}
+        //if @default is present, there is a default value set for this input
+        parsed_input.default_value = (the_raw_input['@default'] === undefined) ? '' : parsed_input.default_value = the_raw_input['@default'];
 
-			//if @decimal is present, convert the type to integer (it defaults to text)
-			if (the_raw_input["@decimal"] !== undefined) {
-				parsed_input.type = "decimal";
+        //if @integer is present, convert the type to integer (it defaults to text)
+        if (the_raw_input['@integer'] !== undefined) {
+            parsed_input.type = 'integer';
 
-			}
+        }
 
-			//if @setdate or @date  is present, convert the type to date (it defaults to text) and add the "format" attribute
-			if (the_raw_input["@setdate"] !== undefined || the_raw_input["@date"] !== undefined) {
+        //if @decimal is present, convert the type to integer (it defaults to text)
+        if (the_raw_input['@decimal'] !== undefined) {
+            parsed_input.type = 'decimal';
 
-				parsed_input.type = "date";
-				parsed_input.datetime_format = the_raw_input["@setdate"] || the_raw_input["@date"];
+        }
 
-				//also add the setdate value as default to indicate it needs to default to current date
-				parsed_input.default_value = the_raw_input["@setdate"] || "";
+        //if @setdate or @date  is present, convert the type to date (it defaults to text) and add the 'format' attribute
+        if (the_raw_input['@setdate'] !== undefined || the_raw_input['@date'] !== undefined) {
 
-			}
+            parsed_input.type = 'date';
+            parsed_input.datetime_format = the_raw_input['@setdate'] || the_raw_input['@date'];
 
-			//if @settime or @time is present, convert the type to time (it defaults to text) and add the "format" attribute
-			if (the_raw_input["@settime"] !== undefined || the_raw_input["@time"] !== undefined) {
+            //also add the setdate value as default to indicate it needs to default to current date
+            parsed_input.default_value = the_raw_input['@setdate'] || '';
 
-				parsed_input.type = "time";
-				parsed_input.datetime_format = the_raw_input["@settime"] || the_raw_input["@time"];
+        }
 
-				//also add the settime value as default to indicate it needs to default to current time
-				parsed_input.default_value = the_raw_input["@settime"] || "";
-			}
+        //if @settime or @time is present, convert the type to time (it defaults to text) and add the 'format' attribute
+        if (the_raw_input['@settime'] !== undefined || the_raw_input['@time'] !== undefined) {
 
-			//set regex if any @regex is specified
-			parsed_input.regex = (the_raw_input["@regex"] === undefined) ? "" : the_raw_input["@regex"];
+            parsed_input.type = 'time';
+            parsed_input.datetime_format = the_raw_input['@settime'] || the_raw_input['@time'];
 
-			//set max and min value if any specified (not numeric fields will get "none")
-			parsed_input.max_range = (the_raw_input["@max"] === undefined) ? "" : the_raw_input["@max"];
-			parsed_input.min_range = (the_raw_input["@min"] === undefined) ? "" : the_raw_input["@min"];
+            //also add the settime value as default to indicate it needs to default to current time
+            parsed_input.default_value = the_raw_input['@settime'] || '';
+        }
 
-			//set is_required to true or false based on the @required present or not
-			parsed_input.is_required = (the_raw_input["@required"] === undefined) ? 0 : 1;
+        //set regex if any @regex is specified
+        parsed_input.regex = (the_raw_input['@regex'] === undefined) ? '' : the_raw_input['@regex'];
 
-			//set search flag: this will be used for the advanced search function
-			parsed_input.is_searchable = (the_raw_input["@search"] === undefined) ? 0 : 1;
+        //set max and min value if any specified (not numeric fields will get 'none')
+        parsed_input.max_range = (the_raw_input['@max'] === undefined) ? '' : the_raw_input['@max'];
+        parsed_input.min_range = (the_raw_input['@min'] === undefined) ? '' : the_raw_input['@min'];
 
-			/*
-			 * set title to true or false based on the @title present or not
-			 *
-			 * !--XML form builder needs to force at least one occurrence of @title --!
-			 */
-			parsed_input.is_title = (the_raw_input["@title"] === undefined) ? 0 : 1;
+        //set is_required to true or false based on the @required present or not
+        parsed_input.is_required = (the_raw_input['@required'] === undefined) ? 0 : 1;
 
-			//set is_double_entry flag based on @verify present or not
-			parsed_input.has_double_check = (the_raw_input["@verify"] === undefined) ? 0 : 1;
+        //set search flag: this will be used for the advanced search function
+        parsed_input.is_searchable = (the_raw_input['@search'] === undefined) ? 0 : 1;
 
-			if (the_raw_input["@jump"] !== undefined) {
+        /*
+         * set title to true or false based on the @title present or not
+         *
+         * !--XML form builder needs to force at least one occurrence of @title --!
+         */
+        parsed_input.is_title = (the_raw_input['@title'] === undefined) ? 0 : 1;
 
-				//Set flag about this input triggering a jump or not
-				parsed_input.has_jump = 1;
+        //set is_double_entry flag based on @verify present or not
+        parsed_input.has_double_check = (the_raw_input['@verify'] === undefined) ? 0 : 1;
 
-				parsed_input.jumps = the_raw_input["@jump"];
-			}
+        if (the_raw_input['@jump'] !== undefined) {
 
-			//<radio>, <select> (checkbox), <select1>(select) will have list of available options attached as "item" array
-			if (the_type === EC.Const.RADIO || the_type === EC.Const.CHECKBOX || the_type === EC.Const.DROPDOWN) {
+            //Set flag about this input triggering a jump or not
+            parsed_input.has_jump = 1;
 
-				//add set of options to options array, to link back to each input using @ref, @num
+            parsed_input.jumps = the_raw_input['@jump'];
+        }
 
-				//options for hierarchy forms (main)
-				if (form_type === "main") {
-					self.options.push({
-						num : the_form_num,
-						ref : the_raw_input["@ref"],
-						options : the_raw_input.item
-					});
-				} else {
+        //<radio>, <select> (checkbox), <select1>(select) will have list of available options attached as 'item' array
+        if (type === EC.Const.RADIO || type === EC.Const.CHECKBOX || type === EC.Const.DROPDOWN) {
 
-					//options for branch form
-					self.branch_options.push({
-						num : the_form_num,
-						ref : the_raw_input["@ref"],
-						options : the_raw_input.item
-					});
-				}
+            //add set of options to options array, to link back to each input using @ref, @num
 
-			}//if
+            //options for hierarchy forms (main)
+            if (form_type === 'main') {
+                self.options.push({
+                    num: the_form_num,
+                    ref: the_raw_input['@ref'],
+                    options: the_raw_input.item
+                });
+            } else {
 
-			//if the type is branch, set branch_form value
-			parsed_input.branch_form_name = (the_raw_input["@branch_form"] === undefined) ? "" : the_raw_input["@branch_form"];
+                //options for branch form
+                self.branch_options.push({
+                    num: the_form_num,
+                    ref: the_raw_input['@ref'],
+                    options: the_raw_input.item
+                });
+            }
 
-			//store input
-			self.input_list.push(parsed_input);
-		};
+        }//if
 
-		return module;
+        //if the type is branch, set branch_form value
+        parsed_input.branch_form_name = (the_raw_input['@branch_form'] === undefined) ? '' : the_raw_input['@branch_form'];
 
-	}(EC.Parse));
+        //if the type is 'group', parse inputs withing the group
+        if (type === EC.Const.GROUP) {
+
+            var raw_group_inputs = the_raw_input.input;
+            var parsed_group_inputs = [];
+
+            //get label for groups, it is an attribute, not a tag
+            parsed_input.label = the_raw_input['@label'];
+
+            //are there any <textarea> inputs?
+            if (the_raw_input.textarea) {
+                //ok, add them as inputs (could be array or object if only one)
+                if (Array.isArray(the_raw_input.textarea)) {
+
+                    //we need to ad type textarea here #dechrissify, as the Epicollect+ formbuilder does not add a type to the inputs, how marvelous is that?
+                    $.each(the_raw_input.textarea, function (index, single_group_textarea) {
+                        single_group_textarea.type = EC.Const.TEXTAREA;
+                    });
+                    raw_group_inputs = raw_group_inputs.concat(the_raw_input.textarea);
+                }
+                else {
+                    the_raw_input.textarea.type = EC.Const.TEXTAREA;
+                    raw_group_inputs.push(the_raw_input.textarea);
+                }
+            }
+
+
+            //todo are there any <radio> inputs?
+            if (the_raw_input.radio) {
+                //ok, add them as inputs (could be array or object if only one)
+                if (Array.isArray(the_raw_input.radio)) {
+
+                    //we need to ad type radio here #dechrissify, as the Epicollect+ formbuilder does not add a type to the inputs, how marvelous is that?
+                    $.each(the_raw_input.radio, function (index, single_group_radio) {
+                        single_group_radio.type = EC.Const.RADIO;
+                    });
+                    raw_group_inputs = raw_group_inputs.concat(the_raw_input.radio);
+                }
+                else {
+                    the_raw_input.radio.type = EC.Const.RADIO;
+                    raw_group_inputs.push(the_raw_input.radio);
+                }
+            }
+
+
+
+            //are there any <select> inputs? In their infinite wisdom, original Epicollect+ developers decided to use the <select> tag to render a checkbox. Yes, really :/ #dechrissify
+            if (the_raw_input.select) {
+                //ok, add them as inputs (could be array or object if only one)
+                if (Array.isArray(the_raw_input.select)) {
+
+                    //we need to add type checkbox here #dechrissify, as the Epicollect+ formbuilder does not add a type to the inputs, how marvelous is that?
+                    $.each(the_raw_input.select, function (index, single_group_select) {
+                        single_group_select.type = EC.Const.CHECKBOX;
+                    });
+                    raw_group_inputs = raw_group_inputs.concat(the_raw_input.select);
+                }
+                else {
+                    the_raw_input.select.type = EC.Const.CHECKBOX;
+                    raw_group_inputs.push(the_raw_input.select);
+                }
+            }
+
+
+
+            //are there any <select1> inputs?
+            // You will not believe this: after overriding <select> to show a checkbox, Epicollect+ original developers suddenly realised they still needed a dropdown (which is what <select> has been for the past 30 years), so they created a <select1> tag! Please kill me :/
+            if (the_raw_input.select1) {
+                //ok, add them as inputs (could be array or object if only one)
+                if (Array.isArray(the_raw_input.select1)) {
+
+                    //we need to add type dropdown here #dechrissify, as the Epicollect+ formbuilder does not add a type to the inputs, how marvelous is that?
+                    $.each(the_raw_input.select1, function (index, single_group_select1) {
+                        single_group_select1.type = EC.Const.DROPDOWN;
+                    });
+                    raw_group_inputs = raw_group_inputs.concat(the_raw_input.select1);
+                }
+                else {
+                    the_raw_input.select1.type = EC.Const.DROPDOWN;
+                    raw_group_inputs.push(the_raw_input.select1);
+                }
+            }
+
+
+            //parse all the inputs nested withing the <group> tag
+            $.each(raw_group_inputs, function (index, single_group_input) {
+
+                //parse attributes into object properties. We are not parsing position, is it still needed?
+
+
+                single_group_input.ref = single_group_input['@ref'];
+                //delete @ref property as not used
+                delete single_group_input['@ref'];
+
+                //default type is 'text' (if it is not set already, see <textarea>)
+                if (!single_group_input.type) {
+                    single_group_input.type = EC.Const.TEXT;
+                }
+
+
+                //if @integer is present, convert the type to integer (it defaults to text)
+                if (single_group_input['@integer'] !== undefined) {
+                    single_group_input.type = 'integer';
+
+                }
+
+                //if @decimal is present, convert the type to integer (it defaults to text)
+                if (single_group_input['@decimal'] !== undefined) {
+                    single_group_input.type = 'decimal';
+
+                }
+
+                //if @setdate or @date  is present, convert the type to date (it defaults to text) and add the 'format' attribute
+                if (single_group_input['@setdate'] !== undefined || single_group_input['@date'] !== undefined) {
+
+                    single_group_input.type = 'date';
+                    single_group_input.datetime_format = single_group_input['@setdate'] || single_group_input['@date'];
+
+                    //also add the setdate value as default to indicate it needs to default to current date
+                    single_group_input.default_value = single_group_input['@setdate'] || '';
+
+                }
+
+                //if @settime or @time is present, convert the type to time (it defaults to text) and add the 'format' attribute
+                if (single_group_input['@settime'] !== undefined || single_group_input['@time'] !== undefined) {
+
+                    single_group_input.type = 'time';
+                    single_group_input.datetime_format = single_group_input['@settime'] || single_group_input['@time'];
+
+                    //also add the settime value as default to indicate it needs to default to current time
+                    single_group_input.default_value = single_group_input['@settime'] || '';
+                }
+
+                //if @default is present, there is a default value set for this input
+                single_group_input.default_value = (single_group_input['@default'] === undefined) ? '' : single_group_input.default_value;
+
+                single_group_input.has_double_check = (single_group_input['@verify'] === undefined) ? 0 : 1;
+                //set is_required to true or false based on the @required present or not
+                single_group_input.is_required = (single_group_input['@required'] === undefined) ? 0 : 1;
+
+                //set max and min value if any specified (not numeric fields will get 'none')
+                single_group_input.max_range = (single_group_input['@max'] === undefined) ? '' : single_group_input['@max'];
+                single_group_input.min_range = (single_group_input['@min'] === undefined) ? '' : single_group_input['@min'];
+
+                //set regex if any @regex is specified
+                single_group_input.regex = (single_group_input['@regex'] === undefined) ? '' : single_group_input['@regex'];
+
+                //add a value property to store the answer to this input question
+                single_group_input.value = '';
+
+
+                //rename <item> to options to keep consistency
+                single_group_input.options = single_group_input.item || [];
+                //delete item property as not used
+                delete single_group_input.item;
+
+
+                parsed_group_inputs.push(single_group_input);
+            });
+
+            //add group_inputs to main input
+            parsed_input.group_inputs = parsed_group_inputs;
+
+        }
+
+        //store input
+        self.input_list.push(parsed_input);
+    };
+
+    return module;
+
+}(EC.Parse));

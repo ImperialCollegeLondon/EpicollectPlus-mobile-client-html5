@@ -408,7 +408,7 @@ li.autocomplete-spinner i.fa-spin, .more-items-btn-spinner i {
 
 ul.ui-listview li.ui-li {
     margin-top: 3px;
-    border:none!important;
+    border: none !important;
 }
 
 .parent-entry-divider {
@@ -497,17 +497,31 @@ div#add-project-content {
     margin-top: 20px;
     color: green;
 }
+
 /* Location/branch-location view*/
 div.current-accuracy-result {
     color: green;
     text-align: center;
 }
-div.current-accuracy-result span{
+
+div.current-accuracy-result span {
     font-weight: bold;
 }
+
 div.location-accuracy-tip {
     text-align: center;
 }
+
 #map-canvas {
-    height:300px;
+    height: 300px;
 }
+
+/* group inputs*/
+div.group-date .ui-body-a, div.group-time .ui-body-a {
+    border: 0;
+}
+/*remove border from date and time, JQM quirk*/
+div.group-date > div.ui-body-a:first-of-type, div.group-time > div.ui-body-a:first-of-type {
+    border: 1px solid #aaaaaa;
+}
+

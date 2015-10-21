@@ -95,6 +95,12 @@ EC.Inputs = (function (module) {
                 EC.InputTypes.video(value, input);
                 break;
 
+            //render group: more inputs on same page
+            case EC.Const.GROUP:
+
+                EC.InputTypes.group(value, input);
+                break;
+
             case EC.Const.BRANCH:
 
                 //if we are opening a branch form, cache inputs

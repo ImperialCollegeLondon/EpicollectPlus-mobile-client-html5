@@ -56,7 +56,10 @@ EC.Inputs = (function (module) {
 
         percentage_txt.text(ratio + '%');
         percentage_bar.css('width', ratio + '%');
+
     };
+
+
 
     return module;
 

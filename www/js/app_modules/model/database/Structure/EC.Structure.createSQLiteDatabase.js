@@ -1,8 +1,4 @@
-/*
- * @module CreateSQLiteDatabase
- *
- *
- *   Cordova uses Web SQL specifications on the Chrome browser (Android)
+/* Cordova uses Web SQL specifications on the Chrome browser (Android)
  *
  */
 
@@ -106,6 +102,7 @@ EC.Structure = (function (module) {
         '"is_searchable" TEXT, ', //
         '"regex" TEXT, ', //
         '"has_jump" INTEGER,', //
+        '"group_inputs" TEXT,', //
         '"jumps" TEXT,', //
         '"has_advanced_jump" INTEGER, ', //
         '"datetime_format" TEXT,', //
@@ -150,30 +147,22 @@ EC.Structure = (function (module) {
     var cq_ec_group_inputs = ['', //
         'CREATE  TABLE IF NOT EXISTS "ec_group_inputs" (', //
         '"_id" INTEGER PRIMARY KEY  AUTOINCREMENT  NOT NULL  UNIQUE , ', //
-        '"form_id" INTEGER NOT NULL , ', //
+        '"input_id" INTEGER NOT NULL , ', //
         '"ref" TEXT,', //
         '"position" INTEGER,', //
         '"label" TEXT,', //
         '"default_value" TEXT,', //
         '"type" TEXT, ', //
-        '"is_primary_key" INTEGER,', //
-        '"is_genkey" INTEGER,', //
         '"has_double_check" INTEGER,', //
         '"max_range" TEXT,', //
         '"min_range" TEXT , ', //
         '"is_required" INTEGER, ', //
-        '"is_title" INTEGER,', //
-        '"is_server_local" INTEGER,', //
-        '"is_searchable" TEXT, ', //
         '"regex" TEXT, ', //
         '"datetime_format" TEXT,', //
-        'FOREIGN KEY ("form_id") REFERENCES ec_forms(_id) ON DELETE CASCADE ON ',
-        // //
+        'FOREIGN KEY ("input_id") REFERENCES ec_inputs(_id) ON DELETE CASCADE ON ',
         'UPDATE CASCADE', //
         ');'//
     ].join('');
-    //
-    //
 
     //Query to create ec_input_options table
     var cq_ec_input_options = ['', //

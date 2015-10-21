@@ -12,7 +12,7 @@ EC.Ui = {
     //attach vmousedown and vmouseup event to highlight buttons on tap
     bindBtnStates: function () {
         'use strict';
-        
+
         var self = this;
 
         //bind events to apply hover effect on buttons (Action Bar)
@@ -200,6 +200,15 @@ EC.Ui = {
             e.stopPropagation();
 
             $(this).css('background-color', self.colors.default_button_background);
+        });
+
+        /* Following code is a hack to make the select native widget work on
+         * Android 4.4.2 (Nexus 5)
+         */
+        //Hack: manually trigger a click on a select element.
+        // Best solution I came across
+        $('select').on('vmousedown', function (e) {
+            $(this).focus().click();
         });
     }
 };
