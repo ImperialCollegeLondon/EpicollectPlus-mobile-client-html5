@@ -1246,7 +1246,6 @@ EC.Utils = (function () {
             var labels = [];
             for (i = 0; i < iLength; i++) {
                 for (j = 0; j < jLength; j++) {
-
                     if (current_input.options[j].value === value_as_array[i].trim()) {
                         labels.push(current_input.options[j].label);
                     }

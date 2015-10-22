@@ -524,4 +524,26 @@ div.group-date .ui-body-a, div.group-time .ui-body-a {
 div.group-date > div.ui-body-a:first-of-type, div.group-time > div.ui-body-a:first-of-type {
     border: 1px solid #aaaaaa;
 }
+div.group-inputs-grid {
 
+}
+.group-inputs-grid-top-margin {
+    margin-top:30px;
+}
+.group-inputs-grid-bottom-border {
+    border-bottom:1px solid #333;
+}
+
+div.group-inputs-grid .group-inputs-grid__label{
+ border-top:1px solid #333;
+    border-left:1px solid #333;
+    border-right:1px solid #333;
+}
+
+div.group-inputs-grid .group-inputs-grid__value{
+    border-top:1px solid #333;
+    border-left:1px solid #333;
+    border-right:1px solid #333;
+    font-weight:normal;
+    background-color: #ffffff;
+}

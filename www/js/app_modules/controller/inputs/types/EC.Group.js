@@ -6,7 +6,7 @@ EC.InputTypes = (function (module) {
 
     module.group = function (the_value, the_input) {
 
-        debugger;
+        
 
         var span_label = $('span.label');
         var clone = $('div.clone');
@@ -47,6 +47,7 @@ EC.InputTypes = (function (module) {
         //if value is an array, we have some cached group values to map, as on first load is a string
         //todo what about when we edit existing data?
         if (Array.isArray(value)) {
+            //map the cached values to each group input value property, so we can display cached values
             input.group_inputs = EC.Inputs.mapGroupCachedValues(input.group_inputs, value);
         }
 

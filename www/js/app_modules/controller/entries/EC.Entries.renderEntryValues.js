@@ -8,6 +8,7 @@ EC.Entries = EC.Entries || {};
 EC.Entries = (function (module) {
     'use strict';
 
+
     /**
      * @method renderEntryValues Render a list of all the values for a single
      * entry
@@ -122,6 +123,8 @@ EC.Entries = (function (module) {
     };
 
     module.renderEntryValues = function (the_values) {
+
+        debugger;
 
         //build HTML
         var HTML = '';
@@ -310,18 +313,6 @@ EC.Entries = (function (module) {
                 //format media and location values for displaying purposes
                 switch (values[i].type) {
 
-                    //show labels for checkbox choices, as tey are saved as
-                    // values
-                    case EC.Const.CHECKBOX:
-
-                        console.log('CHECKBOX');
-                        console.log(values[i]);
-
-                        labels = EC.Utils.mapLabelToValue(values[i], inputs);
-                        HTML += '<span class="h-entry-value-label">' + labels.join(', ') + '</span>';
-
-                        break;
-
                     case EC.Const.DROPDOWN:
 
                         console.log('DROPDOWN');
@@ -408,9 +399,94 @@ EC.Entries = (function (module) {
 
                         break;
 
+                    //show labels for checkbox choices, as they are saved as values
+                    case EC.Const.CHECKBOX:
+
+                        console.log('CHECKBOX');
+                        console.log(values[i]);
+
+                        labels = EC.Utils.mapLabelToValue(values[i], inputs);
+                        HTML += '<span class="h-entry-value-label">' + labels.join(', ') + '</span>';
+
+                        break;
+
+                    //group values will be always a json string (serialized array)
+                    case EC.Const.GROUP:
+
+                        var group_inputs = JSON.parse(inputs[i].group_inputs);
+                        var group_input_values = JSON.parse(values[i].value);
+                        var group_input_labels = [];
+                        var multiple_value;
+
+                        //map values against labels (to show labels)
+                        group_input_labels = EC.Inputs.mapGroupValuesToLabels(group_inputs, group_input_values);
+
+
+                        $(group_input_labels).each(function (index, single_label) {
+
+                            var values_list;
+
+                            if (index === 0) {
+                                //add top margin class only to the first element, to make space for the edit button on the top right
+                                HTML += ' <div class="ui-grid-a ui-responsive group-inputs-grid group-inputs-grid-top-margin">';
+                            }
+                            else {
+                                HTML += ' <div class="ui-grid-a ui-responsive group-inputs-grid">';
+                            }
+
+                            //for multiple choice options, we need some extra parsing (radio and dropdown)
+                            if (single_label.value instanceof Object) {
+
+                                //for multiple choice options, we need some extra parsing (radio and dropdown)
+                                if (single_label.value instanceof Array) {
+
+                                    values_list = [];
+
+                                    $(single_label.value).each(function (index, single_value) {
+
+                                        values_list.push(single_value.label);
+                                    });
+
+                                    single_label.value = values_list.join(', ');
+
+                                }
+                                else {
+                                    single_label.value = single_label.value.label;
+                                }
+
+                            }
+
+
+                            //add bottom border to last element only
+                            if (index === group_input_labels.length - 1) {
+                                HTML += '<div class="ui-block-a group-inputs-grid__label group-inputs-grid-bottom-border">';
+                                HTML += '<div class="ui-bar ui-bar-e" style="height:60px">' + single_label.label + '</div>';
+                                HTML += '</div>';
+                            }
+                            else {
+                                HTML += '<div class="ui-block-a group-inputs-grid__label">';
+                                HTML += '<div class="ui-bar ui-bar-e" style="height:60px">' + single_label.label + '</div>';
+                                HTML += '</div>';
+                            }
+
+
+                            //add bottom border to last element only
+                            if (index === group_input_labels.length - 1) {
+                                HTML += '<div class="ui-block-b group-inputs-grid__value group-inputs-grid-bottom-border">';
+                                HTML += '<div class="ui-bar ui-bar-e" style="height:60px">' + single_label.value + '</div>';
+                                HTML += '</div>';
+                            }
+                            else {
+                                HTML += '<div class="ui-block-b group-inputs-grid__value">';
+                                HTML += '<div class="ui-bar ui-bar-e" style="height:60px">' + single_label.value + '</div>';
+                                HTML += '</div>';
+                            }
+                            HTML += '</div>';
+                        });
+                        break;
+
                     default:
                         HTML += '<span class="h-entry-value-label">' + values[i].value + '</span>';
-
                 }
 
                 HTML += '<div class="entry-value-embedded-btn" data-href="?position=' + values[i].position + '">';

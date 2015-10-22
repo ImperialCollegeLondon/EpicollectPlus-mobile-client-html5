@@ -2086,7 +2086,6 @@ EC.Utils = (function () {
             var labels = [];
             for (i = 0; i < iLength; i++) {
                 for (j = 0; j < jLength; j++) {
-
                     if (current_input.options[j].value === value_as_array[i].trim()) {
                         labels.push(current_input.options[j].label);
                     }
@@ -3384,7 +3383,7 @@ EC.Parse = (function (module) {
 
     module.mapPositionToInput = function (the_xml) {
 
-        debugger;
+
 
         var xml = the_xml;
         var form_children;
@@ -3419,7 +3418,7 @@ EC.Parse = (function (module) {
             //loop all the inputs
             $(form_children).each(function (index) {
 
-                debugger;
+
 
                 var ref = $(this).attr('ref');
 
@@ -6706,7 +6705,7 @@ EC.Structure = (function (module) {
                     var hierarchy_inputs = EC.Parse.inputs;
                     var branch_inputs = EC.Parse.branch_inputs;
 
-                    debugger;
+
 
                     $.when(EC.Hierarchy.commitInputs(hierarchy_inputs, hierarchy_forms_IDs), EC.Branch.commitBranchInputs(branch_inputs, branch_forms_IDs)).then(function (hierarchy_inputs_IDs, branch_inputs_IDs) {
 
@@ -22783,6 +22782,7 @@ EC.Entries = EC.Entries || {};
 EC.Entries = (function (module) {
     'use strict';
 
+
     /**
      * @method renderEntryValues Render a list of all the values for a single
      * entry
@@ -22897,6 +22897,8 @@ EC.Entries = (function (module) {
     };
 
     module.renderEntryValues = function (the_values) {
+
+        debugger;
 
         //build HTML
         var HTML = '';
@@ -23085,18 +23087,6 @@ EC.Entries = (function (module) {
                 //format media and location values for displaying purposes
                 switch (values[i].type) {
 
-                    //show labels for checkbox choices, as tey are saved as
-                    // values
-                    case EC.Const.CHECKBOX:
-
-                        console.log('CHECKBOX');
-                        console.log(values[i]);
-
-                        labels = EC.Utils.mapLabelToValue(values[i], inputs);
-                        HTML += '<span class="h-entry-value-label">' + labels.join(', ') + '</span>';
-
-                        break;
-
                     case EC.Const.DROPDOWN:
 
                         console.log('DROPDOWN');
@@ -23183,9 +23173,94 @@ EC.Entries = (function (module) {
 
                         break;
 
+                    //show labels for checkbox choices, as they are saved as values
+                    case EC.Const.CHECKBOX:
+
+                        console.log('CHECKBOX');
+                        console.log(values[i]);
+
+                        labels = EC.Utils.mapLabelToValue(values[i], inputs);
+                        HTML += '<span class="h-entry-value-label">' + labels.join(', ') + '</span>';
+
+                        break;
+
+                    //group values will be always a json string (serialized array)
+                    case EC.Const.GROUP:
+
+                        var group_inputs = JSON.parse(inputs[i].group_inputs);
+                        var group_input_values = JSON.parse(values[i].value);
+                        var group_input_labels = [];
+                        var multiple_value;
+
+                        //map values against labels (to show labels)
+                        group_input_labels = EC.Inputs.mapGroupValuesToLabels(group_inputs, group_input_values);
+
+
+                        $(group_input_labels).each(function (index, single_label) {
+
+                            var values_list;
+
+                            if (index === 0) {
+                                //add top margin class only to the first element, to make space for the edit button on the top right
+                                HTML += ' <div class="ui-grid-a ui-responsive group-inputs-grid group-inputs-grid-top-margin">';
+                            }
+                            else {
+                                HTML += ' <div class="ui-grid-a ui-responsive group-inputs-grid">';
+                            }
+
+                            //for multiple choice options, we need some extra parsing (radio and dropdown)
+                            if (single_label.value instanceof Object) {
+
+                                //for multiple choice options, we need some extra parsing (radio and dropdown)
+                                if (single_label.value instanceof Array) {
+
+                                    values_list = [];
+
+                                    $(single_label.value).each(function (index, single_value) {
+
+                                        values_list.push(single_value.label);
+                                    });
+
+                                    single_label.value = values_list.join(', ');
+
+                                }
+                                else {
+                                    single_label.value = single_label.value.label;
+                                }
+
+                            }
+
+
+                            //add bottom border to last element only
+                            if (index === group_input_labels.length - 1) {
+                                HTML += '<div class="ui-block-a group-inputs-grid__label group-inputs-grid-bottom-border">';
+                                HTML += '<div class="ui-bar ui-bar-e" style="height:60px">' + single_label.label + '</div>';
+                                HTML += '</div>';
+                            }
+                            else {
+                                HTML += '<div class="ui-block-a group-inputs-grid__label">';
+                                HTML += '<div class="ui-bar ui-bar-e" style="height:60px">' + single_label.label + '</div>';
+                                HTML += '</div>';
+                            }
+
+
+                            //add bottom border to last element only
+                            if (index === group_input_labels.length - 1) {
+                                HTML += '<div class="ui-block-b group-inputs-grid__value group-inputs-grid-bottom-border">';
+                                HTML += '<div class="ui-bar ui-bar-e" style="height:60px">' + single_label.value + '</div>';
+                                HTML += '</div>';
+                            }
+                            else {
+                                HTML += '<div class="ui-block-b group-inputs-grid__value">';
+                                HTML += '<div class="ui-bar ui-bar-e" style="height:60px">' + single_label.value + '</div>';
+                                HTML += '</div>';
+                            }
+                            HTML += '</div>';
+                        });
+                        break;
+
                     default:
                         HTML += '<span class="h-entry-value-label">' + values[i].value + '</span>';
-
                 }
 
                 HTML += '<div class="entry-value-embedded-btn" data-href="?position=' + values[i].position + '">';
@@ -25962,7 +26037,7 @@ EC.Inputs = (function (module) {
 
     module.buildRows = function (the_filenameToTimestamp) {
 
-        debugger;
+        
 
         var self = this;
         var i;
@@ -26114,7 +26189,7 @@ EC.Inputs = (function (module) {
 
             //deal with group, save all the group inputs answers (array) as a json object. Quick to do it, we added groups too late to the party ;)
             if (input.type === EC.Const.GROUP) {
-                debugger;
+
 
                 //for a group, value will always be an array of values
                 //todo deal with _skipp3d_ group, but are we allowing this?
@@ -27334,7 +27409,7 @@ EC.InputTypes = (function (module) {
 
     module.group = function (the_value, the_input) {
 
-        debugger;
+        
 
         var span_label = $('span.label');
         var clone = $('div.clone');
@@ -27375,6 +27450,7 @@ EC.InputTypes = (function (module) {
         //if value is an array, we have some cached group values to map, as on first load is a string
         //todo what about when we edit existing data?
         if (Array.isArray(value)) {
+            //map the cached values to each group input value property, so we can display cached values
             input.group_inputs = EC.Inputs.mapGroupCachedValues(input.group_inputs, value);
         }
 
@@ -29118,7 +29194,7 @@ EC.Inputs = (function (module) {
 
     module.getGroupCurrentValues = function () {
 
-        debugger;
+
 
         //for a group, we need to loop all the inputs, per each type
         var group_text_inputs = $('div.group-text');
@@ -29390,16 +29466,13 @@ EC.Inputs = EC.Inputs || {};
 EC.Inputs = (function (module) {
     'use strict';
 
+    //based on group inputs 'ref', we match each cached value to its group input value property, so we can display the cached values on screen
     module.mapGroupCachedValues = function (the_group_inputs, the_cached_values) {
-
-        debugger;
 
         var group_inputs = the_group_inputs;
         var values = the_cached_values;
 
-
         $.each(values, function (index, single_value) {
-
             $.each(group_inputs, function (index, single_group_input) {
 
                 //map each cached value to its group input value
@@ -29413,20 +29486,91 @@ EC.Inputs = (function (module) {
                         //any othe input gets  a single value
                         single_group_input.value = single_value.value;
                     }
-
-
                 }
             });
         });
-
-
         return group_inputs;
-
-
     };
 
     return module;
 
+
+}(EC.Inputs));
+
+/*global $, jQuery*/
+/**
+ *
+ * @module EC
+ * @submodule Inputs
+ *
+ */
+var EC = EC || {};
+EC.Inputs = EC.Inputs || {};
+EC.Inputs = (function (module) {
+    'use strict';
+
+    module.mapGroupValuesToLabels = function (the_group_inputs, the_values) {
+
+        var group_inputs = the_group_inputs;
+        var values = the_values;
+        var checkbox_values;
+        var labels = [];
+
+        $.each(values, function (index, single_value) {
+            $.each(group_inputs, function (index, single_group_input) {
+
+                //map each cached value to its group input value
+                if (single_group_input.ref === single_value.ref) {
+
+                    //checkboxs need a different mapping, as they allow multiple values to be saved
+                    if (single_group_input.type === EC.Const.CHECKBOX) {
+
+                        checkbox_values = [];
+
+                        //single_value.value is array of values (selected checkboxes)
+                        $(single_value.value).each(function (index, value) {
+
+                            //single_group_input.options has labels and values
+                            $(single_group_input.options).each(function (index, option) {
+
+                                //for each value, get the label (loop and map)
+                                if (option.value === value) {
+                                    checkbox_values.push({label: option.label, value: value});
+                                }
+                            });
+                        });
+
+                        //return all the checkbox value mapped against its lable
+                        labels.push({label: single_group_input.label, value: checkbox_values});
+                    }
+                    else {
+
+                        //radio and dropdown need mapping too, but they always have a single value
+                        if (single_group_input.type === EC.Const.RADIO || single_group_input.type === EC.Const.DROPDOWN) {
+
+                            //single_group_input.options has labels and values
+                            $(single_group_input.options).each(function (index, option) {
+
+                                //for each value, get the label (loop and map)
+                                if (option.value === single_value.value) {
+                                    labels.push({label: single_group_input.label, value: single_value.value});
+                                }
+                            });
+                        }
+                        else {
+                            //any othe input gets  a single value
+                            labels.push({label: single_group_input.label, value: single_value.value});
+                        }
+
+                    }
+                }
+            });
+        });
+
+        return labels;
+    };
+
+    return module;
 
 }(EC.Inputs));
 

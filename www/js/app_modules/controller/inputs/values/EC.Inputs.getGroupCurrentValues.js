@@ -12,7 +12,7 @@ EC.Inputs = (function (module) {
 
     module.getGroupCurrentValues = function () {
 
-        debugger;
+
 
         //for a group, we need to loop all the inputs, per each type
         var group_text_inputs = $('div.group-text');

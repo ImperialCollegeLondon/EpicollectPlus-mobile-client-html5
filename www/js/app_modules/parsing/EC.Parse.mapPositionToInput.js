@@ -15,7 +15,7 @@ EC.Parse = (function (module) {
 
     module.mapPositionToInput = function (the_xml) {
 
-        debugger;
+
 
         var xml = the_xml;
         var form_children;
@@ -50,7 +50,7 @@ EC.Parse = (function (module) {
             //loop all the inputs
             $(form_children).each(function (index) {
 
-                debugger;
+
 
                 var ref = $(this).attr('ref');
 

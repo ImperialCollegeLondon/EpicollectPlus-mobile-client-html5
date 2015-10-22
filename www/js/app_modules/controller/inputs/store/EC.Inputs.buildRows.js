@@ -6,7 +6,7 @@ EC.Inputs = (function (module) {
 
     module.buildRows = function (the_filenameToTimestamp) {
 
-        debugger;
+        
 
         var self = this;
         var i;
@@ -158,7 +158,7 @@ EC.Inputs = (function (module) {
 
             //deal with group, save all the group inputs answers (array) as a json object. Quick to do it, we added groups too late to the party ;)
             if (input.type === EC.Const.GROUP) {
-                debugger;
+
 
                 //for a group, value will always be an array of values
                 //todo deal with _skipp3d_ group, but are we allowing this?
