@@ -6,7 +6,7 @@ EC.InputTypes = (function (module) {
 
     module.group = function (the_value, the_input) {
 
-        
+        debugger;
 
         var span_label = $('span.label');
         var clone = $('div.clone');
@@ -49,6 +49,14 @@ EC.InputTypes = (function (module) {
         if (Array.isArray(value)) {
             //map the cached values to each group input value property, so we can display cached values
             input.group_inputs = EC.Inputs.mapGroupCachedValues(input.group_inputs, value);
+        }
+        else {
+
+            //are we editing? if so, map saved values to group_inputs
+            if (window.localStorage.edit_mode) {
+                //map the cached values to each group input value property, so we can display saved values
+                input.group_inputs = EC.Inputs.mapGroupCachedValues(input.group_inputs, JSON.parse(value));
+            }
         }
 
         //render all inputs for the group dinamically

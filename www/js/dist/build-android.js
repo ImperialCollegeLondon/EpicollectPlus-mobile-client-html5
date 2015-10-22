@@ -25178,6 +25178,8 @@ EC.Inputs = (function (module) {
 
     module.prepareFirstInput = function (the_first_input) {
 
+        debugger;
+
         var self = this;
         var first_input_position = 1;
         var back_nav_url;
@@ -25410,8 +25412,8 @@ EC.Inputs = (function (module) {
 
 var EC = EC || {};
 EC.Inputs = EC.Inputs || {};
-EC.Inputs = ( function (module) {
-    "use strict";
+EC.Inputs = (function (module) {
+    'use strict';
 
     /**
      * @method renderInput This method is called by JQM page events each time a new page (input type) is requested
@@ -25426,6 +25428,8 @@ EC.Inputs = ( function (module) {
 
     module.renderInput = function (the_input) {
 
+        debugger;
+
         var self = this;
         var wls = window.localStorage;
         var input = the_input;
@@ -25433,9 +25437,9 @@ EC.Inputs = ( function (module) {
         var page = EC.Const.INPUT_VIEWS_DIR + input.type;
         var current_position = parseInt(wls.current_position, 10);
         var cached_value = self.getCachedInputValue(current_position);
-        var breadcrumb_trail = JSON.parse(wls.getItem("breadcrumbs"));
-        var back_btn = $("div[data-role='header'] div[data-href='back-btn']");
-        var back_btn_label = $("div[data-role='header'] div[data-href='back-btn'] span.form-name");
+        var breadcrumb_trail = JSON.parse(wls.getItem('breadcrumbs'));
+        var back_btn = $('div[data-role="header"] div[data-href="back-btn"]');
+        var back_btn_label = $('div[data-role="header"] div[data-href="back-btn"] span.form-name');
         var parent_key;
         var rows_to_save = [];
         var prev_btn = $('div.input-nav-tabs div.ui-block-a.input-prev-btn');
@@ -25454,35 +25458,35 @@ EC.Inputs = ( function (module) {
             if (wls.edit_mode) {
 
                 if (wls.has_new_jump_sequence) {
-                    EC.Notification.askConfirm(EC.Localise.getTranslation("leaving_current_form"), "Are you sure? \nData will NOT be saved", "EC.Inputs.backToEntryValuesList", false, input, false);
+                    EC.Notification.askConfirm(EC.Localise.getTranslation('leaving_current_form'), 'Are you sure? \nData will NOT be saved', 'EC.Inputs.backToEntryValuesList', false, input, false);
 
                 } else {
 
-                    //check if user is leaving after modifying a jump and neither "Store Edit", "prev" or "next" button were tapped
+                    //check if user is leaving after modifying a jump and neither 'Store Edit', 'prev' or 'next' button were tapped
                     if (parseInt(input.has_jump, 10) === 1) {
 
                         current_value = EC.Inputs.getCurrentValue(input.type);
 
                         if (!self.valuesMatch(cached_value, current_value, input.type)) {
 
-                            EC.Notification.askConfirm(EC.Localise.getTranslation("leaving_current_form"), EC.Localise.getTranslation("exit_confirm"), "EC.Inputs.backToEntryValuesList", false, input, false);
+                            EC.Notification.askConfirm(EC.Localise.getTranslation('leaving_current_form'), EC.Localise.getTranslation('exit_confirm'), 'EC.Inputs.backToEntryValuesList', false, input, false);
                         } else {
 
-                            EC.Notification.askConfirm(EC.Localise.getTranslation("leaving_current_form"), EC.Localise.getTranslation("save_before_leave"), "EC.Inputs.backToEntryValuesList", true, input, false);
+                            EC.Notification.askConfirm(EC.Localise.getTranslation('leaving_current_form'), EC.Localise.getTranslation('save_before_leave'), 'EC.Inputs.backToEntryValuesList', true, input, false);
                         }
                     } else {
-                        EC.Notification.askConfirm(EC.Localise.getTranslation("leaving_current_form"), EC.Localise.getTranslation("save_before_leave"), "EC.Inputs.backToEntryValuesList", true, input, false);
+                        EC.Notification.askConfirm(EC.Localise.getTranslation('leaving_current_form'), EC.Localise.getTranslation('save_before_leave'), 'EC.Inputs.backToEntryValuesList', true, input, false);
                     }
                 }
 
             } else {
                 //not editing, go to entries list
-                EC.Notification.askConfirm(EC.Localise.getTranslation("leaving_current_form"), EC.Localise.getTranslation("save_before_leave"), "EC.Inputs.backToEntriesList", true, input, false);
+                EC.Notification.askConfirm(EC.Localise.getTranslation('leaving_current_form'), EC.Localise.getTranslation('save_before_leave'), 'EC.Inputs.backToEntriesList', true, input, false);
             }
 
         });
 
-        back_btn_label.text(form_name.trunc(EC.Const.FORM_NAME_MAX_LENGTH) + EC.Localise.getTranslation("entries"));
+        back_btn_label.text(form_name.trunc(EC.Const.FORM_NAME_MAX_LENGTH) + EC.Localise.getTranslation('entries'));
 
         //get parent key based on the user navigating, editing or adding from child list
         if (wls.edit_mode) {
@@ -25492,10 +25496,10 @@ EC.Inputs = ( function (module) {
         }
 
         //reset button visibility
-        $(prev_btn, next_btn).removeClass("invisible");
+        $(prev_btn, next_btn).removeClass('invisible');
 
         //show parent key in the top bar (if any)
-        if (parent_key !== "" && parent_key !== undefined) {
+        if (parent_key !== '' && parent_key !== undefined) {
             $('div.parent-key div.ui-block-a span.ui-btn-active span.ui-btn-inner').text(wls.form_name + ' for ' + parent_key);
         } else {
             $('div.parent-key div.ui-block-a span.ui-btn-active span.ui-btn-inner').text(wls.form_name);
@@ -25508,16 +25512,15 @@ EC.Inputs = ( function (module) {
             current_value = self.getCachedInputValue(current_position).value;
 
             //check it the value is _skipp3d_ reserved keyword
-            current_value = (current_value === EC.Const.SKIPPED) ? "" : current_value;
+            current_value = (current_value === EC.Const.SKIPPED) ? '' : current_value;
 
-            //if the input is either photo, audio or video, if no default value is available we pass an empty object {cached: "", stored: ""}
+            //if the input is either photo, audio or video, if no default value is available we pass an empty object {cached: '', stored: ''}
             if (input.type === EC.Const.PHOTO || input.type === EC.Const.AUDIO || input.type === EC.Const.VIDEO) {
 
                 self.renderInputView(input, current_value || {
-                    cached: "",
-                    stored: ""
-                });
-
+                        cached: '',
+                        stored: ''
+                    });
             } else {
 
                 //for normal inputs, render view passing the default value (empty if not set) if no input value is cached
@@ -25544,7 +25547,7 @@ EC.Inputs = ( function (module) {
 
                 if (first_input.is_primary_key === 1 && is_genkey_hidden === 1) {
                     //hide prev button for first input of the form
-                    prev_btn.addClass("invisible");
+                    prev_btn.addClass('invisible');
                     is_prev_button_hidden = true;
                 }
             }
@@ -25560,13 +25563,13 @@ EC.Inputs = ( function (module) {
         } else {
 
             //hide prev button for first input of the form
-            prev_btn.addClass("invisible");
+            prev_btn.addClass('invisible');
 
             //reset inputs_trail in session
             wls.removeItem('inputs_trail');
         }
 
-        //show store edit button if we are in "editing mode" and bind it to callback
+        //show store edit button if we are in 'editing mode' and bind it to callback
         if (wls.edit_mode) {
 
             $('div.store-edit').removeClass('hidden');
@@ -25600,19 +25603,19 @@ EC.Inputs = ( function (module) {
 
                     if (!self.valuesMatch(cached_value, current_value, input.type)) {
 
-                        //disable intermediate "store edit" button
+                        //disable intermediate 'store edit' button
                         //	$('div.store-edit').addClass('ui-disabled');
 
                         //TODO:
                         //Alert user there is the need to complete the whole form
-                        EC.Notification.showAlert(EC.Localise.getTranslation("warning"), EC.Localise.getTranslation("edited_jump"));
+                        EC.Notification.showAlert(EC.Localise.getTranslation('warning'), EC.Localise.getTranslation('edited_jump'));
 
                         //set flag as from now until saving the form, store edit from an intermediate screen is disabled
                         wls.has_new_jump_sequence = 1;
 
                     } else {
 
-                        wls.removeItem("has_new_jump_sequence");
+                        wls.removeItem('has_new_jump_sequence');
                         self.prepareStoreEdit(current_position, input, self);
                     }
 
@@ -27400,7 +27403,7 @@ EC.InputTypes = (function (module) {
 
     module.group = function (the_value, the_input) {
 
-        
+        debugger;
 
         var span_label = $('span.label');
         var clone = $('div.clone');
@@ -27443,6 +27446,14 @@ EC.InputTypes = (function (module) {
         if (Array.isArray(value)) {
             //map the cached values to each group input value property, so we can display cached values
             input.group_inputs = EC.Inputs.mapGroupCachedValues(input.group_inputs, value);
+        }
+        else {
+
+            //are we editing? if so, map saved values to group_inputs
+            if (window.localStorage.edit_mode) {
+                //map the cached values to each group input value property, so we can display saved values
+                input.group_inputs = EC.Inputs.mapGroupCachedValues(input.group_inputs, JSON.parse(value));
+            }
         }
 
         //render all inputs for the group dinamically
@@ -29541,7 +29552,7 @@ EC.Inputs = (function (module) {
 
                             //single_group_input.options has labels and values
                             $(single_group_input.options).each(function (index, option) {
-debugger;
+
                                 //for each value, get the label (loop and map)
                                 if (option.value === single_value.value) {
                                     labels.push({label: single_group_input.label, value: option.label});
