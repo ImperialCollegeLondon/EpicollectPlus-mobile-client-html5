@@ -23200,6 +23200,8 @@ EC.Entries = (function (module) {
                             //for multiple choice options, we need some extra parsing (radio and dropdown)
                             if (single_label.value instanceof Object) {
 
+                                debugger;
+
                                 //for multiple choice options, we need some extra parsing (radio and dropdown)
                                 if (single_label.value instanceof Array) {
 
@@ -29539,10 +29541,10 @@ EC.Inputs = (function (module) {
 
                             //single_group_input.options has labels and values
                             $(single_group_input.options).each(function (index, option) {
-
+debugger;
                                 //for each value, get the label (loop and map)
                                 if (option.value === single_value.value) {
-                                    labels.push({label: single_group_input.label, value: single_value.value});
+                                    labels.push({label: single_group_input.label, value: option.label});
                                 }
                             });
                         }

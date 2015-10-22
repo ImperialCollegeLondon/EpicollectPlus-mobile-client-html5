@@ -437,6 +437,8 @@ EC.Entries = (function (module) {
                             //for multiple choice options, we need some extra parsing (radio and dropdown)
                             if (single_label.value instanceof Object) {
 
+                                debugger;
+
                                 //for multiple choice options, we need some extra parsing (radio and dropdown)
                                 if (single_label.value instanceof Array) {
 
