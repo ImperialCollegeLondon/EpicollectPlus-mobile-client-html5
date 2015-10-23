@@ -547,3 +547,11 @@ div.group-inputs-grid .group-inputs-grid__value{
     font-weight:normal;
     background-color: #ffffff;
 }
+
+/* Hack to fix the background color when focusing on a dropdown or radio*/
+div.group-checkbox .ui-btn-down-a{
+    background-color: #DDD!important;
+}
+div.group-radio .ui-btn-down-a{
+    background-color: #DDD!important;
+}

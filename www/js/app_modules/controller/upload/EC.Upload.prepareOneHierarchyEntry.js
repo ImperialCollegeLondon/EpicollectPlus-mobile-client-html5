@@ -16,6 +16,8 @@ EC.Upload = (function (module) {
      */
     module.prepareOneHierarchyEntry = function (the_table, the_entry) {
 
+        debugger;
+
         var self = this;
         var parent_ref;
         var parent_value;
@@ -44,11 +46,17 @@ EC.Upload = (function (module) {
         self.appendEntryValue(self.values.shift());
     };
 
+    /*
+     append each input value for a form like 'key=value'
+     we prepare a hierarchy object to be posted as 'application/x-www-form-urlencoded'
+     therefore a string like 'key=value&key=value&key=value...'
+     */
     module.appendEntryValue = function (the_entry_value) {
 
         var self = this;
         var current_value;
         var current_ref;
+        var group_values;
 
         current_value = the_entry_value.value;
         current_ref = the_entry_value.ref;
@@ -65,13 +73,30 @@ EC.Upload = (function (module) {
          * Branches need to be uploaded separately, AFTER all hierarchy entries have been uploaded
          */
         if (the_entry_value.type !== EC.Const.BRANCH) {
-            //common value, add it to main entry object
-            self.hierarchy_entry_post_obj[current_ref] = current_value;
+
+
+            //if this value is for a group, parse value and loop through, as a group value contains multiple values
+            if (the_entry_value.type === EC.Const.GROUP) {
+
+                group_values = JSON.parse(current_value);
+
+                $(group_values).each(function (index, single_group_value) {
+                    //value is an array for checkboxes, as they allow multiple inputs, to be serialised
+                    if (Array.isArray(single_group_value.value)) {
+                        //checkbox data are sent as csv
+                        single_group_value.value = single_group_value.value.join(', ');
+                    }
+                    self.hierarchy_entry_post_obj[single_group_value.ref] = single_group_value.value;
+                });
+            }
+            else {
+                //common value, add it to main entry object
+                self.hierarchy_entry_post_obj[current_ref] = current_value;
+            }
         }
 
         //append next value(if any)
         if (self.values.length > 0) {
-
             self.appendEntryValue(self.values.shift());
 
         } else {

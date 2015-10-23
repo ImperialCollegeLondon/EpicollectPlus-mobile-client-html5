@@ -124,7 +124,7 @@ EC.Entries = (function (module) {
 
     module.renderEntryValues = function (the_values) {
 
-        debugger;
+
 
         //build HTML
         var HTML = '';
@@ -421,7 +421,6 @@ EC.Entries = (function (module) {
                         //map values against labels (to show labels)
                         group_input_labels = EC.Inputs.mapGroupValuesToLabels(group_inputs, group_input_values);
 
-
                         $(group_input_labels).each(function (index, single_label) {
 
                             var values_list;
@@ -437,7 +436,7 @@ EC.Entries = (function (module) {
                             //for multiple choice options, we need some extra parsing (radio and dropdown)
                             if (single_label.value instanceof Object) {
 
-                                debugger;
+
 
                                 //for multiple choice options, we need some extra parsing (radio and dropdown)
                                 if (single_label.value instanceof Array) {

@@ -19,7 +19,7 @@ EC.Inputs = (function (module) {
 
     module.renderInput = function (the_input) {
 
-        debugger;
+
 
         var self = this;
         var wls = window.localStorage;

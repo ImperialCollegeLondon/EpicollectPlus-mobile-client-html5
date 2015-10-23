@@ -106,15 +106,17 @@ EC.Inputs = (function (module) {
         }
 
         /* GROUP */
-        if (current_value[0].hasOwnProperty('ref')) {
-            is_group = true;
+        //if current value is an array and the property 'ref' exists, this is a group
+        if (Array.isArray(current_value)) {
+            if (current_value[0].hasOwnProperty('ref')) {
+                is_group = true;
+            }
         }
 
         //check if we have reached the end of the form
         if (current_input_position === self.inputs.length) {
             next_page = EC.Const.INPUT_VIEWS_DIR + EC.Const.SAVE_CONFIRM_VIEW;
         } else {
-
             //skip jumps if it is a group
             if (!is_group) {
                 //check if the current input triggers a jump

@@ -22887,7 +22887,7 @@ EC.Entries = (function (module) {
 
     module.renderEntryValues = function (the_values) {
 
-        debugger;
+
 
         //build HTML
         var HTML = '';
@@ -23200,7 +23200,7 @@ EC.Entries = (function (module) {
                             //for multiple choice options, we need some extra parsing (radio and dropdown)
                             if (single_label.value instanceof Object) {
 
-                                debugger;
+
 
                                 //for multiple choice options, we need some extra parsing (radio and dropdown)
                                 if (single_label.value instanceof Array) {
@@ -24776,15 +24776,17 @@ EC.Inputs = (function (module) {
         }
 
         /* GROUP */
-        if (current_value[0].hasOwnProperty('ref')) {
-            is_group = true;
+        //if current value is an array and the property 'ref' exists, this is a group
+        if (Array.isArray(current_value)) {
+            if (current_value[0].hasOwnProperty('ref')) {
+                is_group = true;
+            }
         }
 
         //check if we have reached the end of the form
         if (current_input_position === self.inputs.length) {
             next_page = EC.Const.INPUT_VIEWS_DIR + EC.Const.SAVE_CONFIRM_VIEW;
         } else {
-
             //skip jumps if it is a group
             if (!is_group) {
                 //check if the current input triggers a jump
@@ -25178,7 +25180,7 @@ EC.Inputs = (function (module) {
 
     module.prepareFirstInput = function (the_first_input) {
 
-        debugger;
+
 
         var self = this;
         var first_input_position = 1;
@@ -25428,7 +25430,7 @@ EC.Inputs = (function (module) {
 
     module.renderInput = function (the_input) {
 
-        debugger;
+
 
         var self = this;
         var wls = window.localStorage;
@@ -27403,7 +27405,6 @@ EC.InputTypes = (function (module) {
 
     module.group = function (the_value, the_input) {
 
-        debugger;
 
         var span_label = $('span.label');
         var clone = $('div.clone');
@@ -27565,6 +27566,7 @@ EC.InputTypes = (function (module) {
                     html += '<span class="max-range hidden"></span>';
 
                     //Input for decimals is set as text to avoid the browser built-in validation
+                    //todo fix this, where is it?
                     html += ' <input type="number" name="the_name" value="' + single_group_input.value + '"/>';
                     html += '</div>';
                     break;
@@ -27703,6 +27705,27 @@ EC.InputTypes = (function (module) {
                 });
             }
         }
+
+        debugger;
+
+        /*
+         we need the follow hack to blur any input when interacting with radio buttons or checkboxes,
+         as the focus on a text field does not blur itself and the keyboard stays open
+         */
+        $('div.group-checkbox').off().on('vmousedown', function () {
+            $('input[type="text"]').blur();
+            $('input[type="number"]').blur();
+            $('textarea').blur();
+
+
+        });
+        $('div.group-radio').off().on('vmousedown', function () {
+            $('input[type="text"]').blur();
+            $('input[type="number"]').blur();
+            $('textarea').blur();
+
+            //fix element background color, other bug, reset to grey
+        });
     };
     return module;
 
@@ -31202,132 +31225,135 @@ EC.Upload = ( function(module) {"use strict";
  */
 var EC = EC || {};
 EC.Upload = EC.Upload || {};
-EC.Upload = ( function(module) {"use strict";
+EC.Upload = (function (module) {
+    'use strict';
 
-		module.postOneHierarchyEntry = function() {
+    module.postOneHierarchyEntry = function () {
 
-			var self = this;
-			var upload_URL;
-			var project_id = parseInt(window.localStorage.project_id, 10);
+        var self = this;
+        var upload_URL;
+        var project_id = parseInt(window.localStorage.project_id, 10);
 
-			function _sendRequest() {
+        function _sendRequest() {
 
-				$.ajax({
-					type : "POST",
-					url : upload_URL,
-					crossDomain : true,
-					timeout : 20000, //timeout after 20 secs
-					data : $.param(self.hierarchy_entry_post_obj), //use $.param() to convert the object to a query string (?key=value&key2=value2...)
-					success : function(response) {
+            $.ajax({
+                type: 'POST',
+                url: upload_URL,
+                crossDomain: true,
+                timeout: 20000, //timeout after 20 secs
+                data: $.param(self.hierarchy_entry_post_obj), //use $.param() to convert the object to a query string (?key=value&key2=value2...)
+                success: function (response) {
 
-						//server response is 1 when successful: need to create a better object on the server side
-						if (response === '1') {
+                    //server response is 1 when successful: need to create a better object on the server side
+                    if (response === '1') {
 
-							//clear post object
-							self.hierarchy_entry_post_obj = {};
+                        //clear post object
+                        self.hierarchy_entry_post_obj = {};
 
-							// //halt execution and flag the hierarchy rows just uploaded as synced
-							EC.Update.setHierarchyEntryAsSynced(self.hierarchy_rows_to_sync).then(function() {
+                        // //halt execution and flag the hierarchy rows just uploaded as synced
+                        EC.Update.setHierarchyEntryAsSynced(self.hierarchy_rows_to_sync).then(function () {
 
-								//entry rows synced, upload next entry (if any)
-								self.action = EC.Const.HIERARCHY_RECURSION;
-								EC.Select.getOneHierarchyEntry(self.current_form, false);
+                            //entry rows synced, upload next entry (if any)
+                            self.action = EC.Const.HIERARCHY_RECURSION;
+                            EC.Select.getOneHierarchyEntry(self.current_form, false);
 
-							});
+                        });
 
-						} else {
+                    } else {
 
-							//a problem occured while uploading/saving data on the server side
+                        //a problem occured while uploading/saving data on the server side
 
-							/**
-							 * Recover an entry to be uploaded (it will be the last one the user tried to upload but the upload failed)
-							 */
+                        /**
+                         * Recover an entry to be uploaded (it will be the last one the user tried to upload but the upload failed)
+                         */
 
-							$.when(EC.Select.getOneHierarchyEntry(self.current_form).then(function(entry) {
+                        $.when(EC.Select.getOneHierarchyEntry(self.current_form).then(function (entry) {
 
-								//Entry found, prepare entry for upload
-								EC.Upload.current_entry = entry;
+                            //Entry found, prepare entry for upload
+                            EC.Upload.current_entry = entry;
 
-								EC.Notification.hideProgressDialog();
-								EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("upload_error"));
+                            EC.Notification.hideProgressDialog();
+                            EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('upload_error'));
 
-								self.hierarchy_rows_to_sync.length = 0;
+                            self.hierarchy_rows_to_sync.length = 0;
 
-							}));
+                        }));
 
-						}
+                    }
 
-					},
-					error : function(request, status, error) {
+                },
+                error: function (request, status, error) {
 
-						EC.Notification.hideProgressDialog();
+                    EC.Notification.hideProgressDialog();
 
-						//show request error
-						console.log(status + ", " + error);
-						console.log('request: ' + JSON.stringify(request));
+                    //show request error
+                    console.log(status + ', ' + error);
+                    console.log('request: ' + JSON.stringify(request));
 
-						/**
-						 * Recover an entry to be uploaded (it will be the last one the user tried to upload but the upload failed)
-						 */
+                    /**
+                     * Recover an entry to be uploaded (it will be the last one the user tried to upload but the upload failed)
+                     */
 
-						$.when(EC.Select.getOneHierarchyEntry(self.current_form, true).then(function(entry) {
+                    $.when(EC.Select.getOneHierarchyEntry(self.current_form, true).then(function (entry) {
 
-							//Entry found, prepare entry for upload
-							EC.Upload.current_entry = entry;
-							self.hierarchy_rows_to_sync.length = 0;
-							EC.Notification.hideProgressDialog();
+                        debugger;
 
-							//connection lost BEFORE tryng the ajax request
-							if (status === "error" && error === "") {
+                        //Entry found, prepare entry for upload
+                        EC.Upload.current_entry = entry;
+                        self.hierarchy_rows_to_sync.length = 0;
+                        EC.Notification.hideProgressDialog();
 
-								EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("connection_lost"));
-							}
+                        //connection lost BEFORE tryng the ajax request
+                        if (status === 'error' && error === '') {
 
-							//server timeout
-							//connection lost BEFORE tryng the ajax request
-							if (status === "timeout" && error === "timeout") {
+                            EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('connection_lost'));
+                        }
 
-								EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("connection_timeout"));
-							}
+                        //server timeout
+                        //connection lost BEFORE tryng the ajax request
+                        if (status === 'timeout' && error === 'timeout') {
 
-							//TODO: SQL issues
-							if (request.status === 405) {
-								EC.Notification.showAlert(EC.Localise.getTranslation("error"), request.responseText);
-							}
+                            EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('connection_timeout'));
+                        }
 
-							//TODO / network issues
-							if (request.status === 403) {
-								EC.Notification.showAlert(EC.Localise.getTranslation("error"), error + EC.Localise.getTranslation("check_your_internet"));
-							}
+                        //TODO: SQL issues
+                        if (request.status === 405) {
+                            EC.Notification.showAlert(EC.Localise.getTranslation('error'), request.responseText);
+                        }
 
-						}));
+                        //TODO / network issues
+                        if (request.status === 403) {
+                            EC.Notification.showAlert(EC.Localise.getTranslation('error'), error + EC.Localise.getTranslation('check_your_internet'));
+                        }
 
-					}
-				});
-			}
+                    }));
+
+                }
+            });
+        }
 
 
-			console.log(self.hierarchy_entry_post_obj);
+        console.log(self.hierarchy_entry_post_obj);
 
-			upload_URL = self.getUploadURL();
+        upload_URL = self.getUploadURL();
 
-			//set upload URL for this project if not in localStorage yet
-			if (!EC.Utils.isChrome() && !upload_URL) {
-				$.when(EC.Select.getUploadURL(project_id)).then(function(the_project_url) {
-					//enable upload data button
-					console.log("Project URL is: " + the_project_url);
-					upload_URL = the_project_url;
-					_sendRequest();
-				});
-			} else {
-				_sendRequest();
-			}
+        //set upload URL for this project if not in localStorage yet
+        if (!EC.Utils.isChrome() && !upload_URL) {
+            $.when(EC.Select.getUploadURL(project_id)).then(function (the_project_url) {
+                //enable upload data button
+                console.log('Project URL is: ' + the_project_url);
+                upload_URL = the_project_url;
+                _sendRequest();
+            });
+        } else {
+            _sendRequest();
+        }
 
-		};
+    };
 
-		return module;
+    return module;
 
-	}(EC.Upload));
+}(EC.Upload));
 
 /*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/
@@ -31433,6 +31459,8 @@ EC.Upload = (function (module) {
      */
     module.prepareOneHierarchyEntry = function (the_table, the_entry) {
 
+        debugger;
+
         var self = this;
         var parent_ref;
         var parent_value;
@@ -31461,11 +31489,17 @@ EC.Upload = (function (module) {
         self.appendEntryValue(self.values.shift());
     };
 
+    /*
+     append each input value for a form like 'key=value'
+     we prepare a hierarchy object to be posted as 'application/x-www-form-urlencoded'
+     therefore a string like 'key=value&key=value&key=value...'
+     */
     module.appendEntryValue = function (the_entry_value) {
 
         var self = this;
         var current_value;
         var current_ref;
+        var group_values;
 
         current_value = the_entry_value.value;
         current_ref = the_entry_value.ref;
@@ -31482,13 +31516,30 @@ EC.Upload = (function (module) {
          * Branches need to be uploaded separately, AFTER all hierarchy entries have been uploaded
          */
         if (the_entry_value.type !== EC.Const.BRANCH) {
-            //common value, add it to main entry object
-            self.hierarchy_entry_post_obj[current_ref] = current_value;
+
+
+            //if this value is for a group, parse value and loop through, as a group value contains multiple values
+            if (the_entry_value.type === EC.Const.GROUP) {
+
+                group_values = JSON.parse(current_value);
+
+                $(group_values).each(function (index, single_group_value) {
+                    //value is an array for checkboxes, as they allow multiple inputs, to be serialised
+                    if (Array.isArray(single_group_value.value)) {
+                        //checkbox data are sent as csv
+                        single_group_value.value = single_group_value.value.join(', ');
+                    }
+                    self.hierarchy_entry_post_obj[single_group_value.ref] = single_group_value.value;
+                });
+            }
+            else {
+                //common value, add it to main entry object
+                self.hierarchy_entry_post_obj[current_ref] = current_value;
+            }
         }
 
         //append next value(if any)
         if (self.values.length > 0) {
-
             self.appendEntryValue(self.values.shift());
 
         } else {

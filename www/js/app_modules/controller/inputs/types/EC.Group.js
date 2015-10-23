@@ -6,7 +6,6 @@ EC.InputTypes = (function (module) {
 
     module.group = function (the_value, the_input) {
 
-        debugger;
 
         var span_label = $('span.label');
         var clone = $('div.clone');
@@ -168,6 +167,7 @@ EC.InputTypes = (function (module) {
                     html += '<span class="max-range hidden"></span>';
 
                     //Input for decimals is set as text to avoid the browser built-in validation
+                    //todo fix this, where is it?
                     html += ' <input type="number" name="the_name" value="' + single_group_input.value + '"/>';
                     html += '</div>';
                     break;
@@ -306,6 +306,27 @@ EC.InputTypes = (function (module) {
                 });
             }
         }
+
+        debugger;
+
+        /*
+         we need the follow hack to blur any input when interacting with radio buttons or checkboxes,
+         as the focus on a text field does not blur itself and the keyboard stays open
+         */
+        $('div.group-checkbox').off().on('vmousedown', function () {
+            $('input[type="text"]').blur();
+            $('input[type="number"]').blur();
+            $('textarea').blur();
+
+
+        });
+        $('div.group-radio').off().on('vmousedown', function () {
+            $('input[type="text"]').blur();
+            $('input[type="number"]').blur();
+            $('textarea').blur();
+
+            //fix element background color, other bug, reset to grey
+        });
     };
     return module;
 
