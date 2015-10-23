@@ -68,6 +68,9 @@ EC.Create = (function (module) {
         for (i = 0; i < iLength; i++) {
             inputs.push(the_result.rows.item(i));
         }
+        debugger;
+
+        //todo here I Can find out if there is a group, so get all the group refs
 
         window.localStorage.dre_inputs = JSON.stringify(inputs);
 
@@ -358,6 +361,8 @@ EC.Create = (function (module) {
      * @method commitRemoteEntry Commit a remote entry, insert it if a new one, otherwise update existing one on device as entries on the server overrides local entries
      */
     module.commitRemoteEntry = function (the_project_id, the_form_id, the_remote_entry) {
+
+        debugger;
 
         project_id = the_project_id;
         form_id = the_form_id;

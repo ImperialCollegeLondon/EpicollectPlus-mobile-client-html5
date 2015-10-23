@@ -12868,6 +12868,9 @@ EC.Create = (function (module) {
         for (i = 0; i < iLength; i++) {
             inputs.push(the_result.rows.item(i));
         }
+        debugger;
+
+        //todo here I Can find out if there is a group, so get all the group refs
 
         window.localStorage.dre_inputs = JSON.stringify(inputs);
 
@@ -13158,6 +13161,8 @@ EC.Create = (function (module) {
      * @method commitRemoteEntry Commit a remote entry, insert it if a new one, otherwise update existing one on device as entries on the server overrides local entries
      */
     module.commitRemoteEntry = function (the_project_id, the_form_id, the_remote_entry) {
+
+        debugger;
 
         project_id = the_project_id;
         form_id = the_form_id;
@@ -20666,199 +20671,202 @@ EC.BranchInputs = ( function(module) {"use strict";
 
 	}(EC.BranchInputs));
 
-/*jslint vars: true , nomen: true devel: true, plusplus: true */
 /*global $, jQuery, cordova, device*/
 
 var EC = EC || {};
 EC.Download = EC.Download || {};
-EC.Download = ( function() {
-		"use strict";
+EC.Download = (function () {
+    'use strict';
 
-		var project_server_url;
-		var project_name;
-		var project_id;
-		var form_name;
-		var form_id;
-		var chosen_form_id;
-		var chosen_form_name;
-		var entries;
-		var data;
+    var project_server_url;
+    var project_name;
+    var project_id;
+    var form_name;
+    var form_id;
+    var chosen_form_id;
+    var chosen_form_name;
+    var entries;
+    var data;
 
-		function _commitRemoteEntry(the_single_remote_entry) {
+    function _commitRemoteEntry(the_single_remote_entry) {
 
-			$.when(EC.Create.commitRemoteEntry(project_id, form_id, the_single_remote_entry)).then(function() {
+        $.when(EC.Create.commitRemoteEntry(project_id, form_id, the_single_remote_entry)).then(function () {
 
-				if (entries.length === 0) {
+            if (entries.length === 0) {
 
-					if (data.length === 0) {
+                if (data.length === 0) {
 
-						EC.Notification.showToast("All data downloaded", "short");
+                    EC.Notification.showToast('All data downloaded', 'short');
 
-						//@bug on iOS, spinner loader not hiding, force to hide
-						// it here calling it directly with no timeout
-						if (window.device.platform === EC.Const.IOS) {
-							window.ActivityIndicator.hide();
-						}
+                    //@bug on iOS, spinner loader not hiding, force to hide
+                    // it here calling it directly with no timeout
+                    if (window.device) {
+                        if (window.device.platform === EC.Const.IOS) {
+                            window.ActivityIndicator.hide();
+                        }
+                    }
 
-						//clear cached object for this form (table)
-						window.localStorage.removeItem("dre_local_entries_keys");
-						window.localStorage.removeItem("dre_inputs");
+                    //clear cached object for this form (table)
+                    window.localStorage.removeItem('dre_local_entries_keys');
+                    window.localStorage.removeItem('dre_inputs');
 
-						//back to forms list
-						EC.Routing.changePage(window.localStorage.back_nav_url);
-					}
-					else {
+                    //back to forms list
+                    EC.Routing.changePage(window.localStorage.back_nav_url);
+                }
+                else {
 
-						entries = data.splice(0, 500);
-						_commitRemoteEntry(entries.shift());
-					}
+                    entries = data.splice(0, 500);
+                    _commitRemoteEntry(entries.shift());
+                }
 
-				}
-				else {
-					_commitRemoteEntry(entries.shift());
-				}
+            }
+            else {
+                _commitRemoteEntry(entries.shift());
+            }
 
-			}, function() {
+        }, function () {
 
-				/* When downloading remote entries, if parent entry is missing on the device database the user needs to download from the parent table first
-				* to keep the database referential integrity
-				*/
+            /* When downloading remote entries, if parent entry is missing on the device database the user needs to download from the parent table first
+             * to keep the database referential integrity
+             */
 
-				//TODO: get parent form name
-				var parent_form = EC.Utils.getParentFormByChildID(chosen_form_id);
+            //TODO: get parent form name
+            var parent_form = EC.Utils.getParentFormByChildID(chosen_form_id);
 
-				EC.Notification.hideProgressDialog();
-				EC.Notification.showAlert("Error", "Parent keys for " + chosen_form_name + " are missing on device database, please download " + parent_form.name + " entries first");
+            EC.Notification.hideProgressDialog();
+            EC.Notification.showAlert('Error', 'Parent keys for ' + chosen_form_name + ' are missing on device database, please download ' + parent_form.name + ' entries first');
 
-			});
+        });
 
-		}
+    }
 
-		var _performRequest = function(the_url) {
+    var _performRequest = function (the_url) {
 
-			var url = the_url;
-			var hash;
+        debugger;
 
-			$.ajax({
-				url : url, //url
-				type : 'get', //method type post or get
-				crossDomain : true,
-				timeout : 60000, // stop after 60 seconds
-				dataType : 'json', //return data type
-				success : function(the_data) {
+        var url = the_url;
+        var hash;
 
-					data = the_data;
+        $.ajax({
+            url: url, //url
+            type: 'get', //method type post or get
+            crossDomain: true,
+            timeout: 60000, // stop after 60 seconds
+            dataType: 'json', //return data type
+            success: function (the_data) {
 
-					//console.log(JSON.stringify(data));
+                data = the_data;
 
-					if (data.length === 0) {
-						//no entries on the server yet, go back to form list
-						EC.Notification.showAlert("Sorry", "No remote entries for the selected form yet!");
-					}
-					else {
-						entries = data.splice(0, 500);
-						_commitRemoteEntry(entries.shift());
-					}
-				},
-				error : function(request, status, error) {
+                //console.log(JSON.stringify(data));
 
-					EC.Notification.hideProgressDialog();
+                if (data.length === 0) {
+                    //no entries on the server yet, go back to form list
+                    EC.Notification.showAlert('Sorry', 'No remote entries for the selected form yet!');
+                }
+                else {
+                    entries = data.splice(0, 500);
+                    _commitRemoteEntry(entries.shift());
+                }
+            },
+            error: function (request, status, error) {
 
-					//@bug on the server, which is sending a full html page as
-					// response when project is private
-					if (request.responseText) {
-						if (request.responseText.trim().charAt(0) === "<") {
-							EC.Notification.showAlert("Sorry, private project", "This project is set as private therefore you cannot download data");
-						}
-					}
+                EC.Notification.hideProgressDialog();
 
-					if (status === "timeout" && error === "timeout") {
-						EC.Notification.showAlert("Error", "Server Timeout");
-					}
+                //@bug on the server, which is sending a full html page as
+                // response when project is private
+                if (request.responseText) {
+                    if (request.responseText.trim().charAt(0) === '<') {
+                        EC.Notification.showAlert('Sorry, private project', 'This project is set as private therefore you cannot download data');
+                    }
+                }
 
-					//show request error
-					console.log(status + ", " + error);
-					console.log(request);
-				}
+                if (status === 'timeout' && error === 'timeout') {
+                    EC.Notification.showAlert('Error', 'Server Timeout');
+                }
 
-			});
+                //show request error
+                console.log(status + ', ' + error);
+                console.log(request);
+            }
 
-		};
+        });
 
-		var fetchRemoteData = function() {
+    };
 
-			EC.Notification.showProgressDialog();
+    var fetchRemoteData = function () {
 
-			//get request ajax
-			_performRequest(project_server_url + project_name + "/" + chosen_form_name + ".json");
+        EC.Notification.showProgressDialog();
 
-		};
+        //get request ajax
+        _performRequest(project_server_url + project_name + '/' + chosen_form_name + '.json');
 
-		var renderDownloadView = function() {
+    };
 
-			var forms = JSON.parse(window.localStorage.forms);
-			var i;
-			var j;
-			var iLength = forms.length;
-			var jLength = iLength;
-			var HTML = "";
-			var dom_list = $('div#download div#download-forms');
-			var page = $('#download');
-			var form_btn;
-			var form_tree;
-			var hash = "forms.html?project=" + project_id + "&name=" + project_name;
-			var back_btn = $("div#download div[data-role='header'] div[data-href='back-btn']");
+    var renderDownloadView = function () {
 
-			project_id = window.localStorage.project_id;
-			project_name = window.localStorage.project_name;
-			project_server_url = window.localStorage.project_server_url;
+        var forms = JSON.parse(window.localStorage.forms);
+        var i;
+        var j;
+        var iLength = forms.length;
+        var jLength = iLength;
+        var HTML = '';
+        var dom_list = $('div#download div#download-forms');
+        var page = $('#download');
+        var form_btn;
+        var form_tree;
+        var hash = 'forms.html?project=' + project_id + '&name=' + project_name;
+        var back_btn = $('div#download div[data-role="header"] div[data-href="back-btn"]');
 
-			//set back_nav_url for navigating back to forms list
-			window.localStorage.back_nav_url = "forms.html?project=" + project_id + "&name=" + project_name;
+        project_id = window.localStorage.project_id;
+        project_name = window.localStorage.project_name;
+        project_server_url = window.localStorage.project_server_url;
 
-			var _form_btn_handler = function() {
+        //set back_nav_url for navigating back to forms list
+        window.localStorage.back_nav_url = 'forms.html?project=' + project_id + '&name=' + project_name;
 
-				//get chosen form data
-				chosen_form_name = $(this).find("span").text();
-				chosen_form_id = $(this).attr("id");
+        var _form_btn_handler = function () {
 
-				//update form tree in localStorage
-				form_tree = EC.Utils.getParentAndChildForms(chosen_form_id);
-				window.localStorage.form_tree = JSON.stringify(form_tree);
-				form_id = chosen_form_id;
+            //get chosen form data
+            chosen_form_name = $(this).find('span').text();
+            chosen_form_id = $(this).attr('id');
 
-				EC.Notification.askConfirm("Download remote data", "Are you sure to proceed? It might take some time", "EC.Download.fetchRemoteData");
-			};
+            //update form tree in localStorage
+            form_tree = EC.Utils.getParentAndChildForms(chosen_form_id);
+            window.localStorage.form_tree = JSON.stringify(form_tree);
+            form_id = chosen_form_id;
 
-			//handle back button hash
-			back_btn.off().one('vclick', function(e) {
-				EC.Routing.changePage(window.localStorage.back_nav_url);
-			});
+            EC.Notification.askConfirm('Download remote data', 'Are you sure to proceed? It might take some time', 'EC.Download.fetchRemoteData');
+        };
 
-			//build buttons
-			for ( i = 0; i < iLength; i++) {
-				HTML += '<div id="' + forms[i]._id + '" class="embedded-btn">';
-				HTML += '<i class="fa fa-download  fa-fw fa-ep-embedded-btn"></i>';
-				HTML += '<span class="v-nav-item-label">' + forms[i].name + '</span>';
-				HTML += '</div>';
-			}
+        //handle back button hash
+        back_btn.off().one('vclick', function (e) {
+            EC.Routing.changePage(window.localStorage.back_nav_url);
+        });
 
-			//add buttons to dom
-			dom_list.append(HTML);
+        //build buttons
+        for (i = 0; i < iLength; i++) {
+            HTML += '<div id="' + forms[i]._id + '" class="embedded-btn">';
+            HTML += '<i class="fa fa-download  fa-fw fa-ep-embedded-btn"></i>';
+            HTML += '<span class="v-nav-item-label">' + forms[i].name + '</span>';
+            HTML += '</div>';
+        }
 
-			//bind buttons
-			for ( j = 0; j < jLength; j++) {
-				form_btn = $("div#download div#download-forms div#" + forms[j]._id);
-				form_btn.off().on('vclick', _form_btn_handler);
-			}
-		};
+        //add buttons to dom
+        dom_list.append(HTML);
 
-		return {
-			fetchRemoteData : fetchRemoteData,
-			renderDownloadView : renderDownloadView
-		};
+        //bind buttons
+        for (j = 0; j < jLength; j++) {
+            form_btn = $('div#download div#download-forms div#' + forms[j]._id);
+            form_btn.off().on('vclick', _form_btn_handler);
+        }
+    };
 
-	}());
+    return {
+        fetchRemoteData: fetchRemoteData,
+        renderDownloadView: renderDownloadView
+    };
+
+}());
 
 /*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/
@@ -23183,7 +23191,6 @@ EC.Entries = (function (module) {
 
                         //map values against labels (to show labels)
                         group_input_labels = EC.Inputs.mapGroupValuesToLabels(group_inputs, group_input_values);
-
 
                         $(group_input_labels).each(function (index, single_label) {
 
