@@ -100,7 +100,7 @@ EC.Create = (function (module) {
                     immediate_parent_key_value,
                     obj.label,
                     ref,
-                    remote_ref_value,
+                    remote_ref_value.trim(),
                     obj.is_title,
                     current_remote_entry_key,
                     obj.type,

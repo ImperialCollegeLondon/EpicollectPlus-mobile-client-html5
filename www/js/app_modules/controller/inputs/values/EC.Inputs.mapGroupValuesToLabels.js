@@ -34,8 +34,8 @@ EC.Inputs = (function (module) {
                             //single_group_input.options has labels and values
                             $(single_group_input.options).each(function (index, option) {
 
-                                //for each value, get the label (loop and map)
-                                if (option.value === value) {
+                                //for each value (trim trailing/leading spaces), get the label (loop and map)
+                                if (option.value === value.trim()) {
                                     checkbox_values.push({label: option.label, value: value});
                                 }
                             });
@@ -52,11 +52,12 @@ EC.Inputs = (function (module) {
                             //single_group_input.options has labels and values
                             $(single_group_input.options).each(function (index, option) {
 
-                                //for each value, get the label (loop and map)
-                                if (option.value === single_value.value) {
+                                //for each value (trim trailing/leading spaces), get the label (loop and map)
+                                if (option.value.trim() === single_value.value.trim()) {
                                     labels.push({label: single_group_input.label, value: option.label});
                                 }
                             });
+
                         }
                         else {
                             //any othe input gets  a single value

@@ -26,7 +26,6 @@ EC.Download = (function (module) {
 
         deferred = new $.Deferred();
 
-
         //todo move dependency outside?
         entry_key_ref = EC.Utils.getFormPrimaryKeyRef(form_id);
 

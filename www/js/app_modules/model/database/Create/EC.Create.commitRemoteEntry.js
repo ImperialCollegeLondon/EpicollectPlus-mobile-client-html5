@@ -36,6 +36,8 @@ EC.Create = (function (module) {
          Per each group in my local inputs, I need to map the remote data against the local structure
          */
 
+        debugger;
+
         $(groups).each(function (index, single_group) {
 
             var temp_array = [];
@@ -44,7 +46,16 @@ EC.Create = (function (module) {
             current_remote_entry[single_group.ref] = {};
 
             $(single_group.inputs).each(function (index, single_value) {
-                temp_array.push({ref: single_value.ref, value: current_remote_entry[single_value.ref]});
+
+                //if it is a checkbox, parse value to array, as when saving it is expecting an array
+                if (single_value.type === EC.Const.CHECKBOX) {
+
+                    temp_array.push({ref: single_value.ref, value: current_remote_entry[single_value.ref].split(',')});
+                }
+                else {
+                    temp_array.push({ref: single_value.ref, value: current_remote_entry[single_value.ref]});
+                }
+
 
                 //delete detached ref from current_remote_entry for each group input ref not to be saved as orphan data
                 delete current_remote_entry[single_value.ref];

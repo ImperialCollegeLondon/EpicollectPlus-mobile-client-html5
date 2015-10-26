@@ -2805,14 +2805,16 @@ EC.Photo = (function (module) {
 
         var dir;
         //build full path to get image from private app folder
-        switch (window.device.platform) {
-            case EC.Const.ANDROID:
-                dir = EC.Const.ANDROID_APP_PRIVATE_URI + EC.Const.PHOTO_DIR + window.localStorage.project_name + '/';
-                break;
-            case EC.Const.IOS:
-                //prepend 'file://' to load images from iOS application directory
-                dir = 'file://' + EC.Const.IOS_APP_PRIVATE_URI + EC.Const.PHOTO_DIR + window.localStorage.project_name + '/';
-                break;
+        if(window.device) {
+            switch (window.device.platform) {
+                case EC.Const.ANDROID:
+                    dir = EC.Const.ANDROID_APP_PRIVATE_URI + EC.Const.PHOTO_DIR + window.localStorage.project_name + '/';
+                    break;
+                case EC.Const.IOS:
+                    //prepend 'file://' to load images from iOS application directory
+                    dir = 'file://' + EC.Const.IOS_APP_PRIVATE_URI + EC.Const.PHOTO_DIR + window.localStorage.project_name + '/';
+                    break;
+            }
         }
         return dir;
     };
@@ -13033,6 +13035,8 @@ EC.Create = (function (module) {
          Per each group in my local inputs, I need to map the remote data against the local structure
          */
 
+        debugger;
+
         $(groups).each(function (index, single_group) {
 
             var temp_array = [];
@@ -13041,7 +13045,16 @@ EC.Create = (function (module) {
             current_remote_entry[single_group.ref] = {};
 
             $(single_group.inputs).each(function (index, single_value) {
-                temp_array.push({ref: single_value.ref, value: current_remote_entry[single_value.ref]});
+
+                //if it is a checkbox, parse value to array, as when saving it is expecting an array
+                if (single_value.type === EC.Const.CHECKBOX) {
+
+                    temp_array.push({ref: single_value.ref, value: current_remote_entry[single_value.ref].split(',')});
+                }
+                else {
+                    temp_array.push({ref: single_value.ref, value: current_remote_entry[single_value.ref]});
+                }
+
 
                 //delete detached ref from current_remote_entry for each group input ref not to be saved as orphan data
                 delete current_remote_entry[single_value.ref];
@@ -13686,7 +13699,7 @@ EC.Create = (function (module) {
                     immediate_parent_key_value,
                     obj.label,
                     ref,
-                    remote_ref_value,
+                    remote_ref_value.trim(),
                     obj.is_title,
                     current_remote_entry_key,
                     obj.type,
@@ -20884,7 +20897,6 @@ EC.Download = (function (module) {
 
         deferred = new $.Deferred();
 
-
         //todo move dependency outside?
         entry_key_ref = EC.Utils.getFormPrimaryKeyRef(form_id);
 
@@ -23389,6 +23401,8 @@ EC.Entries = (function (module) {
                         var group_input_labels = [];
                         var multiple_value;
 
+                        debugger;
+
                         //map values against labels (to show labels)
                         group_input_labels = EC.Inputs.mapGroupValuesToLabels(group_inputs, group_input_values);
 
@@ -23407,9 +23421,7 @@ EC.Entries = (function (module) {
                             //for multiple choice options, we need some extra parsing (radio and dropdown)
                             if (single_label.value instanceof Object) {
 
-
-
-                                //for multiple choice options, we need some extra parsing (radio and dropdown)
+                                //for checkboxes
                                 if (single_label.value instanceof Array) {
 
                                     values_list = [];
@@ -23418,16 +23430,13 @@ EC.Entries = (function (module) {
 
                                         values_list.push(single_value.label);
                                     });
-
                                     single_label.value = values_list.join(', ');
-
                                 }
                                 else {
                                     single_label.value = single_label.value.label;
                                 }
 
                             }
-
 
                             //add bottom border to last element only
                             if (index === group_input_labels.length - 1) {
@@ -29721,8 +29730,8 @@ EC.Inputs = (function (module) {
                             //single_group_input.options has labels and values
                             $(single_group_input.options).each(function (index, option) {
 
-                                //for each value, get the label (loop and map)
-                                if (option.value === value) {
+                                //for each value (trim trailing/leading spaces), get the label (loop and map)
+                                if (option.value === value.trim()) {
                                     checkbox_values.push({label: option.label, value: value});
                                 }
                             });
@@ -29739,11 +29748,12 @@ EC.Inputs = (function (module) {
                             //single_group_input.options has labels and values
                             $(single_group_input.options).each(function (index, option) {
 
-                                //for each value, get the label (loop and map)
-                                if (option.value === single_value.value) {
+                                //for each value (trim trailing/leading spaces), get the label (loop and map)
+                                if (option.value.trim() === single_value.value.trim()) {
                                     labels.push({label: single_group_input.label, value: option.label});
                                 }
                             });
+
                         }
                         else {
                             //any othe input gets  a single value

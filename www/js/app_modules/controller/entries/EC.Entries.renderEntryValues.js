@@ -418,6 +418,8 @@ EC.Entries = (function (module) {
                         var group_input_labels = [];
                         var multiple_value;
 
+                        debugger;
+
                         //map values against labels (to show labels)
                         group_input_labels = EC.Inputs.mapGroupValuesToLabels(group_inputs, group_input_values);
 
@@ -436,9 +438,7 @@ EC.Entries = (function (module) {
                             //for multiple choice options, we need some extra parsing (radio and dropdown)
                             if (single_label.value instanceof Object) {
 
-
-
-                                //for multiple choice options, we need some extra parsing (radio and dropdown)
+                                //for checkboxes
                                 if (single_label.value instanceof Array) {
 
                                     values_list = [];
@@ -447,16 +447,13 @@ EC.Entries = (function (module) {
 
                                         values_list.push(single_value.label);
                                     });
-
                                     single_label.value = values_list.join(', ');
-
                                 }
                                 else {
                                     single_label.value = single_label.value.label;
                                 }
 
                             }
-
 
                             //add bottom border to last element only
                             if (index === group_input_labels.length - 1) {
