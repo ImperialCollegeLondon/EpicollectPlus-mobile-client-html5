@@ -307,8 +307,6 @@ EC.InputTypes = (function (module) {
             }
         }
 
-        debugger;
-
         /*
          we need the follow hack to blur any input when interacting with radio buttons or checkboxes,
          as the focus on a text field does not blur itself and the keyboard stays open
@@ -317,15 +315,11 @@ EC.InputTypes = (function (module) {
             $('input[type="text"]').blur();
             $('input[type="number"]').blur();
             $('textarea').blur();
-
-
         });
         $('div.group-radio').off().on('vmousedown', function () {
             $('input[type="text"]').blur();
             $('input[type="number"]').blur();
             $('textarea').blur();
-
-            //fix element background color, other bug, reset to grey
         });
     };
     return module;

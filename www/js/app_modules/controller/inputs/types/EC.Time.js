@@ -3,8 +3,8 @@
 
 var EC = EC || {};
 EC.InputTypes = EC.InputTypes || {};
-EC.InputTypes = ( function (module) {
-    "use strict";
+EC.InputTypes = (function (module) {
+    'use strict';
 
     module.time = function (the_value, the_input) {
 
@@ -18,7 +18,7 @@ EC.InputTypes = ( function (module) {
         var datebox_format;
 
         //update label text
-        span_label.text(input.label + " - " + input.datetime_format);
+        span_label.text(input.label + ' - ' + input.datetime_format);
 
         //Localise
         if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
@@ -44,12 +44,12 @@ EC.InputTypes = ( function (module) {
         //Android Phonegap timepicker plugin http://goo.gl/xLrqZl
         timepicker = $('div#input-time input.nativedatepicker');
 
-        //iOS uses the HTML5 input type="time"
+        //iOS uses the HTML5 input type='time'
         ios_timepicker = $('div#input-time input.ios-time');
 
         //hide immediate ios time input parent (JQM quirk, this is to hide the div
         // element border wrapping the input after JQM enhanced the markup)
-        ios_timepicker.parent().addClass("no-border");
+        ios_timepicker.parent().addClass('no-border');
 
         /*show current time if value = input.datetime_format:
          *if the option to show the current time as default is selected in the web form
@@ -68,51 +68,11 @@ EC.InputTypes = ( function (module) {
          * Android uses the Phonegap official DatePicker plugin
          ****************************************************************************************/
         if (window.device.platform === EC.Const.ANDROID) {
-            /* bind input to 'vclick' insted of focus, as we set the input as readonly.
-             * this solved problem on android 2.3 where the keyboard was showing because the
-             * input is in focus when tapping "cancel"
-             * on the DatePicker popup
-             */
-            timepicker.off().on('vclick', function (e) {
-
-                var timepicker = $(this);
-                var selected_date = Date.parse(timepicker.val()) || new Date();
-
-                //use debouncing/throttling to avoid triggering multiple `focus` event
-                // http://goo.gl/NFdHDW
-                var now = new Date();
-                var lastFocus = timepicker.data("lastFocus");
-                if (lastFocus && (now - lastFocus) < 500) {
-                    // Don't do anything
-                    return;
-                }
-                timepicker.data("lastFocus", now);
-
-                // Same handling for iPhone and Android
-                window.plugins.datePicker.show({
-                    date: selected_date,
-                    mode: 'time', // date or time or blank for both
-                    allowOldDates: true
-                }, function (returned_date) {
-
-                    var new_date;
-
-                    if (returned_date !== undefined) {
-
-                        new_date = new Date(returned_date);
-
-                        timepicker.val(EC.Utils.parseTime(new_date, input.datetime_format));
-                    }
-
-                    // This fixes the problem you mention at the bottom of this script with it not
-                    // working a second/third time around, because it is in focus.
-                    timepicker.blur();
-                });
-            });
+            EC.Datetime.initAndroidDatetimePicker(timepicker, input.datetime_format, EC.Const.TIME);
         }
 
         /*****************************************************************************************
-         * iOS uses the official HTML5 input type="time", only hours and minutes are
+         * iOS uses the official HTML5 input type='time', only hours and minutes are
          * returned
          ****************************************************************************************/
         if (window.device.platform === EC.Const.IOS) {
@@ -132,10 +92,10 @@ EC.InputTypes = ( function (module) {
                 var seconds = date.getSeconds();
 
                 //add seconds to have a string like HH:mm:ss
-                ios_time = ios_time + ":" + seconds;
+                ios_time = ios_time + ':' + seconds;
 
                 timepicker.val(EC.Utils.parseIOSTime(ios_time, input.datetime_format));
-                timepicker.attr("data-raw-date", ios_time);
+                timepicker.attr('data-raw-date', ios_time);
 
             });
         }

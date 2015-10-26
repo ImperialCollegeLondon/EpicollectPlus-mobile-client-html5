@@ -48,14 +48,14 @@ EC.Structure = (function (module) {
                                     $.when(EC.Branch.commitBranchInputOptions(branch_options, branch_inputs_IDs)).then(function () {
 
                                         //options saved , redirect to projects list
-                                        console.log("models ready");
+                                        console.log('models ready');
                                         deferred.resolve();
                                     });
 
                                 } else {
 
                                     //no branch options, redirect
-                                    console.log("models ready");
+                                    console.log('models ready');
                                     deferred.resolve();
                                 }
 
@@ -66,17 +66,16 @@ EC.Structure = (function (module) {
                                 $.when(EC.Branch.commitBranchInputOptions(branch_options, branch_inputs_IDs)).then(function () {
 
                                     //options saved
-                                    console.log("models ready");
+                                    console.log('models ready');
                                     deferred.resolve();
                                 });
                             } else {
                                 //no branch options, done
-                                console.log("models ready");
+                                console.log('models ready');
                                 deferred.resolve();
                             }
                         }
                     });
-
                 });
 
             } else {
@@ -93,28 +92,21 @@ EC.Structure = (function (module) {
                         //commit input options if any
                         if (options.length > 0) {
                             $.when(EC.Hierarchy.commitInputOptions(options, inputs_IDs)).then(function () {
-
                                 //options saved , done
-                                console.log("models ready");
+                                console.log('models ready');
                                 deferred.resolve();
-
                             });
                         } else {
                             //no options, done
-                            console.log("models ready");
+                            console.log('models ready');
                             deferred.resolve();
                         }
 
                     });
-
                 });
-
             }
-
         });
-
         return deferred.promise();
-
     };
 
     return module;

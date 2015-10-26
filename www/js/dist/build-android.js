@@ -2229,6 +2229,28 @@ EC.Utils = (function () {
         return is_good;
     }
 
+    /**
+     * parseLocation() Convert a location json object to a single string concatenating the location components values
+     */
+    function parseLocationObjToString(the_location_obj) {
+
+        var location_obj = the_location_obj;
+        var latitude = (location_obj.latitude === 'N/A') ? '' : location_obj.latitude;
+        var longitude = (location_obj.longitude === 'N/A') ? '' : location_obj.longitude;
+        var altitude = (location_obj.altitude === 'N/A') ? '' : location_obj.altitude;
+        var accuracy = (location_obj.accuracy === 'N/A') ? '' : location_obj.accuracy;
+        var bearing = (location_obj.bearing === 'N/A') ? '' : location_obj.bearing;
+
+        return (//
+        'Latitude: ' + latitude + ',\n' + //
+        'Longitude: ' + longitude + ',\n' + //
+        'Altitude: ' + altitude + ',\n' + //
+        'Accuracy: ' + accuracy + ',\n' + //
+        'Altitude Accuracy: ' + ' ' + ',\n' + //
+        'Heading: ' + bearing + '\n');
+        //
+    }
+
     return {
 
         setForms: setForms,
@@ -2282,7 +2304,8 @@ EC.Utils = (function () {
         mapLabelToValue: mapLabelToValue,
         isAudioFileStored: isAudioFileStored,
         generateAudioFileName: generateAudioFileName,
-        hasGoodConnection: hasGoodConnection
+        hasGoodConnection: hasGoodConnection,
+        parseLocationObjToString: parseLocationObjToString
     };
 
 }());
@@ -6721,14 +6744,14 @@ EC.Structure = (function (module) {
                                     $.when(EC.Branch.commitBranchInputOptions(branch_options, branch_inputs_IDs)).then(function () {
 
                                         //options saved , redirect to projects list
-                                        console.log("models ready");
+                                        console.log('models ready');
                                         deferred.resolve();
                                     });
 
                                 } else {
 
                                     //no branch options, redirect
-                                    console.log("models ready");
+                                    console.log('models ready');
                                     deferred.resolve();
                                 }
 
@@ -6739,17 +6762,16 @@ EC.Structure = (function (module) {
                                 $.when(EC.Branch.commitBranchInputOptions(branch_options, branch_inputs_IDs)).then(function () {
 
                                     //options saved
-                                    console.log("models ready");
+                                    console.log('models ready');
                                     deferred.resolve();
                                 });
                             } else {
                                 //no branch options, done
-                                console.log("models ready");
+                                console.log('models ready');
                                 deferred.resolve();
                             }
                         }
                     });
-
                 });
 
             } else {
@@ -6766,28 +6788,21 @@ EC.Structure = (function (module) {
                         //commit input options if any
                         if (options.length > 0) {
                             $.when(EC.Hierarchy.commitInputOptions(options, inputs_IDs)).then(function () {
-
                                 //options saved , done
-                                console.log("models ready");
+                                console.log('models ready');
                                 deferred.resolve();
-
                             });
                         } else {
                             //no options, done
-                            console.log("models ready");
+                            console.log('models ready');
                             deferred.resolve();
                         }
 
                     });
-
                 });
-
             }
-
         });
-
         return deferred.promise();
-
     };
 
     return module;
@@ -7462,6 +7477,98 @@ EC.Structure = (function (module) {
 
 
 
+
+/*global $, jQuery*/
+/*
+ *   @module Structure
+ *
+ */
+var EC = EC || {};
+EC.Structure = EC.Structure || {};
+EC.Structure = (function (module) {
+    'use strict';
+
+    var form_id;
+    var inputs;
+    var local_entries_keys;
+    var groups;
+    var deferred;
+    var self;
+
+    var _errorCB = function (the_tx, the_result) {
+        console.log(the_tx);
+        console.log(the_result);
+    };
+
+    //fill in array with all the inputs for the form, this also will get local "_id"s as the inputs are already stored
+    var _getFormInputsSQLSuccessCB = function (the_tx, the_result) {
+
+        var i;
+        var iLength = the_result.rows.length;
+        var group_inputs = [];
+        var input;
+
+        for (i = 0; i < iLength; i++) {
+
+            input = the_result.rows.item(i);
+            inputs.push(input);
+
+            //todo here I can find out if there is a group, so get all the group refs
+            if (input.type === EC.Const.GROUP) {
+                //grab all the refs for a group
+                group_inputs.push(JSON.parse(the_result.rows.item(i).group_inputs));
+                groups.push({ref: input.ref, inputs: group_inputs[0]});
+            }
+        }
+    };
+
+    //fill in array with all the locally stored entry keys
+    var _getFormPrimaryKeysSQLSuccessCB = function (the_tx, the_result) {
+
+        var i;
+        var iLength = the_result.rows.length;
+
+        for (i = 0; i < iLength; i++) {
+            local_entries_keys.push(the_result.rows.item(i).entry_key);
+        }
+
+    };
+
+    //get all primary keys for local entries and all the inputs for the project stored locally
+    var _getLocalDataStructureTX = function (tx) {
+
+        var query_entry_key = 'SELECT DISTINCT entry_key FROM ec_data WHERE form_id=?';
+        var query_inputs = 'SELECT * FROM ec_inputs WHERE form_id=? ORDER BY position';
+
+        tx.executeSql(query_entry_key, [form_id], _getFormPrimaryKeysSQLSuccessCB, self.errorCB);
+        tx.executeSql(query_inputs, [form_id], _getFormInputsSQLSuccessCB, self.errorCB);
+
+    };
+
+    var _getLocalDataStructureSuccessCB = function () {
+        deferred.resolve(inputs, local_entries_keys, groups);
+    };
+
+
+    module.getLocalDataStructure = function (the_form_id) {
+
+        inputs = [];
+        local_entries_keys = [];
+        groups = [];
+        deferred = new $.Deferred();
+        self = this;
+        form_id = the_form_id;
+
+        //get all local primary keys and inputs for the current form before saving the new entries
+        EC.db.transaction(_getLocalDataStructureTX, _errorCB, _getLocalDataStructureSuccessCB);
+
+        return deferred.promise();
+    };
+
+
+    return module;
+
+}(EC.Structure));
 
 var EC = EC || {};
 EC.Select = EC.Select || {};
@@ -11712,67 +11819,68 @@ EC.Select = ( function(module) {"use strict";
 
 var EC = EC || {};
 EC.Update = EC.Update || {};
-EC.Update = ( function(module) {"use strict";
+EC.Update = (function (module) {
+    'use strict';
 
-		var self;
-		var form_values;
-		var form_id;
-		var deferred;
+    var self;
+    var form_values;
+    var form_id;
+    var deferred;
 
-		var _insertFormValuesTX = function(tx) {
+    var _insertFormValuesTX = function (tx) {
 
-			var i;
-			var query;
-			var obj;
-			var iLength = form_values.length;
+        var i;
+        var query;
+        var obj;
+        var iLength = form_values.length;
 
-			for ( i = 0; i < iLength; i++) {
+        for (i = 0; i < iLength; i++) {
 
-				query = "";
-				obj = form_values[i];
+            query = '';
+            obj = form_values[i];
 
-				//convert array to csv value (for checkboxes when multiple values are selected)
-				if (Object.prototype.toString.call(obj.value) === '[object Array]') {
-					obj.value = obj.value.join(', ');
-				}
+            //convert array to csv value (for checkboxes when multiple values are selected)
+            if (Object.prototype.toString.call(obj.value) === '[object Array]') {
+                obj.value = obj.value.join(', ');
+            }
 
-				query = 'UPDATE ec_branch_data SET value=? WHERE _id=?';
+            query = 'UPDATE ec_branch_data SET value=? WHERE _id=?';
 
-				tx.executeSql(query, [obj.value, obj._id], _insertFormValuesSQLSuccessCB, _errorCB);
+            tx.executeSql(query, [obj.value, obj._id], _insertFormValuesSQLSuccessCB, _errorCB);
 
-			}
-		};
+        }
+    };
 
-		var _insertFormValuesSQLSuccessCB = function(the_tx, the_result) {
-		};
+    var _insertFormValuesSQLSuccessCB = function (the_tx, the_result) {
+    };
 
-		var _insertFormValuesSuccessCB = function() {
-			deferred.resolve();
-		};
+    var _insertFormValuesSuccessCB = function () {
+        deferred.resolve();
+    };
 
-		var _errorCB = function(the_tx, the_result) {
-			console.log(the_result);
-			console.log("Error updating branch data");
-			deferred.reject();
-		};
+    var _errorCB = function (the_tx, the_result) {
+        console.log(the_result);
+        console.log('Error updating branch data');
+        deferred.reject();
+    };
 
-		/**
-		 *
-		 * @param {Object} the_form_values: the values to update
-		 */
-		module.commitBranchForm = function(the_form_values) {
+    /**
+     *
+     * @param {Object} the_form_values: the values to update
+     */
+    module.commitBranchForm = function (the_form_values) {
 
-			form_values = the_form_values;
-			deferred = new $.Deferred();
+        form_values = the_form_values;
+        deferred = new $.Deferred();
 
-			EC.db.transaction(_insertFormValuesTX, _errorCB, _insertFormValuesSuccessCB);
+        EC.db.transaction(_insertFormValuesTX, _errorCB, _insertFormValuesSuccessCB);
 
-			return deferred.promise();
-		};
+        return deferred.promise();
+    };
 
-		return module;
+    return module;
 
-	}(EC.Update));
+}(EC.Update));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -12799,216 +12907,25 @@ EC.Update = ( function(module) {"use strict";
 	}(EC.Update));
 
 /*global $, jQuery*/
-/**
- * @module EC
- * @submodule SetData
- */
 
 var EC = EC || {};
-EC.Create = EC.Create || {};
-EC.Create = (function (module) {
+EC.Update = EC.Update || {};
+EC.Update = (function (module) {
     'use strict';
 
-    var remote_entry;
-    var updated_entries_counter;
-    var local_entries_keys = [];
-    var inputs = [];
-    var project_id;
     var form_id;
-    var entry_key_ref;
-    var full_parent_path;
-    var self;
     var deferred;
-    var immediate_parent_key_value;
+    var inputs;
+    var remote_entry;
+    var entry_key_ref;
+    var self;
 
     var _errorCB = function (the_tx, the_result) {
         console.log(the_tx);
         console.log(the_result);
     };
 
-    /**
-     * parseLocation() Convert a location json object to a single string concatenating the location components values
-     */
-    function _parseLocationObjToString(the_location_obj) {
-
-        var location_obj = the_location_obj;
-        var latitude = (location_obj.latitude === 'N/A') ? '' : location_obj.latitude;
-        var longitude = (location_obj.longitude === 'N/A') ? '' : location_obj.longitude;
-        var altitude = (location_obj.altitude === 'N/A') ? '' : location_obj.altitude;
-        var accuracy = (location_obj.accuracy === 'N/A') ? '' : location_obj.accuracy;
-        var bearing = (location_obj.bearing === 'N/A') ? '' : location_obj.bearing;
-
-        return (//
-        'Latitude: ' + latitude + ',\n' + //
-        'Longitude: ' + longitude + ',\n' + //
-        'Altitude: ' + altitude + ',\n' + //
-        'Accuracy: ' + accuracy + ',\n' + //
-        'Altitude Accuracy: ' + ' ' + ',\n' + //
-        'Heading: ' + bearing + '\n');
-        //
-    }
-
-    //get all primary key for local entries and all the inputs for the project
-    var _getFormLocalDataTX = function (tx) {
-
-        var query_entry_key = 'SELECT DISTINCT entry_key FROM ec_data WHERE form_id=?';
-        var query_inputs = 'SELECT * FROM ec_inputs WHERE form_id=? ORDER BY position';
-
-        tx.executeSql(query_entry_key, [form_id], _getFormPrimaryKeysSQLSuccessCB, self.errorCB);
-        tx.executeSql(query_inputs, [form_id], _getFormInputsSQLSuccessCB, self.errorCB);
-
-    };
-
-    //fill in array with all the inputs for this form
-    var _getFormInputsSQLSuccessCB = function (the_tx, the_result) {
-
-        var i;
-        var iLength = the_result.rows.length;
-
-        for (i = 0; i < iLength; i++) {
-            inputs.push(the_result.rows.item(i));
-        }
-        debugger;
-
-        //todo here I Can find out if there is a group, so get all the group refs
-
-        window.localStorage.dre_inputs = JSON.stringify(inputs);
-
-    };
-
-    //fill in array with all the local entry keys
-    var _getFormPrimaryKeysSQLSuccessCB = function (the_tx, the_result) {
-
-        var i;
-        var iLength = the_result.rows.length;
-
-        for (i = 0; i < iLength; i++) {
-            local_entries_keys.push(the_result.rows.item(i).entry_key);
-        }
-
-        window.localStorage.dre_local_entries_keys = JSON.stringify(local_entries_keys);
-
-    };
-
-    //insert all the values for a single entry
-    function _insertEntryValues(the_inputs, the_tx, the_immediate_parent_key_value, the_current_remote_entry, the_current_remote_entry_key, the_current_remote_timestamp) {
-
-        var i;
-        var iLength = the_inputs.length;
-        var query;
-        var ref;
-        var obj;
-        var location_obj;
-        var tx = the_tx;
-        var immediate_parent_key_value = the_immediate_parent_key_value;
-        var current_remote_entry = the_current_remote_entry;
-        var current_remote_entry_key = the_current_remote_entry_key;
-        var current_remote_timestamp = the_current_remote_timestamp;
-        var remote_ref_value;
-        var remote_ref_value_location;
-
-        //loop all the input fields
-        for (i = 0; i < iLength; i++) {
-
-            ref = inputs[i].ref;
-
-            //per each ref, check if the remote entry has a value
-            if (current_remote_entry.hasOwnProperty(ref)) {
-
-                //location object needs to be converted to string
-                if (typeof (current_remote_entry[ref]) === 'string') {
-                    remote_ref_value = current_remote_entry[ref];
-                } else {
-                    //location is a json object listing the components, so convert it to string
-                    location_obj = current_remote_entry[ref];
-                    remote_ref_value_location = _parseLocationObjToString(location_obj);
-                }
-
-            } else {
-                //the current input ref is not part of the downloaded data set therefore set it to an empty string
-                remote_ref_value = '';
-            }
-
-            //build query to insert values
-
-            query = '';
-            obj = inputs[i];
-
-            query += 'INSERT INTO ec_data (';
-            query += 'input_id, ';
-            query += 'form_id, ';
-            query += 'position, ';
-            query += 'parent, ';
-            query += 'label, ';
-            query += 'ref, ';
-            query += 'value, ';
-            query += 'is_title, ';
-            query += 'entry_key, ';
-            query += 'type, ';
-            query += 'created_on, ';
-            query += 'is_remote, ';
-            query += 'is_data_synced, ';
-            query += 'is_media_synced) ';
-            query += 'VALUES (';
-
-            //parameterized query (webSQL only allows '?' http://www.w3.org/TR/webdatabase/)
-            query += '?,';//input_id
-            query += '?,';//form_id
-            query += '?,';//position
-            query += '?,';//parent
-            query += '?,';//label
-            query += '?,';//ref
-            query += '?,';//value
-            query += '?,';//is_title
-            query += '?,';//entry_key
-            query += '?,';//type
-            query += '?,';//created_on
-            query += '?,';//is_remote
-            query += '?,';//is_data_synced
-            query += '?);';//is_media_synced
-
-            tx.executeSql(query, [
-                obj._id,
-                form_id,
-                obj.position,
-                immediate_parent_key_value,
-                obj.label,
-                ref,
-                remote_ref_value,
-                obj.is_title,
-                current_remote_entry_key,
-                obj.type,
-                current_remote_timestamp,
-                1,
-                1,
-                1
-            ], _insertNewRowSQLSuccessCB, _errorCB);
-
-        }//for all input fields
-
-    }
-
-    //insert values for top parent form
-    var _insertTopFormValuesTX = function (tx) {
-
-        var current_remote_entry = remote_entry;
-        var current_remote_entry_key = current_remote_entry[entry_key_ref];
-        var current_remote_timestamp = current_remote_entry.created;
-
-        //insert entry values
-        _insertEntryValues(inputs, tx, immediate_parent_key_value, current_remote_entry, current_remote_entry_key, current_remote_timestamp);
-
-    };
-
-    //insert values for one of the child forms
-    var _insertChildFormValuesTX = function (tx) {
-
-        var current_remote_entry = remote_entry;
-        var current_remote_entry_key = current_remote_entry[entry_key_ref];
-        var current_remote_timestamp = current_remote_entry.created;
-
-        //insert entry values
-        _insertEntryValues(inputs, tx, immediate_parent_key_value, current_remote_entry, current_remote_entry_key, current_remote_timestamp);
+    var _updateLocalRowWithRemoteSQLSuccessCB = function (the_tx, the_result) {
     };
 
     //A local entry with the same key is stored on the local database, so we have to update its values with the remote ones
@@ -13016,7 +12933,6 @@ EC.Create = (function (module) {
 
         var current_remote_entry = remote_entry;
         var current_remote_entry_key = current_remote_entry[entry_key_ref];
-        var current_remote_timestamp = current_remote_entry.created;
         var ref;
         var input_id;
         var i;
@@ -13040,26 +12956,18 @@ EC.Create = (function (module) {
                 if (typeof (current_remote_entry[ref]) === 'string') {
                     remote_ref_value = current_remote_entry[ref];
                 } else {
-                    //location is a json object listing the components, so convert it to string
+                    //location is a json object listing the components, so convert it to string for storing
                     location_obj = current_remote_entry[ref];
-                    remote_ref_value_location = _parseLocationObjToString(location_obj);
+                    remote_ref_value = EC.Utils.parseLocationObjToString(location_obj);
                 }
-
             } else {
-
                 //the current input ref is not part of the downloaded data set therefore set it to an empty string
                 remote_ref_value = '';
             }
 
             query = 'UPDATE ec_data SET value=?, is_remote=? WHERE form_id=? AND input_id=? AND entry_key=?';
             tx.executeSql(query, [remote_ref_value, 1, form_id, input_id, current_remote_entry_key], _updateLocalRowWithRemoteSQLSuccessCB, self.errorCB);
-
-        }//for each input field
-
-    };
-
-    var _updateLocalRowWithRemoteSQLSuccessCB = function (the_tx, the_result) {
-
+        }
     };
 
     //update entries counter for the current form (adding new entry, + 1)
@@ -13067,41 +12975,108 @@ EC.Create = (function (module) {
         deferred.resolve();
     };
 
+    //we have an existing row already saved on the device with that ref and unique value, so update it.
+    // Entries downloaded from the server always override the local entries by design
+    module.updateLocalRowsWithRemoteData = function (the_form_id, the_local_inputs, the_remote_entry, the_entry_key_ref) {
 
-    var _getFormLocalDataSuccessCB = function () {
+        form_id = the_form_id;
+        inputs = the_local_inputs;
+        remote_entry = the_remote_entry;
+        entry_key_ref = the_entry_key_ref;
+        self = this;
+        deferred = new $.Deferred();
+
+        EC.db.transaction(_updateLocalRowWithRemoteTX, _errorCB, _updateLocalRowWithRemoteSuccessCB);
+
+        return deferred.promise();
+    };
+
+    return module;
+
+}(EC.Update));
+
+/*global $, jQuery*/
+/**
+ * @module EC
+ * @submodule SetData
+ */
+
+var EC = EC || {};
+EC.Create = EC.Create || {};
+EC.Create = (function (module) {
+    'use strict';
+
+    var remote_entry;
+    var updated_entries_counter;
+    var local_entries_keys = [];
+    var inputs = [];
+    var groups;
+    var project_id;
+    var form_id;
+    var entry_key_ref;
+    var self;
+    var deferred;
+    var immediate_parent_key_value;
+
+
+    var _saveRemoteEntries = function () {
 
         var current_remote_entry = remote_entry;
         var current_remote_entry_key = current_remote_entry[entry_key_ref];
-        var current_remote_timestamp = current_remote_entry.created;
+
         var form_tree = JSON.parse(window.localStorage.form_tree);
         var parent_form_name = form_tree.pname;
         var immediate_parent_form;
         var hierarchy_entry_key_value_ref;
 
+        /*
+         Per each group in my local inputs, I need to map the remote data against the local structure
+         */
+
+        $(groups).each(function (index, single_group) {
+
+            var temp_array = [];
+
+            //a group is always a collection (Array)
+            current_remote_entry[single_group.ref] = {};
+
+            $(single_group.inputs).each(function (index, single_value) {
+                temp_array.push({ref: single_value.ref, value: current_remote_entry[single_value.ref]});
+
+                //delete detached ref from current_remote_entry for each group input ref not to be saved as orphan data
+                delete current_remote_entry[single_value.ref];
+            });
+
+            current_remote_entry[single_group.ref] = JSON.stringify(temp_array);
+
+            debugger;
+
+        });
+
         //check if the currenty entry match a primary key of a local entry
         if (EC.Utils.inArray(local_entries_keys, current_remote_entry_key)) {
-
             //update existing row
             console.log('***********************************************************  update ' + current_remote_entry_key);
+            $.when(EC.Update.updateLocalRowsWithRemoteData(form_id, inputs, remote_entry, entry_key_ref)).then(function () {
+                deferred.resolve();
+            });
 
-            //TODO: we have a match: update existing row
-            EC.db.transaction(_updateLocalRowWithRemoteTX, _errorCB, _updateLocalRowWithRemoteSuccessCB);
         } else {
 
+            /*************************************************************************/
             //check parent first, then trigger different transaction based on parenting
+            /*************************************************************************/
+
             //insert new row
             console.log('***********************************************************  insert ' + current_remote_entry_key);
 
             //manage parenting and form tree: if parent_name is '' we are entering data for top form so immediate_parent_key_value is set to ''
             if (parent_form_name === '') {
-
                 immediate_parent_key_value = '';
-
-                //TODO: insert top parent form values
-                EC.db.transaction(_insertTopFormValuesTX, _errorCB, _insertTopFormValuesSuccessCB);
-
+                $.when(EC.Create.insertRemoteFormValues(form_id, inputs, remote_entry, entry_key_ref, immediate_parent_key_value)).then(function () {
+                    deferred.resolve();
+                });
             } else {
-
                 //child form therefore use parent entry key value from downloaded data
                 hierarchy_entry_key_value_ref = EC.Utils.getFormParentPrimaryKeyRef(form_id);
                 immediate_parent_key_value = current_remote_entry[hierarchy_entry_key_value_ref];
@@ -13114,42 +13089,15 @@ EC.Create = (function (module) {
                     if (the_full_parent_path !== '') {
                         immediate_parent_key_value = the_full_parent_path + '|' + immediate_parent_key_value;
                     }
-
-                    EC.db.transaction(_insertChildFormValuesTX, _errorCB, _insertChildFormValuesSuccessCB);
-
+                    $.when(EC.Create.insertRemoteFormValues(form_id, inputs, remote_entry, entry_key_ref, immediate_parent_key_value, groups)).then(function () {
+                        deferred.resolve();
+                    });
                 }, function () {
                     //no parent key found on the device, warn user
                     deferred.reject();
-
                 });
-
             }
-
         }
-
-    };
-
-    var _insertNewRowSQLSuccessCB = function (the_tx, the_result) {
-        console.log('INSERT REMOTE ENTRY SUCCESS');
-        console.log(JSON.stringify(the_result));
-    };
-
-    var _insertTopFormValuesSuccessCB = function (the_tx, the_result) {
-
-        //update entries counter for the current form (adding new entry, + 1)
-        $.when(EC.Update.updateCountersOnEntriesDownload(form_id)).then(function () {
-            deferred.resolve();
-        });
-
-    };
-
-    var _insertChildFormValuesSuccessCB = function (the_tx, the_result) {
-
-        //update entries counter for the current form (adding new entry, + 1)
-        $.when(EC.Update.updateCountersOnEntriesDownload(form_id)).then(function () {
-            deferred.resolve();
-        });
-
     };
 
     /**
@@ -13162,35 +13110,51 @@ EC.Create = (function (module) {
      */
     module.commitRemoteEntry = function (the_project_id, the_form_id, the_remote_entry) {
 
-        debugger;
-
         project_id = the_project_id;
         form_id = the_form_id;
         remote_entry = the_remote_entry;
         self = this;
         deferred = new $.Deferred();
+        groups = [];
 
         entry_key_ref = EC.Utils.getFormPrimaryKeyRef(form_id);
 
         //reset array (we might have keys from a previous download)
-        local_entries_keys.length = 0;
+        local_entries_keys = [];
         //reset counter
         updated_entries_counter = 0;
         //reset inputs array
-        inputs.length = 0;
+        inputs = [];
+
+        debugger;
 
         if (!window.localStorage.dre_local_entries_keys && !window.localStorage.dre_inputs) {
 
-            //get all local primary keys and inputs for the current form before saving the new entries
-            EC.db.transaction(_getFormLocalDataTX, _errorCB, _getFormLocalDataSuccessCB);
+            //get all locally stored primary keys and inputs for the current form before saving the new entries,
+            //as we need to map against the local row '_id's
+            $.when(EC.Structure.getLocalDataStructure(form_id)).then(function (the_local_inputs, the_local_entries_keys, the_groups) {
+
+                //cache local data structure (dre_ stands for download remote entries ;))
+                window.localStorage.dre_local_entries_keys = JSON.stringify(the_local_entries_keys);
+                window.localStorage.dre_groups = JSON.stringify(the_groups);
+                window.localStorage.dre_inputs = JSON.stringify(the_local_inputs);
+
+                inputs = the_local_inputs;
+                local_entries_keys = the_local_entries_keys;
+                groups = the_groups;
+
+                _saveRemoteEntries();
+
+            });
+
         } else {
 
             //local primary keys and inputs are cached, no need to query db
-            //TODO
             local_entries_keys = JSON.parse(window.localStorage.dre_local_entries_keys);
             inputs = JSON.parse(window.localStorage.dre_inputs);
+            groups = JSON.parse(window.localStorage.dre_groups);
 
-            _getFormLocalDataSuccessCB();
+            _saveRemoteEntries();
         }
 
         return deferred.promise();
@@ -13614,6 +13578,151 @@ EC.Create = ( function (module) {
 
         return deferred.promise();
 
+    };
+
+    return module;
+
+}(EC.Create));
+
+var EC = EC || {};
+EC.Create = EC.Create || {};
+EC.Create = (function (module) {
+    'use strict';
+
+    var deferred;
+    var inputs;
+    var remote_entry;
+    var entry_key_ref;
+    var immediate_parent_key_value;
+    var form_id;
+
+    var _errorCB = function (the_tx, the_result) {
+        console.log(the_result);
+    };
+
+    var _insertNewRowSQLSuccessCB = function (the_tx, the_result) {
+        console.log('INSERT REMOTE ENTRY SUCCESS');
+        console.log(JSON.stringify(the_result));
+    };
+
+    var _insertRemoteFormValuesTX = function (tx) {
+
+        var i;
+        var iLength = inputs.length;
+        var query;
+        var ref;
+        var obj;
+        var location_obj;
+        var current_remote_entry = remote_entry;
+        var current_remote_entry_key = current_remote_entry[entry_key_ref];
+        var current_remote_timestamp = current_remote_entry.created;
+        var remote_ref_value;
+
+
+        //loop all the input fields
+        for (i = 0; i < iLength; i++) {
+
+            ref = inputs[i].ref;
+
+            //per each ref, check if the remote entry has a value
+            if (current_remote_entry.hasOwnProperty(ref)) {
+
+                //location object needs to be converted to string
+                if (typeof (current_remote_entry[ref]) === 'string') {
+                    remote_ref_value = current_remote_entry[ref];
+                } else {
+                    //location is a json object listing the components, so convert it to string
+                    location_obj = current_remote_entry[ref];
+                    remote_ref_value = EC.Utils.parseLocationObjToString(location_obj);
+                }
+
+            } else {
+                //the current input ref is not part of the downloaded data set therefore set it to an empty string
+                remote_ref_value = '';
+            }
+
+            //build query to insert values
+
+            query = '';
+            obj = inputs[i];
+
+            query += 'INSERT INTO ec_data (';
+            query += 'input_id, ';
+            query += 'form_id, ';
+            query += 'position, ';
+            query += 'parent, ';
+            query += 'label, ';
+            query += 'ref, ';
+            query += 'value, ';
+            query += 'is_title, ';
+            query += 'entry_key, ';
+            query += 'type, ';
+            query += 'created_on, ';
+            query += 'is_remote, ';
+            query += 'is_data_synced, ';
+            query += 'is_media_synced) ';
+            query += 'VALUES (';
+
+            //parameterized query (webSQL only allows '?' http://www.w3.org/TR/webdatabase/)
+            query += '?,';//input_id
+            query += '?,';//form_id
+            query += '?,';//position
+            query += '?,';//parent
+            query += '?,';//label
+            query += '?,';//ref
+            query += '?,';//value
+            query += '?,';//is_title
+            query += '?,';//entry_key
+            query += '?,';//type
+            query += '?,';//created_on
+            query += '?,';//is_remote
+            query += '?,';//is_data_synced
+            query += '?);';//is_media_synced
+
+            tx.executeSql(query, [
+                    obj._id,
+                    form_id,
+                    obj.position,
+                    immediate_parent_key_value,
+                    obj.label,
+                    ref,
+                    remote_ref_value,
+                    obj.is_title,
+                    current_remote_entry_key,
+                    obj.type,
+                    current_remote_timestamp,
+                    1,
+                    1,
+                    1
+                ],
+                _insertNewRowSQLSuccessCB,
+                _errorCB);
+
+        }
+    };
+
+    var _insertRemoteFormValuesSuccessCB = function (the_tx, the_result) {
+        //update entries counter for the current form (adding new entry, + 1)
+        $.when(EC.Update.updateCountersOnEntriesDownload(form_id)).then(function () {
+            deferred.resolve();
+        });
+    };
+
+    //insert downloaded entries to the local SQLite database
+    module.insertRemoteFormValues = function (the_form_id, the_local_inputs, the_remote_entry, the_entry_key_ref, the_immediate_parent_key_value) {
+
+        form_id = the_form_id;
+        inputs = the_local_inputs;
+        remote_entry = the_remote_entry;
+        entry_key_ref = the_entry_key_ref;
+        immediate_parent_key_value = the_immediate_parent_key_value;
+
+        deferred = new $.Deferred();
+
+        //insert remote form values to top parent form
+        EC.db.transaction(_insertRemoteFormValuesTX, _errorCB, _insertRemoteFormValuesSuccessCB);
+
+        return deferred.promise();
     };
 
     return module;
@@ -20675,77 +20784,20 @@ EC.BranchInputs = ( function(module) {"use strict";
 
 var EC = EC || {};
 EC.Download = EC.Download || {};
-EC.Download = (function () {
+EC.Download = (function (module) {
     'use strict';
 
-    var project_server_url;
-    var project_name;
-    var project_id;
-    var form_name;
-    var form_id;
-    var chosen_form_id;
-    var chosen_form_name;
-    var entries;
-    var data;
+    var self;
 
-    function _commitRemoteEntry(the_single_remote_entry) {
+    module.fetchRemoteData = function () {
 
-        $.when(EC.Create.commitRemoteEntry(project_id, form_id, the_single_remote_entry)).then(function () {
+        var url;
 
-            if (entries.length === 0) {
+        // this will reference EC.Utils? Because I am calling the function from that context? Who knows
+        self = EC.Download;//self references EC.Utils?
+        url = self.project_server_url + self.project_name + '/' + self.chosen_form_name + '.json';
 
-                if (data.length === 0) {
-
-                    EC.Notification.showToast('All data downloaded', 'short');
-
-                    //@bug on iOS, spinner loader not hiding, force to hide
-                    // it here calling it directly with no timeout
-                    if (window.device) {
-                        if (window.device.platform === EC.Const.IOS) {
-                            window.ActivityIndicator.hide();
-                        }
-                    }
-
-                    //clear cached object for this form (table)
-                    window.localStorage.removeItem('dre_local_entries_keys');
-                    window.localStorage.removeItem('dre_inputs');
-
-                    //back to forms list
-                    EC.Routing.changePage(window.localStorage.back_nav_url);
-                }
-                else {
-
-                    entries = data.splice(0, 500);
-                    _commitRemoteEntry(entries.shift());
-                }
-
-            }
-            else {
-                _commitRemoteEntry(entries.shift());
-            }
-
-        }, function () {
-
-            /* When downloading remote entries, if parent entry is missing on the device database the user needs to download from the parent table first
-             * to keep the database referential integrity
-             */
-
-            //TODO: get parent form name
-            var parent_form = EC.Utils.getParentFormByChildID(chosen_form_id);
-
-            EC.Notification.hideProgressDialog();
-            EC.Notification.showAlert('Error', 'Parent keys for ' + chosen_form_name + ' are missing on device database, please download ' + parent_form.name + ' entries first');
-
-        });
-
-    }
-
-    var _performRequest = function (the_url) {
-
-        debugger;
-
-        var url = the_url;
-        var hash;
+        EC.Notification.showProgressDialog();
 
         $.ajax({
             url: url, //url
@@ -20755,17 +20807,15 @@ EC.Download = (function () {
             dataType: 'json', //return data type
             success: function (the_data) {
 
-                data = the_data;
+                self.data = the_data;
 
-                //console.log(JSON.stringify(data));
-
-                if (data.length === 0) {
+                if (self.data.length === 0) {
                     //no entries on the server yet, go back to form list
                     EC.Notification.showAlert('Sorry', 'No remote entries for the selected form yet!');
                 }
                 else {
-                    entries = data.splice(0, 500);
-                    _commitRemoteEntry(entries.shift());
+                    self.entries = self.data.splice(0, 500);
+                    self.saveSingleRemoteEntry(self.entries.shift());
                 }
             },
             error: function (request, status, error) {
@@ -20788,21 +20838,101 @@ EC.Download = (function () {
                 console.log(status + ', ' + error);
                 console.log(request);
             }
-
         });
-
     };
 
-    var fetchRemoteData = function () {
+    return module;
 
-        EC.Notification.showProgressDialog();
+}(EC.Download));
 
-        //get request ajax
-        _performRequest(project_server_url + project_name + '/' + chosen_form_name + '.json');
+/*global $, jQuery, cordova, device*/
 
+var EC = EC || {};
+EC.Download = EC.Download || {};
+EC.Download = (function (module) {
+    'use strict';
+
+    var self;
+    var deferred;
+    var project_id;
+    var form_id;
+    var remote_entry;
+    var groups;
+    var entry_key_ref;
+    var local_entries_keys;
+    var updated_entries_counter;
+    var inputs;
+
+
+    module.prepareForRemoteDataSaving = function (the_project_id, the_form_id, the_remote_entry) {
+
+        self = this;
+        self.project_id = the_project_id;
+        self.form_id = the_form_id;
+        self.remote_entry = the_remote_entry;
+
+        deferred = new $.Deferred();
+
+
+        //todo move dependency outside?
+        entry_key_ref = EC.Utils.getFormPrimaryKeyRef(form_id);
+
+        //reset array (we might have keys from a previous download)
+        local_entries_keys = [];
+        //reset counter
+        updated_entries_counter = 0;
+        //reset inputs array
+        inputs = [];
+        groups = [];
+
+        debugger;
+
+        if (!window.localStorage.dre_local_entries_keys && !window.localStorage.dre_inputs) {
+
+            //get all locally stored primary keys and inputs for the current form before saving the new entries,
+            //as we need to map against the local row '_id's
+            $.when(EC.Structure.getLocalDataStructure(form_id)).then(function (the_local_inputs, the_local_entries_keys, the_groups) {
+
+                //cache local data structure (dre_ stands for download remote entries ;))
+                window.localStorage.dre_local_entries_keys = JSON.stringify(the_local_entries_keys);
+                window.localStorage.dre_groups = JSON.stringify(the_groups);
+                window.localStorage.dre_inputs = JSON.stringify(the_local_inputs);
+
+                inputs = the_local_inputs;
+                local_entries_keys = the_local_entries_keys;
+                groups = the_groups;
+
+                //_saveRemoteEntries();
+                deferred.resolve(inputs, local_entries_keys, groups);
+
+            });
+
+        } else {
+
+            //local primary keys and inputs are cached, no need to query db
+            local_entries_keys = JSON.parse(window.localStorage.dre_local_entries_keys);
+            inputs = JSON.parse(window.localStorage.dre_inputs);
+            groups = JSON.parse(window.localStorage.dre_groups);
+
+            //_saveRemoteEntries();
+            deferred.resolve(inputs, local_entries_keys, groups);
+        }
+
+        return deferred.promise();
     };
+    return module;
 
-    var renderDownloadView = function () {
+}(EC.Download));
+
+/*global $, jQuery, cordova, device*/
+
+var EC = EC || {};
+EC.Download = EC.Download || {};
+EC.Download = (function (module) {
+    'use strict';
+
+    var self;
+    module.renderDownloadView = function () {
 
         var forms = JSON.parse(window.localStorage.forms);
         var i;
@@ -20811,29 +20941,28 @@ EC.Download = (function () {
         var jLength = iLength;
         var HTML = '';
         var dom_list = $('div#download div#download-forms');
-        var page = $('#download');
         var form_btn;
         var form_tree;
-        var hash = 'forms.html?project=' + project_id + '&name=' + project_name;
         var back_btn = $('div#download div[data-role="header"] div[data-href="back-btn"]');
+        self = this;
 
-        project_id = window.localStorage.project_id;
-        project_name = window.localStorage.project_name;
-        project_server_url = window.localStorage.project_server_url;
+
+        self.project_id = window.localStorage.project_id;
+        self.project_name =  window.localStorage.project_name;
+        self.project_server_url = window.localStorage.project_server_url;
 
         //set back_nav_url for navigating back to forms list
-        window.localStorage.back_nav_url = 'forms.html?project=' + project_id + '&name=' + project_name;
+        window.localStorage.back_nav_url = 'forms.html?project=' +  self.project_id + '&name=' +  self.project_name;
 
         var _form_btn_handler = function () {
 
             //get chosen form data
-            chosen_form_name = $(this).find('span').text();
-            chosen_form_id = $(this).attr('id');
+            self.chosen_form_name = $(this).find('span').text();
+            self.chosen_form_id = $(this).attr('id');
 
             //update form tree in localStorage
-            form_tree = EC.Utils.getParentAndChildForms(chosen_form_id);
+            form_tree = EC.Utils.getParentAndChildForms(self.chosen_form_id);
             window.localStorage.form_tree = JSON.stringify(form_tree);
-            form_id = chosen_form_id;
 
             EC.Notification.askConfirm('Download remote data', 'Are you sure to proceed? It might take some time', 'EC.Download.fetchRemoteData');
         };
@@ -20861,12 +20990,72 @@ EC.Download = (function () {
         }
     };
 
-    return {
-        fetchRemoteData: fetchRemoteData,
-        renderDownloadView: renderDownloadView
+    return module;
+
+}(EC.Download));
+
+/*global $, jQuery, cordova, device*/
+
+var EC = EC || {};
+EC.Download = EC.Download || {};
+EC.Download = (function (module) {
+    'use strict';
+
+    var self;
+
+    module.saveSingleRemoteEntry = function (the_single_remote_entry) {
+
+        self = this;
+
+        $.when(EC.Create.commitRemoteEntry(self.project_id, self.chosen_form_id, the_single_remote_entry)).then(function () {
+            if (self.entries.length === 0) {
+                if (self.data.length === 0) {
+
+                    EC.Notification.showToast('All data downloaded', 'short');
+
+                    //@bug on iOS, spinner loader not hiding, force to hide
+                    // it here calling it directly with no timeout
+                    if (window.device) {
+                        if (window.device.platform === EC.Const.IOS) {
+                            window.ActivityIndicator.hide();
+                        }
+                    }
+
+                    //clear cached object for this form (table)
+                    window.localStorage.removeItem('dre_local_entries_keys');
+                    window.localStorage.removeItem('dre_inputs');
+
+                    //back to forms list
+                    EC.Routing.changePage(window.localStorage.back_nav_url);
+                }
+                else {
+
+                    self.entries = self.data.splice(0, 500);
+                    self.saveSingleRemoteEntry(self.entries.shift());
+                }
+
+            }
+            else {
+                self.saveSingleRemoteEntry(self.entries.shift());
+            }
+
+        }, function () {
+
+            /* When downloading remote entries, if parent entry is missing on the device database the user needs to download from the parent table first
+             * to keep the database referential integrity
+             */
+
+            //TODO: get parent form name
+            var parent_form = EC.Utils.getParentFormByChildID(self.chosen_form_id);
+
+            EC.Notification.hideProgressDialog();
+            EC.Notification.showAlert('Error', 'Parent keys for ' + self.chosen_form_name + ' are missing on device database, please download ' + parent_form.name + ' entries first');
+        });
     };
 
-}());
+    return module;
+
+}(EC.Download));
 
 /*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/
@@ -27138,7 +27327,9 @@ EC.InputTypes = (function (module) {
          ****************************************************************************************/
         if (window.device.platform === EC.Const.ANDROID) {
 
-            EC.Datetime.initAndroidDatetimePicker(datepicker, input.datetime_format);
+            debugger;
+
+            EC.Datetime.initAndroidDatetimePicker(datepicker, input.datetime_format, EC.Const.DATE);
 
             ///* bind input to 'vclick' insted of focus, as we set the input as readonly.
             // * this solved problem on android 2.3 where the keyboard was showing because the
@@ -27713,8 +27904,6 @@ EC.InputTypes = (function (module) {
             }
         }
 
-        debugger;
-
         /*
          we need the follow hack to blur any input when interacting with radio buttons or checkboxes,
          as the focus on a text field does not blur itself and the keyboard stays open
@@ -27723,15 +27912,11 @@ EC.InputTypes = (function (module) {
             $('input[type="text"]').blur();
             $('input[type="number"]').blur();
             $('textarea').blur();
-
-
         });
         $('div.group-radio').off().on('vmousedown', function () {
             $('input[type="text"]').blur();
             $('input[type="number"]').blur();
             $('textarea').blur();
-
-            //fix element background color, other bug, reset to grey
         });
     };
     return module;
@@ -28412,8 +28597,8 @@ EC.InputTypes = (function (module) {
 
 var EC = EC || {};
 EC.InputTypes = EC.InputTypes || {};
-EC.InputTypes = ( function (module) {
-    "use strict";
+EC.InputTypes = (function (module) {
+    'use strict';
 
     module.time = function (the_value, the_input) {
 
@@ -28427,7 +28612,7 @@ EC.InputTypes = ( function (module) {
         var datebox_format;
 
         //update label text
-        span_label.text(input.label + " - " + input.datetime_format);
+        span_label.text(input.label + ' - ' + input.datetime_format);
 
         //Localise
         if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
@@ -28453,12 +28638,12 @@ EC.InputTypes = ( function (module) {
         //Android Phonegap timepicker plugin http://goo.gl/xLrqZl
         timepicker = $('div#input-time input.nativedatepicker');
 
-        //iOS uses the HTML5 input type="time"
+        //iOS uses the HTML5 input type='time'
         ios_timepicker = $('div#input-time input.ios-time');
 
         //hide immediate ios time input parent (JQM quirk, this is to hide the div
         // element border wrapping the input after JQM enhanced the markup)
-        ios_timepicker.parent().addClass("no-border");
+        ios_timepicker.parent().addClass('no-border');
 
         /*show current time if value = input.datetime_format:
          *if the option to show the current time as default is selected in the web form
@@ -28477,51 +28662,11 @@ EC.InputTypes = ( function (module) {
          * Android uses the Phonegap official DatePicker plugin
          ****************************************************************************************/
         if (window.device.platform === EC.Const.ANDROID) {
-            /* bind input to 'vclick' insted of focus, as we set the input as readonly.
-             * this solved problem on android 2.3 where the keyboard was showing because the
-             * input is in focus when tapping "cancel"
-             * on the DatePicker popup
-             */
-            timepicker.off().on('vclick', function (e) {
-
-                var timepicker = $(this);
-                var selected_date = Date.parse(timepicker.val()) || new Date();
-
-                //use debouncing/throttling to avoid triggering multiple `focus` event
-                // http://goo.gl/NFdHDW
-                var now = new Date();
-                var lastFocus = timepicker.data("lastFocus");
-                if (lastFocus && (now - lastFocus) < 500) {
-                    // Don't do anything
-                    return;
-                }
-                timepicker.data("lastFocus", now);
-
-                // Same handling for iPhone and Android
-                window.plugins.datePicker.show({
-                    date: selected_date,
-                    mode: 'time', // date or time or blank for both
-                    allowOldDates: true
-                }, function (returned_date) {
-
-                    var new_date;
-
-                    if (returned_date !== undefined) {
-
-                        new_date = new Date(returned_date);
-
-                        timepicker.val(EC.Utils.parseTime(new_date, input.datetime_format));
-                    }
-
-                    // This fixes the problem you mention at the bottom of this script with it not
-                    // working a second/third time around, because it is in focus.
-                    timepicker.blur();
-                });
-            });
+            EC.Datetime.initAndroidDatetimePicker(timepicker, input.datetime_format, EC.Const.TIME);
         }
 
         /*****************************************************************************************
-         * iOS uses the official HTML5 input type="time", only hours and minutes are
+         * iOS uses the official HTML5 input type='time', only hours and minutes are
          * returned
          ****************************************************************************************/
         if (window.device.platform === EC.Const.IOS) {
@@ -28541,10 +28686,10 @@ EC.InputTypes = ( function (module) {
                 var seconds = date.getSeconds();
 
                 //add seconds to have a string like HH:mm:ss
-                ios_time = ios_time + ":" + seconds;
+                ios_time = ios_time + ':' + seconds;
 
                 timepicker.val(EC.Utils.parseIOSTime(ios_time, input.datetime_format));
-                timepicker.attr("data-raw-date", ios_time);
+                timepicker.attr('data-raw-date', ios_time);
 
             });
         }

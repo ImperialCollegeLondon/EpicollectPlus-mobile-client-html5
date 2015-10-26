@@ -1389,6 +1389,28 @@ EC.Utils = (function () {
         return is_good;
     }
 
+    /**
+     * parseLocation() Convert a location json object to a single string concatenating the location components values
+     */
+    function parseLocationObjToString(the_location_obj) {
+
+        var location_obj = the_location_obj;
+        var latitude = (location_obj.latitude === 'N/A') ? '' : location_obj.latitude;
+        var longitude = (location_obj.longitude === 'N/A') ? '' : location_obj.longitude;
+        var altitude = (location_obj.altitude === 'N/A') ? '' : location_obj.altitude;
+        var accuracy = (location_obj.accuracy === 'N/A') ? '' : location_obj.accuracy;
+        var bearing = (location_obj.bearing === 'N/A') ? '' : location_obj.bearing;
+
+        return (//
+        'Latitude: ' + latitude + ',\n' + //
+        'Longitude: ' + longitude + ',\n' + //
+        'Altitude: ' + altitude + ',\n' + //
+        'Accuracy: ' + accuracy + ',\n' + //
+        'Altitude Accuracy: ' + ' ' + ',\n' + //
+        'Heading: ' + bearing + '\n');
+        //
+    }
+
     return {
 
         setForms: setForms,
@@ -1442,7 +1464,8 @@ EC.Utils = (function () {
         mapLabelToValue: mapLabelToValue,
         isAudioFileStored: isAudioFileStored,
         generateAudioFileName: generateAudioFileName,
-        hasGoodConnection: hasGoodConnection
+        hasGoodConnection: hasGoodConnection,
+        parseLocationObjToString: parseLocationObjToString
     };
 
 }());

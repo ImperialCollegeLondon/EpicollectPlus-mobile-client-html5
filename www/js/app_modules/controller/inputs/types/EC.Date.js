@@ -79,7 +79,9 @@ EC.InputTypes = (function (module) {
          ****************************************************************************************/
         if (window.device.platform === EC.Const.ANDROID) {
 
-            EC.Datetime.initAndroidDatetimePicker(datepicker, input.datetime_format);
+            debugger;
+
+            EC.Datetime.initAndroidDatetimePicker(datepicker, input.datetime_format, EC.Const.DATE);
 
             ///* bind input to 'vclick' insted of focus, as we set the input as readonly.
             // * this solved problem on android 2.3 where the keyboard was showing because the
