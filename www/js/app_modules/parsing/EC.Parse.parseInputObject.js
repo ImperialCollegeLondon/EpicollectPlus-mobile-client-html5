@@ -322,28 +322,6 @@ EC.Parse = (function (module) {
                     single_group_input.type = 'decimal';
 
                 }
-
-                //if @setdate or @date  is present, convert the type to date (it defaults to text) and add the 'format' attribute
-                if (single_group_input['@setdate'] !== undefined || single_group_input['@date'] !== undefined) {
-
-                    single_group_input.type = 'date';
-                    single_group_input.datetime_format = single_group_input['@setdate'] || single_group_input['@date'];
-
-                    //also add the setdate value as default to indicate it needs to default to current date
-                    single_group_input.default_value = single_group_input['@setdate'] || '';
-
-                }
-
-                //if @settime or @time is present, convert the type to time (it defaults to text) and add the 'format' attribute
-                if (single_group_input['@settime'] !== undefined || single_group_input['@time'] !== undefined) {
-
-                    single_group_input.type = 'time';
-                    single_group_input.datetime_format = single_group_input['@settime'] || single_group_input['@time'];
-
-                    //also add the settime value as default to indicate it needs to default to current time
-                    single_group_input.default_value = single_group_input['@settime'] || '';
-                }
-
                 //if @default is present, there is a default value set for this input
                 single_group_input.default_value = (single_group_input['@default'] === undefined) ? '' : single_group_input.default_value;
 
@@ -360,6 +338,28 @@ EC.Parse = (function (module) {
 
                 //add a value property to store the answer to this input question
                 single_group_input.value = '';
+
+                //if @setdate or @date  is present, convert the type to date (it defaults to text) and add the 'format' attribute
+                if (single_group_input['@setdate'] !== undefined || single_group_input['@date'] !== undefined) {
+
+                    single_group_input.type = 'date';
+                    single_group_input.datetime_format = single_group_input['@setdate'] || single_group_input['@date'];
+
+                    //also add the setdate value as default to indicate it needs to default to current date
+                    single_group_input.default_value = single_group_input['@setdate'] || '';
+
+
+                }
+
+                //if @settime or @time is present, convert the type to time (it defaults to text) and add the 'format' attribute
+                if (single_group_input['@settime'] !== undefined || single_group_input['@time'] !== undefined) {
+
+                    single_group_input.type = 'time';
+                    single_group_input.datetime_format = single_group_input['@settime'] || single_group_input['@time'];
+
+                    //also add the settime value as default to indicate it needs to default to current time
+                    single_group_input.default_value = single_group_input['@settime'] || '';
+                }
 
 
                 //rename <item> to options to keep consistency

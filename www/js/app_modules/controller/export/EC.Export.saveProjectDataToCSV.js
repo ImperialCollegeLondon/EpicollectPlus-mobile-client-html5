@@ -21,7 +21,7 @@ EC.Export.saveProjectDataToCSV = function (the_project_id, the_forms) {
 
         //per each entry belonging to the current form, generate a json as key:value pair
         for (i = 0; i < iLength; i++) {
-            single_entry_raw = form.data_rows.splice(0, form.total_inputs);
+            single_entry_raw = form.data_rows.splice(0, form.data_rows.length);
             json.push(_parseSingleEntry(single_entry_raw, has_parent));
         }
         return json;
@@ -98,6 +98,8 @@ EC.Export.saveProjectDataToCSV = function (the_project_id, the_forms) {
     //get data rows for all the forms for this project
     $.when(EC.Select.getAllProjectEntries(forms, project_id)).then(function (data) {
         console.log(data);
+
+        debugger;
 
         var i;
         var iLength = data.length;

@@ -3870,28 +3870,6 @@ EC.Parse = (function (module) {
                     single_group_input.type = 'decimal';
 
                 }
-
-                //if @setdate or @date  is present, convert the type to date (it defaults to text) and add the 'format' attribute
-                if (single_group_input['@setdate'] !== undefined || single_group_input['@date'] !== undefined) {
-
-                    single_group_input.type = 'date';
-                    single_group_input.datetime_format = single_group_input['@setdate'] || single_group_input['@date'];
-
-                    //also add the setdate value as default to indicate it needs to default to current date
-                    single_group_input.default_value = single_group_input['@setdate'] || '';
-
-                }
-
-                //if @settime or @time is present, convert the type to time (it defaults to text) and add the 'format' attribute
-                if (single_group_input['@settime'] !== undefined || single_group_input['@time'] !== undefined) {
-
-                    single_group_input.type = 'time';
-                    single_group_input.datetime_format = single_group_input['@settime'] || single_group_input['@time'];
-
-                    //also add the settime value as default to indicate it needs to default to current time
-                    single_group_input.default_value = single_group_input['@settime'] || '';
-                }
-
                 //if @default is present, there is a default value set for this input
                 single_group_input.default_value = (single_group_input['@default'] === undefined) ? '' : single_group_input.default_value;
 
@@ -3908,6 +3886,28 @@ EC.Parse = (function (module) {
 
                 //add a value property to store the answer to this input question
                 single_group_input.value = '';
+
+                //if @setdate or @date  is present, convert the type to date (it defaults to text) and add the 'format' attribute
+                if (single_group_input['@setdate'] !== undefined || single_group_input['@date'] !== undefined) {
+
+                    single_group_input.type = 'date';
+                    single_group_input.datetime_format = single_group_input['@setdate'] || single_group_input['@date'];
+
+                    //also add the setdate value as default to indicate it needs to default to current date
+                    single_group_input.default_value = single_group_input['@setdate'] || '';
+
+
+                }
+
+                //if @settime or @time is present, convert the type to time (it defaults to text) and add the 'format' attribute
+                if (single_group_input['@settime'] !== undefined || single_group_input['@time'] !== undefined) {
+
+                    single_group_input.type = 'time';
+                    single_group_input.datetime_format = single_group_input['@settime'] || single_group_input['@time'];
+
+                    //also add the settime value as default to indicate it needs to default to current time
+                    single_group_input.default_value = single_group_input['@settime'] || '';
+                }
 
 
                 //rename <item> to options to keep consistency
@@ -7612,12 +7612,12 @@ EC.Select = (function (module) {
     };
 
 
-
     var _getAllProjectEntriesSQLSuccessCB = function (the_tx, the_result) {
 
         var i;
         var iLength = the_result.rows.length;
         var current_data_rows;
+        var group_values;
 
         //per each form, save form details and an array with all the entries for that form
         entries[form_counter] = {
@@ -7638,6 +7638,23 @@ EC.Select = (function (module) {
                 current_data_rows[current_data_rows.length - 1].value = '';
             }
 
+            //if the entry just added was a group, the value is then a json object containing multiple values,
+            // create a data row per each of the group ref:value pairs
+            if (current_data_rows[current_data_rows.length - 1].type === EC.Const.GROUP) {
+
+
+
+                //get group values
+                group_values = JSON.parse(current_data_rows[current_data_rows.length - 1].value);
+                //remove group ref as entry as the server does not recognise it
+                current_data_rows.pop();
+                $(group_values).each(function (index, single_group_value) {
+                    current_data_rows.push({
+                        ref: single_group_value.ref,
+                        value: single_group_value.value
+                    });
+                });
+            }
         }
 
         form_counter++;
@@ -7689,6 +7706,8 @@ EC.Select = (function (module) {
      * @param {Object} the_forms Fetch all project entries rows
      */
     module.getAllProjectEntries = function (the_forms, the_project_id) {
+
+        debugger;
 
         forms = the_forms;
         project_id = the_project_id;
@@ -24158,7 +24177,7 @@ EC.Export.saveProjectDataToCSV = function (the_project_id, the_forms) {
 
         //per each entry belonging to the current form, generate a json as key:value pair
         for (i = 0; i < iLength; i++) {
-            single_entry_raw = form.data_rows.splice(0, form.total_inputs);
+            single_entry_raw = form.data_rows.splice(0, form.data_rows.length);
             json.push(_parseSingleEntry(single_entry_raw, has_parent));
         }
         return json;
@@ -24235,6 +24254,8 @@ EC.Export.saveProjectDataToCSV = function (the_project_id, the_forms) {
     //get data rows for all the forms for this project
     $.when(EC.Select.getAllProjectEntries(forms, project_id)).then(function (data) {
         console.log(data);
+
+        debugger;
 
         var i;
         var iLength = data.length;
@@ -27746,10 +27767,9 @@ EC.InputTypes = (function (module) {
                 case EC.Const.DATE:
 
                     //set default value to date input
-                    if (single_group_input.value === input.datetime_format) {
-                        single_group_input.value = EC.Utils.parseDate(new Date(), input.datetime_format);
+                    if (single_group_input.value === single_group_input.datetime_format) {
+                        single_group_input.value = EC.Utils.parseDate(new Date(), single_group_input.datetime_format);
                     }
-
 
                     html += '<div class="group-date" data-input-ref="' + single_group_input.ref + '">';
                     html += '<span class="label">' + single_group_input.label + '</span>';
@@ -27859,9 +27879,11 @@ EC.InputTypes = (function (module) {
                 //render time inputs
                 case EC.Const.TIME:
 
+                    debugger;
+
                     //set default value to date input
-                    if (single_group_input.value === input.datetime_format) {
-                        single_group_input.value = EC.Utils.parseDate(new Date(), input.datetime_format);
+                    if (single_group_input.value === single_group_input.datetime_format) {
+                        single_group_input.value = EC.Utils.parseDate(new Date(), single_group_input.datetime_format);
                     }
 
 

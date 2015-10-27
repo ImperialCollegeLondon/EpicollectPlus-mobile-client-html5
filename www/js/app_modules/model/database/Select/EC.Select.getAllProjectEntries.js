@@ -38,12 +38,12 @@ EC.Select = (function (module) {
     };
 
 
-
     var _getAllProjectEntriesSQLSuccessCB = function (the_tx, the_result) {
 
         var i;
         var iLength = the_result.rows.length;
         var current_data_rows;
+        var group_values;
 
         //per each form, save form details and an array with all the entries for that form
         entries[form_counter] = {
@@ -64,6 +64,23 @@ EC.Select = (function (module) {
                 current_data_rows[current_data_rows.length - 1].value = '';
             }
 
+            //if the entry just added was a group, the value is then a json object containing multiple values,
+            // create a data row per each of the group ref:value pairs
+            if (current_data_rows[current_data_rows.length - 1].type === EC.Const.GROUP) {
+
+
+
+                //get group values
+                group_values = JSON.parse(current_data_rows[current_data_rows.length - 1].value);
+                //remove group ref as entry as the server does not recognise it
+                current_data_rows.pop();
+                $(group_values).each(function (index, single_group_value) {
+                    current_data_rows.push({
+                        ref: single_group_value.ref,
+                        value: single_group_value.value
+                    });
+                });
+            }
         }
 
         form_counter++;
@@ -115,6 +132,8 @@ EC.Select = (function (module) {
      * @param {Object} the_forms Fetch all project entries rows
      */
     module.getAllProjectEntries = function (the_forms, the_project_id) {
+
+        debugger;
 
         forms = the_forms;
         project_id = the_project_id;

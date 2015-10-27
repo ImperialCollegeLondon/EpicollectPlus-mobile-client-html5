@@ -129,10 +129,9 @@ EC.InputTypes = (function (module) {
                 case EC.Const.DATE:
 
                     //set default value to date input
-                    if (single_group_input.value === input.datetime_format) {
-                        single_group_input.value = EC.Utils.parseDate(new Date(), input.datetime_format);
+                    if (single_group_input.value === single_group_input.datetime_format) {
+                        single_group_input.value = EC.Utils.parseDate(new Date(), single_group_input.datetime_format);
                     }
-
 
                     html += '<div class="group-date" data-input-ref="' + single_group_input.ref + '">';
                     html += '<span class="label">' + single_group_input.label + '</span>';
@@ -242,9 +241,11 @@ EC.InputTypes = (function (module) {
                 //render time inputs
                 case EC.Const.TIME:
 
+                    debugger;
+
                     //set default value to date input
-                    if (single_group_input.value === input.datetime_format) {
-                        single_group_input.value = EC.Utils.parseDate(new Date(), input.datetime_format);
+                    if (single_group_input.value === single_group_input.datetime_format) {
+                        single_group_input.value = EC.Utils.parseDate(new Date(), single_group_input.datetime_format);
                     }
 
 
