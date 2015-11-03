@@ -214,8 +214,19 @@ EC.Parse = (function (module) {
         //if the type is 'group', parse inputs withing the group
         if (type === EC.Const.GROUP) {
 
-            var raw_group_inputs = the_raw_input.input;
+            //todo group input position, so to save them in the right order (xml sucks!)
+
+            var raw_group_inputs = [];
             var parsed_group_inputs = [];
+
+            //check if we have an array of inputs or just a single one
+            if (Array.isArray(the_raw_input.input)) {
+                raw_group_inputs = the_raw_input.input;
+            }
+            else {
+                raw_group_inputs.push(the_raw_input.input);
+            }
+
 
             //get label for groups, it is an attribute, not a tag
             parsed_input.label = the_raw_input['@label'];
@@ -256,7 +267,6 @@ EC.Parse = (function (module) {
             }
 
 
-
             //are there any <select> inputs? In their infinite wisdom, original Epicollect+ developers decided to use the <select> tag to render a checkbox. Yes, really :/ #dechrissify
             if (the_raw_input.select) {
                 //ok, add them as inputs (could be array or object if only one)
@@ -273,7 +283,6 @@ EC.Parse = (function (module) {
                     raw_group_inputs.push(the_raw_input.select);
                 }
             }
-
 
 
             //are there any <select1> inputs?

@@ -3401,14 +3401,37 @@ var EC = EC || {};
 EC.Parse = (function (module) {
     'use strict';
 
+    var _mapGroupInputsPositions = function (the_input) {
+
+        //var group_inputs = $(this).children();
+        var group_inputs = the_input.children();
+        var ref = the_input.attr('ref');
+        var group_input = {
+            input_ref: ref,
+            positions: []
+        };
+
+
+        $(group_inputs).each(function (index, single_group_input) {
+
+            debugger;
+            group_input.positions.push({
+                ref: $(single_group_input).attr('ref'),
+                position: index + 1
+            });
+
+        });
+
+        return group_input;
+
+    };
+
     /**
      * Map the position a form input using the @ref attribute and return an array:
      * Doing this because when converting to json the same tags are grouped together and we lose the correct inputs order!
      */
 
     module.mapPositionToInput = function (the_xml) {
-
-
 
         var xml = the_xml;
         var form_children;
@@ -3422,71 +3445,67 @@ EC.Parse = (function (module) {
         var form_name;
         var hierarchy_skip_key;
         var branch_skip_keys = [];
+        var groups = [];
+
+
 
         $(xml).find('form').each(function (i) {
 
-            form_children = $(this).children();
-            positions = [];
-            position = 1;
+                form_children = $(this).children();
+                positions = [];
+                position = 1;
 
-            //get form key value
-            key = $(this).attr('key');
+                //get form key value
+                key = $(this).attr('key');
 
-            //get form main value. true: main form, false: branch form
-            main = $(this).attr('main');
+                //get form main value. true: main form, false: branch form
+                main = $(this).attr('main');
 
-            form_num = parseInt($(this).attr('num'), 10);
+                form_num = parseInt($(this).attr('num'), 10);
 
-            //get form name which is unique within a project
-            form_name = $(this).attr('name');
+                //get form name which is unique within a project
+                form_name = $(this).attr('name');
 
-            //loop all the inputs
-            $(form_children).each(function (index) {
+                //loop all the inputs
+                $(form_children).each(function (index) {
 
+                    groups = [];
 
+                    var ref = $(this).attr('ref');
 
-                var ref = $(this).attr('ref');
+                    if (form_num === 1) {
 
-                if (form_num === 1) {
+                        if (!hierarchy_skip_key) {
+                            hierarchy_skip_key = key;
+                            branch_skip_keys.push(key);
+                        }
 
-                    if (!hierarchy_skip_key) {
-                        hierarchy_skip_key = key;
-                        branch_skip_keys.push(key);
-                    }
-
-                    positions.push({
-
-                        form_num: form_num,
-                        form_name: form_name,
-                        form_position: form_position,
-                        position: position,
-                        ref: ref
-
-                    });
-                    position++;
-
-                } else {
-
-                    /* remove reference to parent key from child form: we have to skip the input where the @ref is equal to the @key of the immediate parent;
-                     * that input is there on the xml for legacy reasons. It is used in the old Android client but no more on the new HTML5 implementation
-                     */
-
-                    if (ref === hierarchy_skip_key) {
+                        //if it is a group, the ref will have '_group' at the end
+                        //we need to map the gruop inputs to keep the position when saving them as json: xml does not keep the order
+                        if (ref.slice(-6) === '_group') {
+                            groups.push(_mapGroupInputsPositions($(this)));
+                        }
 
                         positions.push({
 
                             form_num: form_num,
                             form_name: form_name,
                             form_position: form_position,
-                            position: 'skip',
-                            ref: ref
-
+                            position: position,
+                            ref: ref,
+                            groups: groups
                         });
-                    } else {
 
-                        //check if the current form is a branch, in that case skip the input if the ref is equal to any one of the cached main keys
-                        //(again to skip the useless input there for legacy reasons)
-                        if (main === 'false' && EC.Utils.inArray(branch_skip_keys, ref)) {
+                        position++;
+
+                    }
+                    else {
+
+                        /* remove reference to parent key from child form: we have to skip the input where the @ref is equal to the @key of the immediate parent;
+                         * that input is there on the xml for legacy reasons. It is used in the old Android client but no more on the new HTML5 implementation
+                         */
+
+                        if (ref === hierarchy_skip_key) {
 
                             positions.push({
 
@@ -3494,51 +3513,72 @@ EC.Parse = (function (module) {
                                 form_name: form_name,
                                 form_position: form_position,
                                 position: 'skip',
-                                ref: ref
+                                ref: ref,
+                                groups: groups
 
                             });
-
                         } else {
 
-                            positions.push({
+                            //check if the current form is a branch, in that case skip the input if the ref is equal to any one of the cached main keys
+                            //(again to skip the useless input there for legacy reasons)
+                            if (main === 'false' && EC.Utils.inArray(branch_skip_keys, ref)) {
 
-                                form_num: form_num,
-                                form_name: form_name,
-                                form_position: form_position,
-                                position: position,
-                                ref: ref
+                                positions.push({
 
-                            });
+                                    form_num: form_num,
+                                    form_name: form_name,
+                                    form_position: form_position,
+                                    position: 'skip',
+                                    ref: ref,
+                                    groups: groups
+                                });
+
+                            } else {
+
+                                //if it is a group, the ref will have '_group' at the end
+                                //we need to map the gruop inputs to keep the position when saving them as json: xml does not keep the order
+                                if (ref.slice(-6) === '_group') {
+                                    groups.push(_mapGroupInputsPositions($(this)));
+                                }
+
+                                positions.push({
+
+                                    form_num: form_num,
+                                    form_name: form_name,
+                                    form_position: form_position,
+                                    position: position,
+                                    ref: ref,
+                                    groups: groups
+                                });
+                            }
+                            position++;
                         }
-
-                        position++;
                     }
+                });
 
+                /*if the form is a main one and not a branch, cache its key
+                 (as it is needed later to recognised a legacy input field to be removed)
+                 as the branch forms are in random order (lol),
+                 the hierarchy forms keys are cached in an array as we have to skip a branch input
+                 if the ref is equal to any of them */
+                if (main === 'true') {
+
+                    hierarchy_skip_key = key;
+                    branch_skip_keys.push(key);
                 }
 
-            });
+                input_positions.push(positions);
+                form_num++;
+                form_position++;
 
-            /*if the form is a main one and not a branch, cache its key
-             (as it is needed later to recognised a legacy input field to be removed)
-             as the branch forms are in random order (lol),
-             the hierarchy forms keys are cached in an array as we have to skip a branch input
-             if the ref is equal to any of them */
-            if (main === 'true') {
-
-                hierarchy_skip_key = key;
-                branch_skip_keys.push(key);
             }
-
-            input_positions.push(positions);
-            form_num++;
-            form_position++;
-
-        });
+        );
 
 
         console.log('input_positions');
         console.log(input_positions, true);
 
+        debugger;
         return input_positions;
     };
 
@@ -3762,8 +3802,19 @@ EC.Parse = (function (module) {
         //if the type is 'group', parse inputs withing the group
         if (type === EC.Const.GROUP) {
 
-            var raw_group_inputs = the_raw_input.input;
+            //todo group input position, so to save them in the right order (xml sucks!)
+
+            var raw_group_inputs = [];
             var parsed_group_inputs = [];
+
+            //check if we have an array of inputs or just a single one
+            if (Array.isArray(the_raw_input.input)) {
+                raw_group_inputs = the_raw_input.input;
+            }
+            else {
+                raw_group_inputs.push(the_raw_input.input);
+            }
+
 
             //get label for groups, it is an attribute, not a tag
             parsed_input.label = the_raw_input['@label'];
@@ -3804,7 +3855,6 @@ EC.Parse = (function (module) {
             }
 
 
-
             //are there any <select> inputs? In their infinite wisdom, original Epicollect+ developers decided to use the <select> tag to render a checkbox. Yes, really :/ #dechrissify
             if (the_raw_input.select) {
                 //ok, add them as inputs (could be array or object if only one)
@@ -3821,7 +3871,6 @@ EC.Parse = (function (module) {
                     raw_group_inputs.push(the_raw_input.select);
                 }
             }
-
 
 
             //are there any <select1> inputs?
@@ -16883,56 +16932,56 @@ EC.BranchInputs = ( function(module) {"use strict";
  */
 var EC = EC || {};
 EC.BranchInputs = EC.BranchInputs || {};
-EC.BranchInputs = ( function(module) {
-		"use strict";
+EC.BranchInputs = (function (module) {
+    'use strict';
 
-		module.onNextBtnTapped = function(e, the_input) {
+    module.onNextBtnTapped = function (e, the_input) {
 
-			var self = this;
-			var wls = window.localStorage;
-			var branch_input = the_input;
-			var branch_edit_id = wls.branch_edit_id || "";
-			var branch_edit_type = wls.branch_edit_type || "";
-			var branch_form = JSON.parse(wls.branch_form);
-			//get input value(based on input type and layout)
-			var current_value = EC.BranchInputs.getCurrentValue(branch_input.type);
-			var branch_current_position = wls.branch_current_position;
-			var branch_cached_value = EC.Inputs.getCachedInputValue(branch_current_position);
-			var validation = self.validateValue(branch_input, current_value, branch_current_position);
+        var self = this;
+        var wls = window.localStorage;
+        var branch_input = the_input;
+        var branch_edit_id = wls.branch_edit_id || '';
+        var branch_edit_type = wls.branch_edit_type || '';
+        var branch_form = JSON.parse(wls.branch_form);
+        //get input value(based on input type and layout)
+        var current_value = EC.BranchInputs.getCurrentValue(branch_input.type);
+        var branch_current_position = wls.branch_current_position;
+        var branch_cached_value = EC.Inputs.getCachedInputValue(branch_current_position);
+        var validation = self.validateValue(branch_input, current_value, branch_current_position);
 
-			//back to same screen if invalid value
-			if (!validation.is_valid) {
-				//warn user about the type of error
-				EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation(validation.message));
-				return;
-			}
+        //back to same screen if invalid value
+        if (!validation.is_valid) {
+            //warn user about the type of error. IMP: validation.message comes localised already
+            EC.Notification.showAlert(EC.Localise.getTranslation('error'), validation.message);
+            return;
+        }
 
-			//When editing, if the value of a field triggering a jump was changed, disable
-			// intermediate "Store Edit" button from now on
-			if (wls.branch_edit_mode && parseInt(branch_input.has_jump, 10) === 1) {
-				if (!EC.Inputs.valuesMatch(branch_cached_value, current_value, branch_input.type)) {
-					//set flag as from now until saving the form, store edit from an intermediate
-					// screen is disabled
-					wls.branch_has_new_jump_sequence = 1;
-				}
-			}
+        //When editing, if the value of a field triggering a jump was changed, disable
+        // intermediate 'Store Edit' button from now on
+        if (wls.branch_edit_mode && parseInt(branch_input.has_jump, 10) === 1) {
+            if (!EC.Inputs.valuesMatch(branch_cached_value, current_value, branch_input.type)) {
+                //set flag as from now until saving the form, store edit from an intermediate
+                // screen is disabled
+                wls.branch_has_new_jump_sequence = 1;
+            }
+        }
 
-			//cache current value in localStorage
-			self.setCachedInputValue(current_value, branch_current_position, branch_input.type, branch_input.is_primary_key);
+        //cache current value in localStorage
+        self.setCachedInputValue(current_value, branch_current_position, branch_input.type, branch_input.is_primary_key);
 
-			self.pushInputsTrail(branch_input);
+        self.pushInputsTrail(branch_input);
 
-			//remove flag that helps to handle back button when user is just dismissing
-			// barcode scanner
-			window.localStorage.removeItem('is_dismissing_barcode');
+        //remove flag that helps to handle back button when user is just dismissing
+        // barcode scanner
+        window.localStorage.removeItem('is_dismissing_barcode');
 
-			self.gotoNextPage(e, current_value);
+        self.gotoNextPage(e, current_value);
 
-		};
+    };
 
-		return module;
+    return module;
 
-	}(EC.BranchInputs));
+}(EC.BranchInputs));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -18635,140 +18684,143 @@ EC.BranchInputTypes = ( function(module) {"use strict";
 /*global $, jQuery*/
 var EC = EC || {};
 EC.BranchInputTypes = EC.BranchInputTypes || {};
-EC.BranchInputTypes = ( function(module) {
-		"use strict";
+EC.BranchInputTypes = ( function (module) {
+    "use strict";
 
-		module.date = function(the_value, the_input) {
+    module.date = function (the_value, the_input) {
 
-			var datepicker;
-			var ios_datepicker;
-			var span_label = $('div#branch-date span.label');
-			var clone = $('div#branch-date div.clone');
-			var double_entry;
-			var value = the_value;
-			var input = the_input;
-			var datebox_format;
-			var default_date;
+        var datepicker;
+        var ios_datepicker;
+        var span_label = $('div#branch-date span.label');
+        var clone = $('div#branch-date div.clone');
+        var double_entry;
+        var value = the_value;
+        var input = the_input;
+        var datebox_format;
+        var default_date;
 
-			//update label text
-			span_label.text(input.label + " - " + input.datetime_format);
+        //update label text
+        span_label.text(input.label + " - " + input.datetime_format);
 
-			//Localise
-			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
-				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
-			}
+        //Localise
+        if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
+            EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
+        }
 
-			//Add attribute to flag the primary key input field
-			if (parseInt(input.is_primary_key, 10) === 1) {
+        //Add attribute to flag the primary key input field
+        if (parseInt(input.is_primary_key, 10) === 1) {
 
-				span_label.attr('data-primary-key', 'true');
+            span_label.attr('data-primary-key', 'true');
 
-			}
-			else {
+        }
+        else {
 
-				//reset the attribute to empty if not a primary key (JQM caches pages and we
-				// recycle views)
-				span_label.attr('data-primary-key', '');
-			}
+            //reset the attribute to empty if not a primary key (JQM caches pages and we
+            // recycle views)
+            span_label.attr('data-primary-key', '');
+        }
 
-			//check if we need to replicate this input
-			double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
+        //check if we need to replicate this input
+        double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
 
-			//Android Phonegap DatePicker plugin http://goo.gl/xLrqZl
-			datepicker = $('div#branch-input-date input.nativedatepicker');
+        //Android Phonegap DatePicker plugin http://goo.gl/xLrqZl
+        datepicker = $('div#branch-input-date input.nativedatepicker');
 
-			//iOS uses the HTML5 input type="date"
-			ios_datepicker = $('div#branch-input-date input.ios-date');
+        //iOS uses the HTML5 input type="date"
+        ios_datepicker = $('div#branch-input-date input.ios-date');
 
-			//hide immediate ios date input parent (JQM quirk, this is to hide the div
-			// element border wrapping the input after JQM enhanced the markup)
-			ios_datepicker.parent().addClass("no-border");
+        //hide immediate ios date input parent (JQM quirk, this is to hide the div
+        // element border wrapping the input after JQM enhanced the markup)
+        ios_datepicker.parent().addClass("no-border");
 
-			/* Set current date in custom data attribute.
-			 * Important: since Epicollect for some bizzarre reason does not store the
-			 * timestamps, but a formatted date,
-			 * it is impossible to trigger the datapicker to the right data/time value after
-			 * a saving, as the timestamp is lost
-			 * i.e. if I save save 25th march 1988 just as 25/3, I will never get the year
-			 * back :/ and it will default to the current date
-			 * TODO: save date and time values with a timestamp attached
-			 */
+        /* Set current date in custom data attribute.
+         * Important: since Epicollect for some bizzarre reason does not store the
+         * timestamps, but a formatted date,
+         * it is impossible to trigger the datapicker to the right data/time value after
+         * a saving, as the timestamp is lost
+         * i.e. if I save save 25th march 1988 just as 25/3, I will never get the year
+         * back :/ and it will default to the current date
+         * TODO: save date and time values with a timestamp attached
+         */
 
-			datepicker.attr("data-raw-date", new Date());
+        datepicker.attr("data-raw-date", new Date());
 
-			/*show default date if input.value = input.datetime_format:
-			 *if the option to show the current date as default is selected in the web form
-			 * builder,
-			 * the input value gets the value of datetime_format when parsing the xml
-			 */
-			if (value === input.datetime_format) {
-				datepicker.val(EC.Utils.parseDate(new Date(), input.datetime_format));
-			}
-			else {
-				datepicker.val(value);
-			}
+        /*show default date if input.value = input.datetime_format:
+         *if the option to show the current date as default is selected in the web form
+         * builder,
+         * the input value gets the value of datetime_format when parsing the xml
+         */
+        if (value === input.datetime_format) {
+            datepicker.val(EC.Utils.parseDate(new Date(), input.datetime_format));
+        }
+        else {
+            datepicker.val(value);
+        }
 
-			/*****************************************************************************************
-			 * Android uses the Phonegap official DatePicker plugin
-			 ****************************************************************************************/
-			if (window.device.platform === EC.Const.ANDROID) {
+        /*****************************************************************************************
+         * Android uses the Phonegap official DatePicker plugin
+         ****************************************************************************************/
+        if (window.device) {
+            if (window.device.platform === EC.Const.ANDROID) {
 
-				/* bind input to 'vclick' insted of focus, as we set the input as readonly.
-				 * this solved problem on android 2.3 where the keyboard was showing because the
-				 * input is in focus when tapping "cancel"
-				 * on the DatePicker popup
-				 */
+                /* bind input to 'vclick' insted of focus, as we set the input as readonly.
+                 * this solved problem on android 2.3 where the keyboard was showing because the
+                 * input is in focus when tapping "cancel"
+                 * on the DatePicker popup
+                 */
 
-				datepicker.off().on('focus', function(event) {
+                datepicker.off().on('focus', function (event) {
 
-					var datepicker = $(this);
-					var selected_date = new Date(datepicker.attr("data-raw-date"));
+                    var datepicker = $(this);
+                    var selected_date = new Date(datepicker.attr("data-raw-date"));
 
-					// Same handling for iPhone and Android
-					window.plugins.datePicker.show({
-						date : selected_date,
-						mode : 'date', // date or time or blank for both
-						allowOldDates : true
-					}, function(returned_date) {
+                    // Same handling for iPhone and Android
+                    window.plugins.datePicker.show({
+                        date: selected_date,
+                        mode: 'date', // date or time or blank for both
+                        allowOldDates: true
+                    }, function (returned_date) {
 
-						var new_date;
+                        var new_date;
 
-						if (returned_date !== undefined) {
-							new_date = new Date(returned_date);
+                        if (returned_date !== undefined) {
+                            new_date = new Date(returned_date);
 
-							datepicker.val(EC.Utils.parseDate(new_date, input.datetime_format));
-							datepicker.attr("data-raw-date", new_date);
-						}
+                            datepicker.val(EC.Utils.parseDate(new_date, input.datetime_format));
+                            datepicker.attr("data-raw-date", new_date);
+                        }
 
-						// This fixes the problem you mention at the bottom of this script with it not
-						// working a second/third time around, because it is in focus.
-						datepicker.blur();
-					});
-				});
-			}
+                        // This fixes the problem you mention at the bottom of this script with it not
+                        // working a second/third time around, because it is in focus.
+                        datepicker.blur();
+                    });
+                });
+            }
+        }
+        /*****************************************************************************************
+         * iOS uses the official HTML5 input type="date"
+         ****************************************************************************************/
+        if (window.device) {
+            if (window.device.platform === EC.Const.IOS) {
 
-			/*****************************************************************************************
-			 * iOS uses the official HTML5 input type="date"
-			 ****************************************************************************************/
-			if (window.device.platform === EC.Const.IOS) {
+                datepicker.off().on('vclick', function (event) {
+                    ios_datepicker.focus();
+                });
 
-				datepicker.off().on('vclick', function(event) {
-					ios_datepicker.focus();
-				});
+                ios_datepicker.off().on('blur', function (event) {
 
-				ios_datepicker.off().on('blur', function(event) {
+                    var ios_date = ios_datepicker.val();
 
-					var ios_date = ios_datepicker.val();
+                    datepicker.val(EC.Utils.parseIOSDate(ios_date, input.datetime_format));
+                    datepicker.attr("data-raw-date", ios_date);
+                });
+            }
+        }
+    };
 
-					datepicker.val(EC.Utils.parseIOSDate(ios_date, input.datetime_format));
-					datepicker.attr("data-raw-date", ios_date);
-				});
-			}
-		};
+    return module;
 
-		return module;
-
-	}(EC.BranchInputTypes));
+}(EC.BranchInputTypes));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -18974,102 +19026,105 @@ EC.BranchInputTypes = ( function(module) {
 /*global $, jQuery*/
 var EC = EC || {};
 EC.BranchInputTypes = EC.BranchInputTypes || {};
-EC.BranchInputTypes = ( function(module) {"use strict";
+EC.BranchInputTypes = ( function (module) {
+    "use strict";
 
-		module.integer = function(the_value, the_input) {
+    module.integer = function (the_value, the_input) {
 
-			//to cache dom lookups
-			var obj;
-			var span_label = $('div#branch-integer span.label');
-			var clone = $('div.clone');
-			var double_entry;
-			var value = parseInt(the_value, 10);
-			var input = the_input;
-			var min_range = $('div#branch-input-integer span.min-range');
-			var max_range = $('div#branch-input-integer span.max-range');
-			var input_holder = $('div#branch-input-integer input');
+        //to cache dom lookups
+        var obj;
+        var span_label = $('div#branch-integer span.label');
+        var clone = $('div.clone');
+        var double_entry;
+        var value = parseInt(the_value, 10);
+        var input = the_input;
+        var min_range = $('div#branch-input-integer span.min-range');
+        var max_range = $('div#branch-input-integer span.max-range');
+        var input_holder = $('div#branch-input-integer input');
 
-			//update label text
-			span_label.text(input.label);
-			
-			//Localise
-			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
-				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
-			}
+        //update label text
+        span_label.text(input.label);
 
-			//Add attribute to flag the primary key input field
-			if (parseInt(input.is_primary_key, 10) === 1) {
+        //Localise
+        if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
+            EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
+        }
 
-				span_label.attr('data-primary-key', 'true');
+        //Add attribute to flag the primary key input field
+        if (parseInt(input.is_primary_key, 10) === 1) {
 
-			} else {
+            span_label.attr('data-primary-key', 'true');
 
-				//reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
-				span_label.attr('data-primary-key', '');
-			}
+        } else {
 
-			//check if we need to replicate this input
-			double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
+            //reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
+            span_label.attr('data-primary-key', '');
+        }
 
-			//re-enable input if needed
-			input_holder.removeAttr('disabled');
+        //check if we need to replicate this input
+        double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
 
-			if (window.device.platform === EC.Const.IOS) {
-				//trigger numeric keyboard on iOS
-				$('div#branch-input-integer input').attr('pattern', '[0-9]*');
-			}
+        //re-enable input if needed
+        input_holder.removeAttr('disabled');
 
-			//hide elements not needed
-			clone.addClass('hidden');
-			min_range.addClass('hidden');
-			max_range.addClass('hidden');
+        if(window.device) {
+            if (window.device.platform === EC.Const.IOS) {
+                //trigger numeric keyboard on iOS
+                $('div#branch-input-integer input').attr('pattern', '[0-9]*');
+            }
+        }
 
-			//check if we need to render a double entry for this input
-			if (double_entry) {
+        //hide elements not needed
+        clone.addClass('hidden');
+        min_range.addClass('hidden');
+        max_range.addClass('hidden');
 
-				//duplicate integer input
-				clone.removeClass('hidden');
-				$('div.clone input').val(value);
+        //check if we need to render a double entry for this input
+        if (double_entry) {
 
-				//if in editing mode, do not allow changes either if the field is a primary key
-				if (window.localStorage.branch_edit_mode && input.is_primary_key === 1) {
+            //duplicate integer input
+            clone.removeClass('hidden');
+            $('div.clone input').val(value);
 
-					$('div.clone input').attr('disabled', 'disabled');
-				}
+            //if in editing mode, do not allow changes either if the field is a primary key
+            if (window.localStorage.branch_edit_mode && input.is_primary_key === 1) {
 
-			}
-			//show min range if any
-			if (input.min_range !== "") {
+                $('div.clone input').attr('disabled', 'disabled');
+            }
 
-				min_range.removeClass('hidden');
-				min_range.text('Min: ' + input.min_range);
+        }
+        //show min range if any
+        if (input.min_range !== "") {
 
-			}
+            min_range.removeClass('hidden');
+            min_range.text('Min: ' + input.min_range);
 
-			//show max range if any
-			if (input.max_range !== "") {
+        }
 
-				max_range.removeClass('hidden');
-				max_range.text('Max: ' + input.max_range);
+        //show max range if any
+        if (input.max_range !== "") {
 
-			}
+            max_range.removeClass('hidden');
+            max_range.text('Max: ' + input.max_range);
 
-			input_holder.val(value);
+        }
 
-			//if in editing mode, do not allow changes either if the field is a primary key
-			if (window.localStorage.branch_edit_mode && input.is_primary_key === 1) {
-				input_holder.attr('disabled', 'disabled');
-				$('div#branch-input-integer p.primary-key-not-editable').removeClass("hidden");
-			} else {
-				
-				$('div#branch-input-integer p.primary-key-not-editable').addClass("hidden");
-			}
+        input_holder.val(value);
 
-		};
+        //if in editing mode, do not allow changes either if the field is a primary key
+        if (window.localStorage.branch_edit_mode && input.is_primary_key === 1) {
+            input_holder.attr('disabled', 'disabled');
+            $('div#branch-input-integer p.primary-key-not-editable').removeClass("hidden");
+        } else {
 
-		return module;
+            $('div#branch-input-integer p.primary-key-not-editable').addClass("hidden");
+        }
 
-	}(EC.BranchInputTypes)); 
+    };
+
+    return module;
+
+}(EC.BranchInputTypes));
 var EC = EC || {};
 EC.BranchInputTypes = EC.BranchInputTypes || {};
 EC.BranchInputTypes = (function (module) {
@@ -20723,94 +20778,95 @@ EC.BranchInputs = ( function(module) {"use strict";
 
 var EC = EC || {};
 EC.BranchInputs = EC.BranchInputs || {};
-EC.BranchInputs = ( function(module) {"use strict";
+EC.BranchInputs = (function (module) {
+    'use strict';
 
-		var _isUniqueValue = function(the_value, the_branch_form_name) {
+    var _isUniqueValue = function (the_value, the_branch_form_name) {
 
-			var cached_branch_entry_keys;
-			var current_branch_form_keys;
-			var i;
-			var iLength;
-			var value = the_value;
-			var branch_form_name = the_branch_form_name;
-			var unique = true;
+        var cached_branch_entry_keys;
+        var current_branch_form_keys;
+        var i;
+        var iLength;
+        var value = the_value;
+        var branch_form_name = the_branch_form_name;
+        var unique = true;
 
-			//get Branch primary keys
-			try {
-				cached_branch_entry_keys = JSON.parse(window.localStorage.cached_branch_entry_keys);
-			} catch (error) {
-				cached_branch_entry_keys = [];
-			}
+        //get Branch primary keys
+        try {
+            cached_branch_entry_keys = JSON.parse(window.localStorage.cached_branch_entry_keys);
+        } catch (error) {
+            cached_branch_entry_keys = [];
+        }
 
-			iLength = cached_branch_entry_keys.length;
-			if (iLength > 0) {
+        iLength = cached_branch_entry_keys.length;
+        if (iLength > 0) {
 
-				//get primary keys for the current form
-				for ( i = 0; i < iLength; i++) {
+            //get primary keys for the current form
+            for (i = 0; i < iLength; i++) {
 
-					if (cached_branch_entry_keys[i].branch_form_name === branch_form_name) {
+                if (cached_branch_entry_keys[i].branch_form_name === branch_form_name) {
 
-						current_branch_form_keys = cached_branch_entry_keys[i].primary_keys;
+                    current_branch_form_keys = cached_branch_entry_keys[i].primary_keys;
 
-						//check if the current value clashes a branch primary key
-						if (current_branch_form_keys.indexOf(value) !== -1) {
-							unique = false;
-						}
-					}
-				}
-			}
+                    //check if the current value clashes a branch primary key
+                    if (current_branch_form_keys.indexOf(value) !== -1) {
+                        unique = false;
+                    }
+                }
+            }
+        }
 
-			return unique;
-		};
+        return unique;
+    };
 
-		module.validateValue = function(the_input, the_value, the_position) {
+    module.validateValue = function (the_input, the_value, the_position) {
 
-			var self = this;
-			var input = the_input;
-			var current_value = the_value;
-			var current_position = the_position;
-			var clone_value = "";
-			var is_primary_key = $('span.label').attr('data-primary-key');
-			var validation = {};
+        var self = this;
+        var input = the_input;
+        var current_value = the_value;
+        var current_position = the_position;
+        var clone_value = "";
+        var is_primary_key = $('span.label').attr('data-primary-key');
+        var validation = {};
 
-			//if we need to check for a double entry, get clone value
-			if (parseInt(input.has_double_check, 10) === 1) {
-				clone_value = self.getCloneValue(input.type);
-			}
+        //if we need to check for a double entry, get clone value
+        if (parseInt(input.has_double_check, 10) === 1) {
+            clone_value = self.getCloneValue(input.type);
+        }
 
-			//validate input
-			validation = EC.Utils.isValidValue(input, current_value, clone_value);
+        //validate input
+        validation = EC.Utils.isValidValue(input, current_value, clone_value);
 
-			if (!validation.is_valid) {
-				//value not valid, return
-				return validation;
-			}
+        if (!validation.is_valid) {
+            //value not valid, return
+            return validation;
+        }
 
-			//check if this input value is a primary key field: if it is, check uniqueness (skip when we are editing)
-			if (is_primary_key === 'true' && !window.localStorage.branch_edit_mode) {
+        //check if this input value is a primary key field: if it is, check uniqueness (skip when we are editing)
+        if (is_primary_key === 'true' && !window.localStorage.branch_edit_mode) {
 
-				if (!_isUniqueValue(current_value)) {
+            if (!_isUniqueValue(current_value)) {
 
-					//primary key value already exist, return
-					validation = {
-						is_valid : false,
-						message : "Value already exists!"
-					};
+                //primary key value already exist, return
+                validation = {
+                    is_valid: false,
+                    message: EC.Localise.getTranslation('value_exist')
+                };
 
-					//on Chrome native alert is not working: dump to console error message
-					console.log("Error: value already exists");
+                //on Chrome native alert is not working: dump to console error message
+                console.log('Error: value already exists');
 
-					return validation;
-				}
-			}
+                return validation;
+            }
+        }
 
-			return validation;
+        return validation;
 
-		};
+    };
 
-		return module;
+    return module;
 
-	}(EC.BranchInputs));
+}(EC.BranchInputs));
 
 /*global $, jQuery, cordova, device*/
 
@@ -24983,7 +25039,7 @@ EC.Inputs = (function (module) {
         var i;
         var iLength;
         var is_checkbox = false;
-        var is_group = true;
+        var is_group = false;
 
         self = this;
         current_input_position = parseInt(window.localStorage.current_position, 10);
@@ -27355,76 +27411,78 @@ EC.InputTypes = (function (module) {
         /*****************************************************************************************
          * Android uses the Phonegap official DatePicker plugin
          ****************************************************************************************/
-        if (window.device.platform === EC.Const.ANDROID) {
+        if (window.device) {
+            if (window.device.platform === EC.Const.ANDROID) {
 
-            debugger;
 
-            EC.Datetime.initAndroidDatetimePicker(datepicker, input.datetime_format, EC.Const.DATE);
+                EC.Datetime.initAndroidDatetimePicker(datepicker, input.datetime_format, EC.Const.DATE);
 
-            ///* bind input to 'vclick' insted of focus, as we set the input as readonly.
-            // * this solved problem on android 2.3 where the keyboard was showing because the
-            // * input is in focus when tapping 'cancel' on the DatePicker popup
-            // */
-            //datepicker.off().on('vclick', function (event) {
-            //
-            //    var datepicker = $(this);
-            //    var selected_date = new Date(datepicker.attr('data-raw-date'));
-            //
-            //    //use debouncing/throttling to avoid triggering multiple `focus` event
-            //    // http://goo.gl/NFdHDW
-            //    var now = new Date();
-            //    var lastFocus = datepicker.data('lastFocus');
-            //    if (lastFocus && (now - lastFocus) < 500) {
-            //        // Don't do anything
-            //        return;
-            //    }
-            //
-            //    datepicker.data('lastFocus', now);
-            //
-            //    // Same handling for iPhone and Android
-            //    window.plugins.datePicker.show({
-            //        date: selected_date,
-            //        mode: 'date', // date or time or blank for both
-            //        allowOldDates: true
-            //    }, function (returned_date) {
-            //
-            //        var new_date;
-            //
-            //        if (returned_date !== undefined) {
-            //            new_date = new Date(returned_date);
-            //
-            //            datepicker.val(EC.Utils.parseDate(new_date, input.datetime_format));
-            //            datepicker.attr('data-raw-date', new_date);
-            //        }
-            //
-            //        // This fixes the problem you mention at the bottom of this script with it not
-            //        // working a second/third time around, because it is in focus.
-            //        datepicker.blur();
-            //    });
-            //
-            //    // This fixes the problem you mention at the bottom of this script with it not
-            //    // working a second/third time around, because it is in focus.
-            //    datepicker.blur();
-            //});
+                ///* bind input to 'vclick' insted of focus, as we set the input as readonly.
+                // * this solved problem on android 2.3 where the keyboard was showing because the
+                // * input is in focus when tapping 'cancel' on the DatePicker popup
+                // */
+                //datepicker.off().on('vclick', function (event) {
+                //
+                //    var datepicker = $(this);
+                //    var selected_date = new Date(datepicker.attr('data-raw-date'));
+                //
+                //    //use debouncing/throttling to avoid triggering multiple `focus` event
+                //    // http://goo.gl/NFdHDW
+                //    var now = new Date();
+                //    var lastFocus = datepicker.data('lastFocus');
+                //    if (lastFocus && (now - lastFocus) < 500) {
+                //        // Don't do anything
+                //        return;
+                //    }
+                //
+                //    datepicker.data('lastFocus', now);
+                //
+                //    // Same handling for iPhone and Android
+                //    window.plugins.datePicker.show({
+                //        date: selected_date,
+                //        mode: 'date', // date or time or blank for both
+                //        allowOldDates: true
+                //    }, function (returned_date) {
+                //
+                //        var new_date;
+                //
+                //        if (returned_date !== undefined) {
+                //            new_date = new Date(returned_date);
+                //
+                //            datepicker.val(EC.Utils.parseDate(new_date, input.datetime_format));
+                //            datepicker.attr('data-raw-date', new_date);
+                //        }
+                //
+                //        // This fixes the problem you mention at the bottom of this script with it not
+                //        // working a second/third time around, because it is in focus.
+                //        datepicker.blur();
+                //    });
+                //
+                //    // This fixes the problem you mention at the bottom of this script with it not
+                //    // working a second/third time around, because it is in focus.
+                //    datepicker.blur();
+                //});
 
+            }
         }
-
         /*****************************************************************************************
          * iOS uses the official HTML5 input type='date'
          ****************************************************************************************/
-        if (window.device.platform === EC.Const.IOS) {
+        if (window.device) {
+            if (window.device.platform === EC.Const.IOS) {
 
-            datepicker.off().on('vclick', function (event) {
-                ios_datepicker.focus();
-            });
+                datepicker.off().on('vclick', function (event) {
+                    ios_datepicker.focus();
+                });
 
-            ios_datepicker.off().on('blur', function (event) {
+                ios_datepicker.off().on('blur', function (event) {
 
-                var ios_date = ios_datepicker.val();
+                    var ios_date = ios_datepicker.val();
 
-                datepicker.val(EC.Utils.parseIOSDate(ios_date, input.datetime_format));
-                datepicker.attr('data-raw-date', ios_date);
-            });
+                    datepicker.val(EC.Utils.parseIOSDate(ios_date, input.datetime_format));
+                    datepicker.attr('data-raw-date', ios_date);
+                });
+            }
         }
     };
 
@@ -27978,6 +28036,7 @@ EC.InputTypes = (function (module) {
             EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
         }
 
+
         //Add attribute to flag the primary key input field
         if (parseInt(input.is_primary_key, 10) === 1) {
             span_label.attr('data-primary-key', 'true');
@@ -27991,9 +28050,12 @@ EC.InputTypes = (function (module) {
         double_entry = (parseInt(input.has_double_check, 10) === 1);
 
         //trigger numeric keyboard on iOS
-        if (window.device.platform === EC.Const.IOS) {
-            $('div#input-integer input').attr('pattern', '[0-9]*');
+        if (window.device) {
+            if (window.device.platform === EC.Const.IOS) {
+                $('div#input-integer input').attr('pattern', '[0-9]*');
+            }
         }
+
 
         //hide elements not needed
         clone.addClass('hidden');
@@ -29890,82 +29952,82 @@ EC.Inputs = (function (module) {
 
 }(EC.Inputs));
 
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/
 
 var EC = EC || {};
 EC.Inputs = EC.Inputs || {};
-EC.Inputs = ( function(module) {"use strict";
+EC.Inputs = (function (module) {
+    'use strict';
 
-		var _isUniqueValue = function(the_value) {
+    var _isUniqueValue = function (the_value) {
 
-			var primary_keys = [];
-			var value = the_value;
-			var unique = true;
+        var primary_keys = [];
+        var value = the_value;
+        var unique = true;
 
-			//get Hierarchy (main) primary keys
-			primary_keys = JSON.parse(window.localStorage.primary_keys);
+        //get Hierarchy (main) primary keys
+        primary_keys = JSON.parse(window.localStorage.primary_keys);
 
-			//check if the current value clashes a global primary key
-			if (primary_keys.indexOf(value) !== -1) {
-				unique = false;
-			}
+        //check if the current value clashes a global primary key
+        if (primary_keys.indexOf(value) !== -1) {
+            unique = false;
+        }
 
-			return unique;
-		};
+        return unique;
+    };
 
-		module.validateValue = function(the_input, the_value) {
+    module.validateValue = function (the_input, the_value) {
 
-			var self = this;
-			var input = the_input;
-			var current_value = the_value;
-			var clone_value = "";
-			var is_primary_key = $('span.label').attr('data-primary-key');
-			var validation = {};
+        var self = this;
+        var input = the_input;
+        var current_value = the_value;
+        var clone_value = '';
+        var is_primary_key = $('span.label').attr('data-primary-key');
+        var validation = {};
 
-			//get value from object in the case of a dropdown, radio or checkbox
-			if (input.type === EC.Const.DROPDOWN || input.type === EC.Const.RADIO || input.type === EC.Const.CHECKBOX) {
-				current_value = current_value.value;
-			}
+        //get value from object in the case of a dropdown, radio or checkbox
+        if (input.type === EC.Const.DROPDOWN || input.type === EC.Const.RADIO || input.type === EC.Const.CHECKBOX) {
+            current_value = current_value.value;
+        }
 
-			//if we need to check for a double entry, get clone value
-			if (parseInt(input.has_double_check, 10) === 1) {
-				clone_value = self.getCloneValue(input.type);
-			}
+        //if we need to check for a double entry, get clone value
+        if (parseInt(input.has_double_check, 10) === 1) {
+            clone_value = self.getCloneValue(input.type);
+        }
 
-			//validate input
-			validation = EC.Utils.isValidValue(input, current_value, clone_value);
+        //validate input
+        validation = EC.Utils.isValidValue(input, current_value, clone_value);
 
-			if (!validation.is_valid) {
-				//value not valid, return
-				return validation;
-			}
+        if (!validation.is_valid) {
+            //value not valid, return
+            return validation;
+        }
 
-			//check if this input value is a primary key field: if it is, check uniqueness (skip when we are editing)
-			if (is_primary_key === 'true' && !window.localStorage.edit_mode) {
+        //check if this input value is a primary key field: if it is, check uniqueness (skip when we are editing)
+        if (is_primary_key === 'true' && !window.localStorage.edit_mode) {
 
-				if (!_isUniqueValue(current_value)) {
+            if (!_isUniqueValue(current_value)) {
 
-					//primary key value already exist, return
-					validation = {
-						is_valid : false,
-						message : EC.Localise.getTranslation("value_exist")
-					};
+                //primary key value already exist, return
+                validation = {
+                    is_valid: false,
+                    message: EC.Localise.getTranslation("value_exist")
+                };
 
-					//on Chrome native alert is not working: dump to console error message
-					console.log("Error: value already exists");
+                //on Chrome native alert is not working: dump to console error message
+                console.log("Error: value already exists");
 
-					return validation;
-				}
-			}
+                return validation;
+            }
+        }
 
-			return validation;
+        return validation;
 
-		};
+    };
 
-		return module;
+    return module;
 
-	}(EC.Inputs));
+}(EC.Inputs));
 
 /*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/

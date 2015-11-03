@@ -2,99 +2,102 @@
 /*global $, jQuery*/
 var EC = EC || {};
 EC.BranchInputTypes = EC.BranchInputTypes || {};
-EC.BranchInputTypes = ( function(module) {"use strict";
+EC.BranchInputTypes = ( function (module) {
+    "use strict";
 
-		module.integer = function(the_value, the_input) {
+    module.integer = function (the_value, the_input) {
 
-			//to cache dom lookups
-			var obj;
-			var span_label = $('div#branch-integer span.label');
-			var clone = $('div.clone');
-			var double_entry;
-			var value = parseInt(the_value, 10);
-			var input = the_input;
-			var min_range = $('div#branch-input-integer span.min-range');
-			var max_range = $('div#branch-input-integer span.max-range');
-			var input_holder = $('div#branch-input-integer input');
+        //to cache dom lookups
+        var obj;
+        var span_label = $('div#branch-integer span.label');
+        var clone = $('div.clone');
+        var double_entry;
+        var value = parseInt(the_value, 10);
+        var input = the_input;
+        var min_range = $('div#branch-input-integer span.min-range');
+        var max_range = $('div#branch-input-integer span.max-range');
+        var input_holder = $('div#branch-input-integer input');
 
-			//update label text
-			span_label.text(input.label);
-			
-			//Localise
-			if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
-				EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
-			}
+        //update label text
+        span_label.text(input.label);
 
-			//Add attribute to flag the primary key input field
-			if (parseInt(input.is_primary_key, 10) === 1) {
+        //Localise
+        if (window.localStorage.DEVICE_LANGUAGE !== EC.Const.ENGLISH) {
+            EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
+        }
 
-				span_label.attr('data-primary-key', 'true');
+        //Add attribute to flag the primary key input field
+        if (parseInt(input.is_primary_key, 10) === 1) {
 
-			} else {
+            span_label.attr('data-primary-key', 'true');
 
-				//reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
-				span_label.attr('data-primary-key', '');
-			}
+        } else {
 
-			//check if we need to replicate this input
-			double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
+            //reset the attribute to empty if not a primary key (JQM caches pages and we recycle views)
+            span_label.attr('data-primary-key', '');
+        }
 
-			//re-enable input if needed
-			input_holder.removeAttr('disabled');
+        //check if we need to replicate this input
+        double_entry = (parseInt(input.has_double_check, 10) === 1) ? true : false;
 
-			if (window.device.platform === EC.Const.IOS) {
-				//trigger numeric keyboard on iOS
-				$('div#branch-input-integer input').attr('pattern', '[0-9]*');
-			}
+        //re-enable input if needed
+        input_holder.removeAttr('disabled');
 
-			//hide elements not needed
-			clone.addClass('hidden');
-			min_range.addClass('hidden');
-			max_range.addClass('hidden');
+        if(window.device) {
+            if (window.device.platform === EC.Const.IOS) {
+                //trigger numeric keyboard on iOS
+                $('div#branch-input-integer input').attr('pattern', '[0-9]*');
+            }
+        }
 
-			//check if we need to render a double entry for this input
-			if (double_entry) {
+        //hide elements not needed
+        clone.addClass('hidden');
+        min_range.addClass('hidden');
+        max_range.addClass('hidden');
 
-				//duplicate integer input
-				clone.removeClass('hidden');
-				$('div.clone input').val(value);
+        //check if we need to render a double entry for this input
+        if (double_entry) {
 
-				//if in editing mode, do not allow changes either if the field is a primary key
-				if (window.localStorage.branch_edit_mode && input.is_primary_key === 1) {
+            //duplicate integer input
+            clone.removeClass('hidden');
+            $('div.clone input').val(value);
 
-					$('div.clone input').attr('disabled', 'disabled');
-				}
+            //if in editing mode, do not allow changes either if the field is a primary key
+            if (window.localStorage.branch_edit_mode && input.is_primary_key === 1) {
 
-			}
-			//show min range if any
-			if (input.min_range !== "") {
+                $('div.clone input').attr('disabled', 'disabled');
+            }
 
-				min_range.removeClass('hidden');
-				min_range.text('Min: ' + input.min_range);
+        }
+        //show min range if any
+        if (input.min_range !== "") {
 
-			}
+            min_range.removeClass('hidden');
+            min_range.text('Min: ' + input.min_range);
 
-			//show max range if any
-			if (input.max_range !== "") {
+        }
 
-				max_range.removeClass('hidden');
-				max_range.text('Max: ' + input.max_range);
+        //show max range if any
+        if (input.max_range !== "") {
 
-			}
+            max_range.removeClass('hidden');
+            max_range.text('Max: ' + input.max_range);
 
-			input_holder.val(value);
+        }
 
-			//if in editing mode, do not allow changes either if the field is a primary key
-			if (window.localStorage.branch_edit_mode && input.is_primary_key === 1) {
-				input_holder.attr('disabled', 'disabled');
-				$('div#branch-input-integer p.primary-key-not-editable').removeClass("hidden");
-			} else {
-				
-				$('div#branch-input-integer p.primary-key-not-editable').addClass("hidden");
-			}
+        input_holder.val(value);
 
-		};
+        //if in editing mode, do not allow changes either if the field is a primary key
+        if (window.localStorage.branch_edit_mode && input.is_primary_key === 1) {
+            input_holder.attr('disabled', 'disabled');
+            $('div#branch-input-integer p.primary-key-not-editable').removeClass("hidden");
+        } else {
 
-		return module;
+            $('div#branch-input-integer p.primary-key-not-editable').addClass("hidden");
+        }
 
-	}(EC.BranchInputTypes)); 
+    };
+
+    return module;
+
+}(EC.BranchInputTypes));

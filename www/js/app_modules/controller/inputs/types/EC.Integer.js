@@ -22,6 +22,7 @@ EC.InputTypes = (function (module) {
             EC.Localise.applyToHTML(window.localStorage.DEVICE_LANGUAGE);
         }
 
+
         //Add attribute to flag the primary key input field
         if (parseInt(input.is_primary_key, 10) === 1) {
             span_label.attr('data-primary-key', 'true');
@@ -35,9 +36,12 @@ EC.InputTypes = (function (module) {
         double_entry = (parseInt(input.has_double_check, 10) === 1);
 
         //trigger numeric keyboard on iOS
-        if (window.device.platform === EC.Const.IOS) {
-            $('div#input-integer input').attr('pattern', '[0-9]*');
+        if (window.device) {
+            if (window.device.platform === EC.Const.IOS) {
+                $('div#input-integer input').attr('pattern', '[0-9]*');
+            }
         }
+
 
         //hide elements not needed
         clone.addClass('hidden');

@@ -77,76 +77,78 @@ EC.InputTypes = (function (module) {
         /*****************************************************************************************
          * Android uses the Phonegap official DatePicker plugin
          ****************************************************************************************/
-        if (window.device.platform === EC.Const.ANDROID) {
+        if (window.device) {
+            if (window.device.platform === EC.Const.ANDROID) {
 
-            debugger;
 
-            EC.Datetime.initAndroidDatetimePicker(datepicker, input.datetime_format, EC.Const.DATE);
+                EC.Datetime.initAndroidDatetimePicker(datepicker, input.datetime_format, EC.Const.DATE);
 
-            ///* bind input to 'vclick' insted of focus, as we set the input as readonly.
-            // * this solved problem on android 2.3 where the keyboard was showing because the
-            // * input is in focus when tapping 'cancel' on the DatePicker popup
-            // */
-            //datepicker.off().on('vclick', function (event) {
-            //
-            //    var datepicker = $(this);
-            //    var selected_date = new Date(datepicker.attr('data-raw-date'));
-            //
-            //    //use debouncing/throttling to avoid triggering multiple `focus` event
-            //    // http://goo.gl/NFdHDW
-            //    var now = new Date();
-            //    var lastFocus = datepicker.data('lastFocus');
-            //    if (lastFocus && (now - lastFocus) < 500) {
-            //        // Don't do anything
-            //        return;
-            //    }
-            //
-            //    datepicker.data('lastFocus', now);
-            //
-            //    // Same handling for iPhone and Android
-            //    window.plugins.datePicker.show({
-            //        date: selected_date,
-            //        mode: 'date', // date or time or blank for both
-            //        allowOldDates: true
-            //    }, function (returned_date) {
-            //
-            //        var new_date;
-            //
-            //        if (returned_date !== undefined) {
-            //            new_date = new Date(returned_date);
-            //
-            //            datepicker.val(EC.Utils.parseDate(new_date, input.datetime_format));
-            //            datepicker.attr('data-raw-date', new_date);
-            //        }
-            //
-            //        // This fixes the problem you mention at the bottom of this script with it not
-            //        // working a second/third time around, because it is in focus.
-            //        datepicker.blur();
-            //    });
-            //
-            //    // This fixes the problem you mention at the bottom of this script with it not
-            //    // working a second/third time around, because it is in focus.
-            //    datepicker.blur();
-            //});
+                ///* bind input to 'vclick' insted of focus, as we set the input as readonly.
+                // * this solved problem on android 2.3 where the keyboard was showing because the
+                // * input is in focus when tapping 'cancel' on the DatePicker popup
+                // */
+                //datepicker.off().on('vclick', function (event) {
+                //
+                //    var datepicker = $(this);
+                //    var selected_date = new Date(datepicker.attr('data-raw-date'));
+                //
+                //    //use debouncing/throttling to avoid triggering multiple `focus` event
+                //    // http://goo.gl/NFdHDW
+                //    var now = new Date();
+                //    var lastFocus = datepicker.data('lastFocus');
+                //    if (lastFocus && (now - lastFocus) < 500) {
+                //        // Don't do anything
+                //        return;
+                //    }
+                //
+                //    datepicker.data('lastFocus', now);
+                //
+                //    // Same handling for iPhone and Android
+                //    window.plugins.datePicker.show({
+                //        date: selected_date,
+                //        mode: 'date', // date or time or blank for both
+                //        allowOldDates: true
+                //    }, function (returned_date) {
+                //
+                //        var new_date;
+                //
+                //        if (returned_date !== undefined) {
+                //            new_date = new Date(returned_date);
+                //
+                //            datepicker.val(EC.Utils.parseDate(new_date, input.datetime_format));
+                //            datepicker.attr('data-raw-date', new_date);
+                //        }
+                //
+                //        // This fixes the problem you mention at the bottom of this script with it not
+                //        // working a second/third time around, because it is in focus.
+                //        datepicker.blur();
+                //    });
+                //
+                //    // This fixes the problem you mention at the bottom of this script with it not
+                //    // working a second/third time around, because it is in focus.
+                //    datepicker.blur();
+                //});
 
+            }
         }
-
         /*****************************************************************************************
          * iOS uses the official HTML5 input type='date'
          ****************************************************************************************/
-        if (window.device.platform === EC.Const.IOS) {
+        if (window.device) {
+            if (window.device.platform === EC.Const.IOS) {
 
-            datepicker.off().on('vclick', function (event) {
-                ios_datepicker.focus();
-            });
+                datepicker.off().on('vclick', function (event) {
+                    ios_datepicker.focus();
+                });
 
-            ios_datepicker.off().on('blur', function (event) {
+                ios_datepicker.off().on('blur', function (event) {
 
-                var ios_date = ios_datepicker.val();
+                    var ios_date = ios_datepicker.val();
 
-                datepicker.val(EC.Utils.parseIOSDate(ios_date, input.datetime_format));
-                datepicker.attr('data-raw-date', ios_date);
-            });
+                    datepicker.val(EC.Utils.parseIOSDate(ios_date, input.datetime_format));
+                    datepicker.attr('data-raw-date', ios_date);
+                });
+            }
         }
     };
 

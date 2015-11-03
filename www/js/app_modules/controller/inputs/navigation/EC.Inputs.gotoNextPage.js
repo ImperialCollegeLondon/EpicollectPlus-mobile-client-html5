@@ -87,7 +87,7 @@ EC.Inputs = (function (module) {
         var i;
         var iLength;
         var is_checkbox = false;
-        var is_group = true;
+        var is_group = false;
 
         self = this;
         current_input_position = parseInt(window.localStorage.current_position, 10);
