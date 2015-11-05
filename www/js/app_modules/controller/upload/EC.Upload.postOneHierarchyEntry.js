@@ -72,43 +72,47 @@ EC.Upload = (function (module) {
                     console.log(status + ', ' + error);
                     console.log('request: ' + JSON.stringify(request));
 
-                    /**
-                     * Recover an entry to be uploaded (it will be the last one the user tried to upload but the upload failed)
-                     */
+                    //TODO: SQL issues
+                    if (request.status === 405) {
+                        EC.Notification.showAlert(EC.Localise.getTranslation('error'), request.responseText);
 
-                    $.when(EC.Select.getOneHierarchyEntry(self.current_form, true).then(function (entry) {
+                        //get back button url and send user back to the page he came from to fix/delete entries
+                        var page_id = $.mobile.activePage.attr('id');
+                        EC.Routing.goBack(page_id);
+                    }
+                    else {
 
-                        debugger;
+                        /**
+                         * Recover an entry to be uploaded (it will be the last one the user tried to upload but the upload failed)
+                         */
 
-                        //Entry found, prepare entry for upload
-                        EC.Upload.current_entry = entry;
-                        self.hierarchy_rows_to_sync.length = 0;
-                        EC.Notification.hideProgressDialog();
+                        $.when(EC.Select.getOneHierarchyEntry(self.current_form, true).then(function (entry) {
 
-                        //connection lost BEFORE tryng the ajax request
-                        if (status === 'error' && error === '') {
+                            //Entry found, prepare entry for upload
+                            EC.Upload.current_entry = entry;
+                            self.hierarchy_rows_to_sync.length = 0;
+                            EC.Notification.hideProgressDialog();
 
-                            EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('connection_lost'));
-                        }
+                            //connection lost BEFORE tryng the ajax request
+                            if (status === 'error' && error === '') {
 
-                        //server timeout
-                        //connection lost BEFORE tryng the ajax request
-                        if (status === 'timeout' && error === 'timeout') {
+                                EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('connection_lost'));
+                            }
 
-                            EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('connection_timeout'));
-                        }
+                            //server timeout
+                            //connection lost BEFORE tryng the ajax request
+                            if (status === 'timeout' && error === 'timeout') {
 
-                        //TODO: SQL issues
-                        if (request.status === 405) {
-                            EC.Notification.showAlert(EC.Localise.getTranslation('error'), request.responseText);
-                        }
+                                EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('connection_timeout'));
+                            }
 
-                        //TODO / network issues
-                        if (request.status === 403) {
-                            EC.Notification.showAlert(EC.Localise.getTranslation('error'), error + EC.Localise.getTranslation('check_your_internet'));
-                        }
+                            //TODO / network issues
+                            if (request.status === 403) {
+                                EC.Notification.showAlert(EC.Localise.getTranslation('error'), error + EC.Localise.getTranslation('check_your_internet'));
+                            }
 
-                    }));
+                        }));
+                    }
 
                 }
             });

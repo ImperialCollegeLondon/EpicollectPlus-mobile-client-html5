@@ -37,8 +37,6 @@ EC.Download = (function (module) {
         inputs = [];
         groups = [];
 
-        debugger;
-
         if (!window.localStorage.dre_local_entries_keys && !window.localStorage.dre_inputs) {
 
             //get all locally stored primary keys and inputs for the current form before saving the new entries,

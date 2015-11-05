@@ -17,8 +17,6 @@ EC.Inputs = (function (module) {
         var form_name = window.localStorage.form_name;
         var parent_key;
 
-
-
         //get parent key based on the user navigating or editing
         if (window.localStorage.edit_mode) {
             parent_key = breadcrumb_trail[breadcrumb_trail.length - 2];

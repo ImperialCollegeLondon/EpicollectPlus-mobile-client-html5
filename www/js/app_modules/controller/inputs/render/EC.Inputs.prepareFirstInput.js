@@ -6,8 +6,6 @@ EC.Inputs = (function (module) {
 
     module.prepareFirstInput = function (the_first_input) {
 
-
-
         var self = this;
         var first_input_position = 1;
         var back_nav_url;

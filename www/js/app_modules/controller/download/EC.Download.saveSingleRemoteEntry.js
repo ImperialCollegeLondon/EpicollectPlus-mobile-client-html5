@@ -12,6 +12,7 @@ EC.Download = (function (module) {
         self = this;
 
         $.when(EC.Create.commitRemoteEntry(self.project_id, self.chosen_form_id, the_single_remote_entry)).then(function () {
+
             if (self.entries.length === 0) {
                 if (self.data.length === 0) {
 

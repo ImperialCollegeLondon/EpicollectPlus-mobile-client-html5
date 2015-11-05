@@ -12,7 +12,7 @@ EC.InputTypes = (function (module) {
         var value = the_value;
         var input = the_input;
 
-        var group_wrapper = $('div#input-group');
+        var group_wrapper = $('div.input-group');
         var RADIO_CHECKED = '';
         var SELECTED = '';
         var CHECKBOX_CHECKED = '';
@@ -185,16 +185,18 @@ EC.InputTypes = (function (module) {
                     //render list of options
                     $(single_group_input.options).each(function (index) {
 
+
+
                         //increase value by 1, as we use value = 0 when no option is selected (like for select/dropdown) We are using the index as radio jumps are mapped against the index of the value
                         var option_value = this.value;
                         var option_index = (index + 1);
                         var option_label = this.label;
-                        var option_id = 'radio-choice-' + (index + 1);
+                        var option_id = single_group_input.ref + '-radio-choice-' + (index + 1);
 
                         //pre select an element if the value matches the cached value
                         RADIO_CHECKED = (single_group_input.value === option_value) ? 'checked="checked"' : '';
 
-                        html += '<input type="radio" name="radio-options" id="' + option_id + '" value="' + option_value + '"' + RADIO_CHECKED + ' data-index="' + option_index + '">';
+                        html += '<input type="radio" name="' + single_group_input.ref + '-radio-options" id="' + option_id + '" value="' + option_value + '"' + RADIO_CHECKED + ' data-index="' + option_index + '">';
                         html += '<label for="' + option_id + '">' + option_label + '</label>';
                     });
 
@@ -241,7 +243,7 @@ EC.InputTypes = (function (module) {
                 //render time inputs
                 case EC.Const.TIME:
 
-                    debugger;
+
 
                     //set default value to date input
                     if (single_group_input.value === single_group_input.datetime_format) {

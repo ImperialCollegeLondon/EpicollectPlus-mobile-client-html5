@@ -49,8 +49,9 @@ EC.Boot.init = function () {
         window.localStorage.clear();
     }
 
+
     //set default server url for projects if no one is defined
-    if (window.localStorage.project_server_url === undefined) {
+    if (!window.localStorage.project_server_url) {
         console.log('EC.Const.EPICOLLECT_SERVER_URL - ' + EC.Const.EPICOLLECT_SERVER_URL);
         window.localStorage.project_server_url = EC.Const.EPICOLLECT_SERVER_URL;
     }

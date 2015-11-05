@@ -262,6 +262,8 @@ EC.Entries = (function (module) {
 
                 case EC.Const.BRANCH:
 
+
+                    //if the input is a branch, the value will be: (branch form key, total branch entries)
                     branch_values = values[i].value.split(',');
                     inputs_values.push({
                         _id: values[i]._id,
@@ -417,8 +419,6 @@ EC.Entries = (function (module) {
                         var group_input_values = JSON.parse(values[i].value);
                         var group_input_labels = [];
                         var multiple_value;
-
-                        debugger;
 
                         //map values against labels (to show labels)
                         group_input_labels = EC.Inputs.mapGroupValuesToLabels(group_inputs, group_input_values);

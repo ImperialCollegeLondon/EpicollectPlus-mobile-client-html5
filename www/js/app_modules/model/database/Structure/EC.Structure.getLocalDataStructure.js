@@ -10,7 +10,9 @@ EC.Structure = (function (module) {
 
     var form_id;
     var inputs;
+    var branch_inputs;
     var local_entries_keys;
+    var local_branch_entries_keys;
     var groups;
     var deferred;
     var self;
@@ -42,6 +44,19 @@ EC.Structure = (function (module) {
         }
     };
 
+    //fill in array with all the inputs for the form, this also will get local "_id"s as the inputs are already stored
+    var _getBranchFormInputsSQLSuccessCB = function (the_tx, the_result) {
+
+        var i;
+        var iLength = the_result.rows.length;
+        var branch_input;
+
+        for (i = 0; i < iLength; i++) {
+            branch_input = the_result.rows.item(i);
+            branch_inputs.push(branch_input);
+        }
+    };
+
     //fill in array with all the locally stored entry keys
     var _getFormPrimaryKeysSQLSuccessCB = function (the_tx, the_result) {
 
@@ -54,26 +69,46 @@ EC.Structure = (function (module) {
 
     };
 
+    //fill in array with all the locally stored entry keys
+    var _getBranchFormPrimaryKeysSQLSuccessCB = function (the_tx, the_result) {
+
+        var i;
+        var iLength = the_result.rows.length;
+
+        for (i = 0; i < iLength; i++) {
+            local_branch_entries_keys.push(the_result.rows.item(i).hierarchy_entry_key_value);
+        }
+
+    };
+
     //get all primary keys for local entries and all the inputs for the project stored locally
     var _getLocalDataStructureTX = function (tx) {
 
         var query_entry_key = 'SELECT DISTINCT entry_key FROM ec_data WHERE form_id=?';
         var query_inputs = 'SELECT * FROM ec_inputs WHERE form_id=? ORDER BY position';
 
+        var query_branch_entry_key = 'SELECT DISTINCT hierarchy_entry_key_value FROM ec_branch_data WHERE form_id=?';
+        var query_branch_inputs = 'SELECT * FROM ec_branch_inputs WHERE form_id=? ORDER BY position';
+
+
         tx.executeSql(query_entry_key, [form_id], _getFormPrimaryKeysSQLSuccessCB, self.errorCB);
         tx.executeSql(query_inputs, [form_id], _getFormInputsSQLSuccessCB, self.errorCB);
+        tx.executeSql(query_branch_entry_key, [form_id], _getBranchFormPrimaryKeysSQLSuccessCB, self.errorCB);
+        tx.executeSql(query_branch_inputs, [form_id], _getBranchFormInputsSQLSuccessCB, self.errorCB);
 
     };
 
     var _getLocalDataStructureSuccessCB = function () {
-        deferred.resolve(inputs, local_entries_keys, groups);
+        deferred.resolve(inputs, local_entries_keys, groups, branch_inputs, local_branch_entries_keys);
     };
 
 
     module.getLocalDataStructure = function (the_form_id) {
 
         inputs = [];
+        branch_inputs = [];
         local_entries_keys = [];
+        local_branch_entries_keys = [];
         groups = [];
         deferred = new $.Deferred();
         self = this;

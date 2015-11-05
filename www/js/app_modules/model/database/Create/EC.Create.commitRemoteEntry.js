@@ -20,6 +20,8 @@ EC.Create = (function (module) {
     var self;
     var deferred;
     var immediate_parent_key_value;
+    var branch_inputs = [];
+    var local_branch_entries_keys = [];
 
 
     var _saveRemoteEntries = function () {
@@ -36,7 +38,6 @@ EC.Create = (function (module) {
          Per each group in my local inputs, I need to map the remote data against the local structure
          */
 
-        debugger;
 
         $(groups).each(function (index, single_group) {
 
@@ -63,9 +64,8 @@ EC.Create = (function (module) {
 
             current_remote_entry[single_group.ref] = JSON.stringify(temp_array);
 
-            debugger;
-
         });
+
 
         //check if the currenty entry match a primary key of a local entry
         if (EC.Utils.inArray(local_entries_keys, current_remote_entry_key)) {
@@ -87,8 +87,20 @@ EC.Create = (function (module) {
             //manage parenting and form tree: if parent_name is '' we are entering data for top form so immediate_parent_key_value is set to ''
             if (parent_form_name === '') {
                 immediate_parent_key_value = '';
-                $.when(EC.Create.insertRemoteFormValues(form_id, inputs, remote_entry, entry_key_ref, immediate_parent_key_value)).then(function () {
-                    deferred.resolve();
+                $.when(EC.Create.insertRemoteFormValues(form_id, inputs, remote_entry, entry_key_ref, immediate_parent_key_value)).then(function (branches) {
+
+                    var local_branch_inputs = JSON.parse(window.localStorage.dre_branch_inputs);
+                    var local_branch_entries_keys = JSON.parse(window.localStorage.dre_local_branch_entries_keys);
+
+                    //any branches for the current entry?
+                    if (branches.length > 0) {
+                        $.when(EC.Create.saveRemoteBranchEntries(form_id, branches, local_branch_inputs, local_branch_entries_keys)).then(function () {
+                            deferred.resolve();
+                        });
+                    }
+                    else {
+                        deferred.resolve();
+                    }
                 });
             } else {
                 //child form therefore use parent entry key value from downloaded data
@@ -131,6 +143,7 @@ EC.Create = (function (module) {
         deferred = new $.Deferred();
         groups = [];
 
+
         entry_key_ref = EC.Utils.getFormPrimaryKeyRef(form_id);
 
         //reset array (we might have keys from a previous download)
@@ -139,33 +152,45 @@ EC.Create = (function (module) {
         updated_entries_counter = 0;
         //reset inputs array
         inputs = [];
+        branch_inputs = [];
+        local_branch_entries_keys = [];
 
-        debugger;
 
         if (!window.localStorage.dre_local_entries_keys && !window.localStorage.dre_inputs) {
 
             //get all locally stored primary keys and inputs for the current form before saving the new entries,
             //as we need to map against the local row '_id's
-            $.when(EC.Structure.getLocalDataStructure(form_id)).then(function (the_local_inputs, the_local_entries_keys, the_groups) {
+            $.when(EC.Structure.getLocalDataStructure(form_id))
+                .then(function (the_local_inputs,
+                                the_local_entries_keys,
+                                the_groups,
+                                the_local_branch_inputs,
+                                the_local_branch_entries_keys) {
 
-                //cache local data structure (dre_ stands for download remote entries ;))
-                window.localStorage.dre_local_entries_keys = JSON.stringify(the_local_entries_keys);
-                window.localStorage.dre_groups = JSON.stringify(the_groups);
-                window.localStorage.dre_inputs = JSON.stringify(the_local_inputs);
+                    //cache local data structure (dre_ stands for download remote entries ;))
+                    window.localStorage.dre_local_entries_keys = JSON.stringify(the_local_entries_keys);
+                    window.localStorage.dre_groups = JSON.stringify(the_groups);
+                    window.localStorage.dre_inputs = JSON.stringify(the_local_inputs);
+                    window.localStorage.dre_branch_inputs = JSON.stringify(the_local_branch_inputs);
+                    window.localStorage.dre_local_branch_entries_keys = JSON.stringify(the_local_branch_entries_keys);
 
-                inputs = the_local_inputs;
-                local_entries_keys = the_local_entries_keys;
-                groups = the_groups;
+                    inputs = the_local_inputs;
+                    branch_inputs = the_local_branch_inputs
+                    local_entries_keys = the_local_entries_keys;
+                    local_branch_entries_keys = the_local_branch_entries_keys;
+                    groups = the_groups;
 
-                _saveRemoteEntries();
+                    _saveRemoteEntries();
 
-            });
+                });
 
         } else {
 
             //local primary keys and inputs are cached, no need to query db
             local_entries_keys = JSON.parse(window.localStorage.dre_local_entries_keys);
+            local_branch_entries_keys = JSON.parse(window.localStorage.dre_local_branch_entries_keys);
             inputs = JSON.parse(window.localStorage.dre_inputs);
+            branch_inputs = JSON.parse(window.localStorage.dre_branch_inputs);
             groups = JSON.parse(window.localStorage.dre_groups);
 
             _saveRemoteEntries();

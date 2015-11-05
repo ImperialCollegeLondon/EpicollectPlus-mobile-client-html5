@@ -531,7 +531,7 @@ EC.Utils = (function () {
             obj = {};
 
             //even element is a jump destination, as @ref
-            obj.jump_to = raw_jumps[i];
+            obj.jump_to = raw_jumps[i].trim();
 
             if (raw_jumps[i + 1].charAt(0) === '!') {
 
@@ -541,7 +541,7 @@ EC.Utils = (function () {
             }
             else {
 
-                switch (raw_jumps[i + 1]) {
+                switch (raw_jumps[i + 1].trim()) {
 
                     case EC.Const.JUMP_ALWAYS:
                         obj.jump_when = EC.Const.JUMP_ALWAYS;
@@ -554,7 +554,7 @@ EC.Utils = (function () {
                         break;
 
                     default:
-                        obj.jump_when = obj.jump_when = EC.Const.JUMP_VALUE_IS;
+                        obj.jump_when = EC.Const.JUMP_VALUE_IS;
                         obj.jump_value = raw_jumps[i + 1];
 
                 }

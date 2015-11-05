@@ -142,7 +142,6 @@ EC.Boot.handleDeviceEvents = function () {
 
         }
 
-
     };
     document.addEventListener('resume', window.onResume, false);
 };
@@ -198,8 +197,9 @@ EC.Boot.init = function () {
         window.localStorage.clear();
     }
 
+
     //set default server url for projects if no one is defined
-    if (window.localStorage.project_server_url === undefined) {
+    if (!window.localStorage.project_server_url) {
         console.log('EC.Const.EPICOLLECT_SERVER_URL - ' + EC.Const.EPICOLLECT_SERVER_URL);
         window.localStorage.project_server_url = EC.Const.EPICOLLECT_SERVER_URL;
     }
@@ -1371,7 +1371,7 @@ EC.Utils = (function () {
             obj = {};
 
             //even element is a jump destination, as @ref
-            obj.jump_to = raw_jumps[i];
+            obj.jump_to = raw_jumps[i].trim();
 
             if (raw_jumps[i + 1].charAt(0) === '!') {
 
@@ -1381,7 +1381,7 @@ EC.Utils = (function () {
             }
             else {
 
-                switch (raw_jumps[i + 1]) {
+                switch (raw_jumps[i + 1].trim()) {
 
                     case EC.Const.JUMP_ALWAYS:
                         obj.jump_when = EC.Const.JUMP_ALWAYS;
@@ -1394,7 +1394,7 @@ EC.Utils = (function () {
                         break;
 
                     default:
-                        obj.jump_when = obj.jump_when = EC.Const.JUMP_VALUE_IS;
+                        obj.jump_when = EC.Const.JUMP_VALUE_IS;
                         obj.jump_value = raw_jumps[i + 1];
 
                 }
@@ -3414,7 +3414,6 @@ EC.Parse = (function (module) {
 
         $(group_inputs).each(function (index, single_group_input) {
 
-            debugger;
             group_input.positions.push({
                 ref: $(single_group_input).attr('ref'),
                 position: index + 1
@@ -3445,12 +3444,10 @@ EC.Parse = (function (module) {
         var form_name;
         var hierarchy_skip_key;
         var branch_skip_keys = [];
-        var groups = [];
-
+        var group = {};
 
 
         $(xml).find('form').each(function (i) {
-
                 form_children = $(this).children();
                 positions = [];
                 position = 1;
@@ -3469,7 +3466,7 @@ EC.Parse = (function (module) {
                 //loop all the inputs
                 $(form_children).each(function (index) {
 
-                    groups = [];
+                    group = [];
 
                     var ref = $(this).attr('ref');
 
@@ -3483,7 +3480,7 @@ EC.Parse = (function (module) {
                         //if it is a group, the ref will have '_group' at the end
                         //we need to map the gruop inputs to keep the position when saving them as json: xml does not keep the order
                         if (ref.slice(-6) === '_group') {
-                            groups.push(_mapGroupInputsPositions($(this)));
+                            group = _mapGroupInputsPositions($(this));
                         }
 
                         positions.push({
@@ -3493,7 +3490,7 @@ EC.Parse = (function (module) {
                             form_position: form_position,
                             position: position,
                             ref: ref,
-                            groups: groups
+                            group: group
                         });
 
                         position++;
@@ -3514,7 +3511,7 @@ EC.Parse = (function (module) {
                                 form_position: form_position,
                                 position: 'skip',
                                 ref: ref,
-                                groups: groups
+                                group: group
 
                             });
                         } else {
@@ -3530,15 +3527,15 @@ EC.Parse = (function (module) {
                                     form_position: form_position,
                                     position: 'skip',
                                     ref: ref,
-                                    groups: groups
+                                    group: group
                                 });
 
                             } else {
 
                                 //if it is a group, the ref will have '_group' at the end
-                                //we need to map the gruop inputs to keep the position when saving them as json: xml does not keep the order
+                                //we need to map the group inputs to keep the position when saving them as json: xml does not keep the order
                                 if (ref.slice(-6) === '_group') {
-                                    groups.push(_mapGroupInputsPositions($(this)));
+                                    group = _mapGroupInputsPositions($(this));
                                 }
 
                                 positions.push({
@@ -3548,7 +3545,7 @@ EC.Parse = (function (module) {
                                     form_position: form_position,
                                     position: position,
                                     ref: ref,
-                                    groups: groups
+                                    group: group
                                 });
                             }
                             position++;
@@ -3578,7 +3575,6 @@ EC.Parse = (function (module) {
         console.log('input_positions');
         console.log(input_positions, true);
 
-        debugger;
         return input_positions;
     };
 
@@ -3597,6 +3593,65 @@ EC.Parse = (function (module) {
     'use strict';
 
     var self;
+
+    var _getGroupInputsPositions = function (the_input_ref, the_form_name) {
+
+        var input_ref = the_input_ref;
+        var form_name = the_form_name;
+        var positions = [];
+
+        $(self.form_inputs_positions).each(function (index, single_form) {
+
+            //all the inputs belong to the same form, just get the form name
+            if (form_name === single_form[0].form_name) {
+
+                //loop all inputs for current form and find the single group we need
+                $(single_form).each(function (index, single_input) {
+
+                    //groups are matched against owner inputs ref
+                    if (single_input.ref === input_ref) {
+                        //ok we found the group, get positions
+                        positions = single_input.group.positions.slice();
+                    }
+                });
+            }
+        });
+
+        return positions;
+    };
+
+    var _reorderedGroupInputs = function (the_group_inputs, the_input_ref, the_form_name) {
+
+
+
+
+        var shuffled_group_inputs = the_group_inputs;
+        var input_ref = the_input_ref;
+        var group_inputs_positions = [];
+        var ordered_group_inputs = [];
+
+        //get group inputs positions (order)
+        group_inputs_positions = _getGroupInputsPositions(the_input_ref, the_form_name);
+
+        $(group_inputs_positions).each(function (index, single_group_input_position) {
+
+            $(shuffled_group_inputs).each(function (index, single_shuffled_input) {
+
+                if (single_shuffled_input.ref === single_group_input_position.ref) {
+
+                    ordered_group_inputs[single_group_input_position.position - 1] = single_shuffled_input;
+
+                }
+
+            });
+
+        });
+
+        console.log(ordered_group_inputs);
+
+        return ordered_group_inputs;
+
+    };
 
     /*
      * Return the position of an input within a form based on form name AND the input @ref (uniqueness is given by the composite key)
@@ -3660,6 +3715,7 @@ EC.Parse = (function (module) {
         var form_name;
         var is_genkey_hidden;
         var type = the_type;
+        var reordered_group_inputs = [];
 
         self = this;
         ref = the_raw_input['@ref'];
@@ -3799,10 +3855,9 @@ EC.Parse = (function (module) {
         //if the type is branch, set branch_form value
         parsed_input.branch_form_name = (the_raw_input['@branch_form'] === undefined) ? '' : the_raw_input['@branch_form'];
 
-        //if the type is 'group', parse inputs withing the group
+        //if the type is 'group', parse inputs withing the group.
+        //We do this because when going from xml to json, the same tags are grouped together as arrays
         if (type === EC.Const.GROUP) {
-
-            //todo group input position, so to save them in the right order (xml sucks!)
 
             var raw_group_inputs = [];
             var parsed_group_inputs = [];
@@ -3837,7 +3892,7 @@ EC.Parse = (function (module) {
             }
 
 
-            //todo are there any <radio> inputs?
+            //are there any <radio> inputs?
             if (the_raw_input.radio) {
                 //ok, add them as inputs (could be array or object if only one)
                 if (Array.isArray(the_raw_input.radio)) {
@@ -3894,9 +3949,6 @@ EC.Parse = (function (module) {
 
             //parse all the inputs nested withing the <group> tag
             $.each(raw_group_inputs, function (index, single_group_input) {
-
-                //parse attributes into object properties. We are not parsing position, is it still needed?
-
 
                 single_group_input.ref = single_group_input['@ref'];
                 //delete @ref property as not used
@@ -3968,8 +4020,15 @@ EC.Parse = (function (module) {
                 parsed_group_inputs.push(single_group_input);
             });
 
+
+            //reorder group inputs according to original group input position,
+            //to save them in the right order (xml sucks!)
+            //todo
+
+            reordered_group_inputs = _reorderedGroupInputs(parsed_group_inputs, parsed_input.ref, form_name);
+
             //add group_inputs to main input
-            parsed_input.group_inputs = parsed_group_inputs;
+            parsed_input.group_inputs = reordered_group_inputs;
 
         }
 
@@ -6642,83 +6701,84 @@ EC.Hierarchy = (function (module) {
  */
 var EC = EC || {};
 EC.Hierarchy = EC.Hierarchy || {};
-EC.Hierarchy = ( function(module) {"use strict";
+EC.Hierarchy = ( function (module) {
+    "use strict";
 
-        var self;
-        var project;
-        var deferred;
+    var self;
+    var project;
+    var deferred;
 
-        //Transaction to save the project object
-        var _commitProjectTX = function(tx) {
+    //Transaction to save the project object
+    var _commitProjectTX = function (tx) {
 
-            var query = "";
-            query += 'INSERT INTO ec_projects ( ';
-            query += 'name, ';
-            query += 'allowDownloadEdits, ';
-            query += 'version, ';
-            query += 'total_hierarchy_forms, ';
-            query += 'total_branch_forms, ';
-            query += 'downloadFromServer, ';
-            query += 'uploadToServer) ';
-            query += 'VALUES ("';
-            query += project.name + '", "';
-            query += project.allowDownloadEdits + '", "';
-            query += project.version + '", "';
-            query += project.total_hierarchy_forms + '", "';
-            query += project.total_branch_forms + '", "';
-            query += project.downloadFromServer + '", "';
-            query += project.uploadToServer + '");';
+        var query = "";
+        query += 'INSERT INTO ec_projects ( ';
+        query += 'name, ';
+        query += 'allowDownloadEdits, ';
+        query += 'version, ';
+        query += 'total_hierarchy_forms, ';
+        query += 'total_branch_forms, ';
+        query += 'downloadFromServer, ';
+        query += 'uploadToServer) ';
+        query += 'VALUES ("';
+        query += project.name + '", "';
+        query += project.allowDownloadEdits + '", "';
+        query += project.version + '", "';
+        query += project.total_hierarchy_forms + '", "';
+        query += project.total_branch_forms + '", "';
+        query += project.downloadFromServer + '", "';
+        query += project.uploadToServer + '");';
 
-            tx.executeSql(query, [], _commitProjectSQLSuccess, self.errorCB);
+        tx.executeSql(query, [], _commitProjectSQLSuccess, self.errorCB);
 
-        };
+    };
 
-        //Callback executed if the project is saved correctly to the db
-        var _commitProjectSQLSuccess = function(the_tx, the_result) {
+    //Callback executed if the project is saved correctly to the db
+    var _commitProjectSQLSuccess = function (the_tx, the_result) {
 
-            //keep track of the last project ID we entered to the database
-            project.insertId = the_result.insertId;
-        };
+        //keep track of the last project ID we entered to the database
+        project.insertId = the_result.insertId;
+    };
 
-        var _commitProjectSuccessCB = function() {
+    var _commitProjectSuccessCB = function () {
 
-            var branch_forms;
-            //commit all the hierarchy forms (main)
+        var branch_forms;
+        //commit all the hierarchy forms (main)
 
-            //@bug on iOS: insertID can be undefined, so get the id of the last INSERT project manually
-            if (project.insertId) {
+        //@bug on iOS: insertID can be undefined, so get the id of the last INSERT project manually
+        if (project.insertId) {
+
+            deferred.resolve(project);
+
+        } else {
+
+            alert("ios");
+            //oh my..IOS...let's get the ID of the last entered project before doing anything else
+            $.when(EC.Select.getProjectRowId(project.name)).then(function (the_project_id) {
+
+                project.insertId = the_project_id;
 
                 deferred.resolve(project);
 
-            } else {
-                
-                alert("ios");
-                //oh my..IOS...let's get the ID of the last entered project before doing anything else
-                $.when(EC.Select.getProjectRowId(project.name)).then(function(the_project_id) {
+            });
+        }
+    };
 
-                    project.insertId = the_project_id;
+    module.commitProject = function (the_project_object) {
 
-                    deferred.resolve(project);
+        self = this;
+        project = the_project_object;
+        deferred = new $.Deferred();
 
-                });
-            }
-        };
+        EC.db.transaction(_commitProjectTX, self.errorCB, _commitProjectSuccessCB);
 
-        module.commitProject = function(the_project_object) {
+        return deferred.promise();
 
-            self = this;
-            project = the_project_object;
-            deferred = new $.Deferred();
+    };
 
-            EC.db.transaction(_commitProjectTX, self.errorCB, _commitProjectSuccessCB);
+    return module;
 
-            return deferred.promise();
-
-        };
-
-        return module;
-
-    }(EC.Hierarchy));
+}(EC.Hierarchy));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -7541,7 +7601,9 @@ EC.Structure = (function (module) {
 
     var form_id;
     var inputs;
+    var branch_inputs;
     var local_entries_keys;
+    var local_branch_entries_keys;
     var groups;
     var deferred;
     var self;
@@ -7573,6 +7635,19 @@ EC.Structure = (function (module) {
         }
     };
 
+    //fill in array with all the inputs for the form, this also will get local "_id"s as the inputs are already stored
+    var _getBranchFormInputsSQLSuccessCB = function (the_tx, the_result) {
+
+        var i;
+        var iLength = the_result.rows.length;
+        var branch_input;
+
+        for (i = 0; i < iLength; i++) {
+            branch_input = the_result.rows.item(i);
+            branch_inputs.push(branch_input);
+        }
+    };
+
     //fill in array with all the locally stored entry keys
     var _getFormPrimaryKeysSQLSuccessCB = function (the_tx, the_result) {
 
@@ -7585,26 +7660,46 @@ EC.Structure = (function (module) {
 
     };
 
+    //fill in array with all the locally stored entry keys
+    var _getBranchFormPrimaryKeysSQLSuccessCB = function (the_tx, the_result) {
+
+        var i;
+        var iLength = the_result.rows.length;
+
+        for (i = 0; i < iLength; i++) {
+            local_branch_entries_keys.push(the_result.rows.item(i).hierarchy_entry_key_value);
+        }
+
+    };
+
     //get all primary keys for local entries and all the inputs for the project stored locally
     var _getLocalDataStructureTX = function (tx) {
 
         var query_entry_key = 'SELECT DISTINCT entry_key FROM ec_data WHERE form_id=?';
         var query_inputs = 'SELECT * FROM ec_inputs WHERE form_id=? ORDER BY position';
 
+        var query_branch_entry_key = 'SELECT DISTINCT hierarchy_entry_key_value FROM ec_branch_data WHERE form_id=?';
+        var query_branch_inputs = 'SELECT * FROM ec_branch_inputs WHERE form_id=? ORDER BY position';
+
+
         tx.executeSql(query_entry_key, [form_id], _getFormPrimaryKeysSQLSuccessCB, self.errorCB);
         tx.executeSql(query_inputs, [form_id], _getFormInputsSQLSuccessCB, self.errorCB);
+        tx.executeSql(query_branch_entry_key, [form_id], _getBranchFormPrimaryKeysSQLSuccessCB, self.errorCB);
+        tx.executeSql(query_branch_inputs, [form_id], _getBranchFormInputsSQLSuccessCB, self.errorCB);
 
     };
 
     var _getLocalDataStructureSuccessCB = function () {
-        deferred.resolve(inputs, local_entries_keys, groups);
+        deferred.resolve(inputs, local_entries_keys, groups, branch_inputs, local_branch_entries_keys);
     };
 
 
     module.getLocalDataStructure = function (the_form_id) {
 
         inputs = [];
+        branch_inputs = [];
         local_entries_keys = [];
+        local_branch_entries_keys = [];
         groups = [];
         deferred = new $.Deferred();
         self = this;
@@ -7756,7 +7851,7 @@ EC.Select = (function (module) {
      */
     module.getAllProjectEntries = function (the_forms, the_project_id) {
 
-        debugger;
+
 
         forms = the_forms;
         project_id = the_project_id;
@@ -7783,50 +7878,50 @@ EC.Select = (function (module) {
 
 var EC = EC || {};
 
-EC.Select = ( function(module) {
+EC.Select = ( function (module) {
 
-		var project_id;
-		var allow_download_edits;
-		var deferred;
+    var project_id;
+    var allow_download_edits;
+    var deferred;
 
-		var _getADEFlagTX = function(tx) {
+    var _getADEFlagTX = function (tx) {
 
-			var query = 'SELECT allowDownloadEdits FROM ec_projects WHERE _id=?';
+        var query = 'SELECT allowDownloadEdits FROM ec_projects WHERE _id=?';
 
-			tx.executeSql(query, [project_id], _getADEFlagSQLSuccess, EC.Select.errorCB);
-		};
+        tx.executeSql(query, [project_id], _getADEFlagSQLSuccess, EC.Select.errorCB);
+    };
 
-		var _getADEFlagSQLSuccess = function(the_tx, the_result) {
-			allow_download_edits = the_result.rows.item(0).allowDownloadEdits;
-		};
+    var _getADEFlagSQLSuccess = function (the_tx, the_result) {
+        allow_download_edits = the_result.rows.item(0).allowDownloadEdits;
+    };
 
-		var _getADEFlagTXSuccessCB = function() {
+    var _getADEFlagTXSuccessCB = function () {
 
-			if (allow_download_edits === "false") {
-				deferred.reject();
-			} else {
-				deferred.resolve();
-			}
-		};
+        if (allow_download_edits === 'false') {
+            deferred.reject();
+        } else {
+            deferred.resolve();
+        }
+    };
 
-		/**
-		 * @method getAllowDownloadEdits Fetch the AllowDownloadEdits flag for the selected project and set it in localStorage
-		 * @param {int} the_project_id  The project id
-		 */
-		module.getAllowDownloadEdits = function(the_project_id) {
+    /**
+     * @method getAllowDownloadEdits Fetch the AllowDownloadEdits flag for the selected project and set it in localStorage
+     * @param {int} the_project_id  The project id
+     */
+    module.getAllowDownloadEdits = function (the_project_id) {
 
-			project_id = the_project_id;
-			deferred = new $.Deferred();
+        project_id = the_project_id;
+        deferred = new $.Deferred();
 
-			EC.db.transaction(_getADEFlagTX, EC.Select.errorCB, _getADEFlagTXSuccessCB);
+        EC.db.transaction(_getADEFlagTX, EC.Select.errorCB, _getADEFlagTXSuccessCB);
 
-			return deferred.promise();
+        return deferred.promise();
 
-		};
+    };
 
-		return module;
+    return module;
 
-	}(EC.Select));
+}(EC.Select));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -9267,253 +9362,253 @@ EC.Select = ( function(module) {"use strict";
 
 	}(EC.Select));
 
-/*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
 var EC = EC || {};
 EC.Select = EC.Select || {};
-EC.Select = ( function(module) {"use strict";
+EC.Select = (function (module) {
+    'use strict';
 
-		var entries = [];
-		var form_id;
-		var parent;
-		var titles = [];
-		var full_titles = [];
-		var primary_keys = [];
-		var child_counter = 0;
-		var entry_key;
-		var offset;
-		var deferred;
+    var entries = [];
+    var form_id;
+    var parent;
+    var titles = [];
+    var full_titles = [];
+    var primary_keys = [];
+    var child_counter = 0;
+    var entry_key;
+    var offset;
+    var deferred;
 
-		var _getEntriesSuccessCB = function() {
+    var _getEntriesSuccessCB = function () {
 
-			/*
-			 * store primary key values for current form
-			 * it is not possible to have duplicates for the primary key input field within the same form level
-			 * (using circular data structure)
-			 */
-			var i;
-			var iLength = entries.length;
-			for ( i = 0; i < iLength; i++) {
-				primary_keys.push(entries[i].entry_key);
-			}
+        /*
+         * store primary key values for current form
+         * it is not possible to have duplicates for the primary key input field within the same form level
+         * (using circular data structure)
+         */
+        var i;
+        var iLength = entries.length;
+        for (i = 0; i < iLength; i++) {
+            primary_keys.push(entries[i].entry_key);
+        }
 
-			window.localStorage.primary_keys = JSON.stringify(primary_keys);
-			primary_keys.length = 0;
+        window.localStorage.primary_keys = JSON.stringify(primary_keys);
+        primary_keys.length = 0;
 
-			/*
-			 * Using each entry, select all the fields for that entry with 'is_title' = true
-			 * This will build the full title to be displayed per each itme in the listview
-			 * if no inputs are set as title, default to the value of the primary key
-			 */
+        /*
+         * Using each entry, select all the fields for that entry with 'is_title' = true
+         * This will build the full title to be displayed per each itme in the listview
+         * if no inputs are set as title, default to the value of the primary key
+         */
 
-			EC.db.transaction(_getEntriesTitlesTX, EC.Select.errorCB, _getEntriesTitlesSuccessCB);
+        EC.db.transaction(_getEntriesTitlesTX, EC.Select.errorCB, _getEntriesTitlesSuccessCB);
 
-			/*
-			 * Using each entry, count how many child entry there are per each entry
-			 * The counts will be displayed on the list of entries
-			 */
+        /*
+         * Using each entry, count how many child entry there are per each entry
+         * The counts will be displayed on the list of entries
+         */
 
-			console.log(EC.Const.TRANSACTION_SUCCESS);
+        console.log(EC.Const.TRANSACTION_SUCCESS);
 
-		};
+    };
 
-		var _getEntriesTitlesSuccessCB = function() {
+    var _getEntriesTitlesSuccessCB = function () {
 
-			//Build the titles concatenating all the title fields found per each entry
-			var i;
-			var j;
-			var iLength = entries.length;
-			var jLength = titles.length;
-			var full_title;
+        //Build the titles concatenating all the title fields found per each entry
+        var i;
+        var j;
+        var iLength = entries.length;
+        var jLength = titles.length;
+        var full_title;
 
-			for ( i = 0; i < iLength; i++) {
+        for (i = 0; i < iLength; i++) {
 
-				full_title = "";
+            full_title = '';
 
-				for ( j = 0; j < jLength; j++) {
+            for (j = 0; j < jLength; j++) {
 
-					if (entries[i].entry_key === titles[j].entry_key) {
-						full_title += (full_title === "") ? titles[j].value : ", " + titles[j].value;
-					}
+                if (entries[i].entry_key === titles[j].entry_key) {
+                    full_title += (full_title === '') ? titles[j].value : ', ' + titles[j].value;
+                }
 
-				}//for titles
+            }//for titles
 
-				full_titles.push({
-					full_title : full_title,
-					entry_key : entries[i].entry_key
-				});
+            full_titles.push({
+                full_title: full_title,
+                entry_key: entries[i].entry_key
+            });
 
-			}//for entries
+        }//for entries
 
-			// console.log("full_titles");
-			// console.log(full_titles);
+        // console.log('full_titles');
+        // console.log(full_titles);
 
-			//get the count of child entries (if any)
-			_getChildrenCount();
+        //get the count of child entries (if any)
+        _getChildrenCount();
 
-		};
+    };
 
-		/*
-		 * Get all entries for a form and group them by entry_key:
-		 *
-		 * a form have multiple entries, one per each input, and they all have the same entry_key value)
-		 */
-		var _getEntriesTX = function(tx) {
-			
-			
-			//TODO: fix ordering of entries
-			var query = 'SELECT _id, entry_key, parent FROM ec_data WHERE form_id=? AND parent=? GROUP BY entry_key ORDER BY _id LIMIT ' + window.localStorage.QUERY_LIMIT + " OFFSET " + offset;
+    /*
+     * Get all entries for a form and group them by entry_key:
+     *
+     * a form have multiple entries, one per each input, and they all have the same entry_key value)
+     */
+    var _getEntriesTX = function (tx) {
 
-			tx.executeSql(query, [form_id, parent], _getEntriesSQLSuccess, EC.Select.errorCB);
 
-		};
+        //TODO: fix ordering of entries
+        var query = 'SELECT _id, entry_key, parent FROM ec_data WHERE form_id=? AND parent=? GROUP BY entry_key ORDER BY _id LIMIT ' + window.localStorage.QUERY_LIMIT + ' OFFSET ' + offset;
 
-		var _getEntriesSQLSuccess = function(the_tx, the_result) {
+        tx.executeSql(query, [form_id, parent], _getEntriesSQLSuccess, EC.Select.errorCB);
 
-			var i;
-			var iLenght = the_result.rows.length;
+    };
 
-			//build object with entries
-			for ( i = 0; i < iLenght; i++) {
+    var _getEntriesSQLSuccess = function (the_tx, the_result) {
 
-				entries.push(the_result.rows.item(i));
+        var i;
+        var iLenght = the_result.rows.length;
 
-			}
+        //build object with entries
+        for (i = 0; i < iLenght; i++) {
 
-			console.log(entries, true);
+            entries.push(the_result.rows.item(i));
 
-		};
+        }
 
-		var _getEntriesTitlesTX = function(tx) {
+        console.log(entries, true);
 
-			var i;
-			var iLenght = entries.length;
-			var query;
+    };
 
-			//select all the rows to build the title (aside from skipped values as in the case of jumps)
-			for ( i = 0; i < iLenght; i++) {
-				query = 'SELECT _id, value, entry_key FROM ec_data WHERE form_id=? AND is_title=? AND entry_key=? AND parent=? AND value<>?';
-				tx.executeSql(query, [form_id, 1, entries[i].entry_key, entries[i].parent, EC.Const.SKIPPED], _getEntriesTitlesSQLSuccess, EC.Select.errorCB);
-			}//for
+    var _getEntriesTitlesTX = function (tx) {
 
-		};
+        var i;
+        var iLenght = entries.length;
+        var query;
 
-		var _getEntriesTitlesSQLSuccess = function(the_tx, the_result) {
+        //select all the rows to build the title (aside from skipped values as in the case of jumps)
+        for (i = 0; i < iLenght; i++) {
+            query = 'SELECT _id, value, entry_key FROM ec_data WHERE form_id=? AND is_title=? AND entry_key=? AND parent=? AND value<>?';
+            tx.executeSql(query, [form_id, 1, entries[i].entry_key, entries[i].parent, EC.Const.SKIPPED], _getEntriesTitlesSQLSuccess, EC.Select.errorCB);
+        }//for
 
-			var i;
-			var iLenght = the_result.rows.length;
+    };
 
-			//build object with project data
-			for ( i = 0; i < iLenght; i++) {
+    var _getEntriesTitlesSQLSuccess = function (the_tx, the_result) {
 
-				titles.push(the_result.rows.item(i));
-			}
+        var i;
+        var iLenght = the_result.rows.length;
 
-		};
+        //build object with project data
+        for (i = 0; i < iLenght; i++) {
 
-		function _getChildrenCountTX(tx) {
+            titles.push(the_result.rows.item(i));
+        }
 
-			var i;
-			var iLength = entries.length;
-			var parent;
-			var parent_path;
-			var breadcrumb_trail;
-			var query;
+    };
 
-			//get breadcrumbs to convert to parent path
-			breadcrumb_trail = JSON.parse(window.localStorage.breadcrumbs);
-			parent_path = (breadcrumb_trail[0] === "") ? breadcrumb_trail.join(EC.Const.ENTRY_ROOT_PATH_SEPARATOR).substring(1) : breadcrumb_trail.join(EC.Const.ENTRY_ROOT_PATH_SEPARATOR);
+    function _getChildrenCountTX(tx) {
 
-			for ( i = 0; i < iLength; i++) {
+        var i;
+        var iLength = entries.length;
+        var parent;
+        var parent_path;
+        var breadcrumb_trail;
+        var query;
 
-				parent = (parent_path === "") ? entries[i].entry_key : parent_path + EC.Const.ENTRY_ROOT_PATH_SEPARATOR + entries[i].entry_key;
+        //get breadcrumbs to convert to parent path
+        breadcrumb_trail = JSON.parse(window.localStorage.breadcrumbs);
+        parent_path = (breadcrumb_trail[0] === '') ? breadcrumb_trail.join(EC.Const.ENTRY_ROOT_PATH_SEPARATOR).substring(1) : breadcrumb_trail.join(EC.Const.ENTRY_ROOT_PATH_SEPARATOR);
 
-				query = 'SELECT parent FROM ec_data WHERE parent=? GROUP BY entry_key';
+        for (i = 0; i < iLength; i++) {
 
-				// console.log(query);
+            parent = (parent_path === '') ? entries[i].entry_key : parent_path + EC.Const.ENTRY_ROOT_PATH_SEPARATOR + entries[i].entry_key;
 
-				tx.executeSql(query, [parent], _getChildrenCountSQLSuccessCB, EC.Select.errorCB);
+            query = 'SELECT parent FROM ec_data WHERE parent=? GROUP BY entry_key';
 
-			}
+            // console.log(query);
 
-		}
+            tx.executeSql(query, [parent], _getChildrenCountSQLSuccessCB, EC.Select.errorCB);
 
-		function _getChildrenCountSuccessCB() {
+        }
 
-			//offset is 0 resolve to entries list
-			if (offset === 0) {
-				deferred.resolve(full_titles.slice(0));
-			} else {
-				//if offset is not 0, we are loading more entries to be appended to the entries list
-				EC.Entries.appendMoreEntries(full_titles.slice(0));
-			}
+    }
 
-			//clear all arrays
-			full_titles.length = 0;
-			titles.length = 0;
-			entries.length = 0;
-			child_counter = 0;
+    function _getChildrenCountSuccessCB() {
 
-			console.log(EC.Const.TRANSACTION_SUCCESS);
+        //offset is 0 resolve to entries list
+        if (offset === 0) {
+            deferred.resolve(full_titles.slice(0));
+        } else {
+            //if offset is not 0, we are loading more entries to be appended to the entries list
+            EC.Entries.appendMoreEntries(full_titles.slice(0));
+        }
 
-		}
+        //clear all arrays
+        full_titles.length = 0;
+        titles.length = 0;
+        entries.length = 0;
+        child_counter = 0;
 
-		function _getChildrenCountSQLSuccessCB(the_tx, the_result) {
+        console.log(EC.Const.TRANSACTION_SUCCESS);
 
-			//Add total of children to its parent
-			full_titles[child_counter].children = the_result.rows.length;
+    }
 
-			child_counter++;
+    function _getChildrenCountSQLSuccessCB(the_tx, the_result) {
 
-		}
+        //Add total of children to its parent
+        full_titles[child_counter].children = the_result.rows.length;
 
-		// Get the children for a parent form
-		var _getChildrenCount = function() {
+        child_counter++;
 
-			if (entries.length > 0) {
+    }
 
-				//get the count of children per each parent
-				EC.db.transaction(_getChildrenCountTX, EC.Select.errorCB, _getChildrenCountSuccessCB);
+    // Get the children for a parent form
+    var _getChildrenCount = function () {
 
-			} else {
+        if (entries.length > 0) {
 
-				//no child entries to fetch yet, render list of entries directly
-				//Call Entries controller to render entries list (if offset is 0)
-				if (offset === 0) {
-					EC.Entries.renderList(full_titles.slice(0));
-				} else {
-					//if offset is not 0, we are loading more entries to be appended to the entries list
-					EC.Entries.appendMoreEntries(full_titles.slice(0));
-				}
+            //get the count of children per each parent
+            EC.db.transaction(_getChildrenCountTX, EC.Select.errorCB, _getChildrenCountSuccessCB);
 
-				//clear all arrays
-				full_titles.length = 0;
-				titles.length = 0;
-				entries.length = 0;
-				child_counter = 0;
+        } else {
 
-				console.log(EC.Const.TRANSACTION_SUCCESS);
+            //no child entries to fetch yet, render list of entries directly
+            //Call Entries controller to render entries list (if offset is 0)
+            if (offset === 0) {
+                EC.Entries.renderList(full_titles.slice(0));
+            } else {
+                //if offset is not 0, we are loading more entries to be appended to the entries list
+                EC.Entries.appendMoreEntries(full_titles.slice(0));
+            }
 
-			}
+            //clear all arrays
+            full_titles.length = 0;
+            titles.length = 0;
+            entries.length = 0;
+            child_counter = 0;
 
-		};
+            console.log(EC.Const.TRANSACTION_SUCCESS);
 
-		module.getEntries = function(the_form_id, the_parent_key, the_offset) {
+        }
 
-			form_id = the_form_id;
-			parent = the_parent_key;
-			offset = the_offset;
-			deferred = new $.Deferred();
+    };
 
-			EC.db.transaction(_getEntriesTX, EC.Select.errorCB, _getEntriesSuccessCB);
+    module.getEntries = function (the_form_id, the_parent_key, the_offset) {
 
-			return deferred.promise();
+        form_id = the_form_id;
+        parent = the_parent_key;
+        offset = the_offset;
+        deferred = new $.Deferred();
 
-		};
+        EC.db.transaction(_getEntriesTX, EC.Select.errorCB, _getEntriesSuccessCB);
 
-		return module;
+        return deferred.promise();
 
-	}(EC.Select));
+    };
+
+    return module;
+
+}(EC.Select));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -9825,67 +9920,68 @@ EC.Select = ( function(module) {
 /*global $, jQuery*/
 var EC = EC || {};
 EC.Select = EC.Select || {};
-EC.Select = ( function(module) {"use strict";
+EC.Select = ( function (module) {
+    "use strict";
 
-		var parent_form_name;
-		var immediate_parent_key_value;
-		var full_parent_path;
-		var form_id;
-		var deferred;
+    var parent_form_name;
+    var immediate_parent_key_value;
+    var full_parent_path;
+    var form_id;
+    var deferred;
 
-		var _errorCB = function(the_tx, the_result) {
-			console.log(the_tx);
-			console.log(the_result);
-		};
+    var _errorCB = function (the_tx, the_result) {
+        console.log(the_tx);
+        console.log(the_result);
+    };
 
-		var _getFullParentPathSQLSuccess = function(the_tx, the_result) {
+    var _getFullParentPathSQLSuccess = function (the_tx, the_result) {
 
-			//result will be null if no parent is found
-			if (the_result.rows.item(0)) {
-				full_parent_path = (the_result.rows.item(0).parent);
-			}
+        //result will be null if no parent is found
+        if (the_result.rows.item(0)) {
+            full_parent_path = (the_result.rows.item(0).parent);
+        }
 
-		};
+    };
 
-		var _getFullParentPathSuccessCB = function() {
+    var _getFullParentPathSuccessCB = function () {
 
-			//if we have the parent entry for the current entry resolve otherwise reject the promise
-			if (full_parent_path !== null) {
-				deferred.resolve(full_parent_path);
-			} else {
-				deferred.reject();
-			}
+        //if we have the parent entry for the current entry resolve otherwise reject the promise
+        if (full_parent_path !== null) {
+            deferred.resolve(full_parent_path);
+        } else {
+            deferred.reject();
+        }
 
-		};
+    };
 
-		var _getFullParentPathTX = function(tx) {
+    var _getFullParentPathTX = function (tx) {
 
-			//a parent entry consists of multiple
-			var query = 'SELECT parent FROM ec_data WHERE form_id=? AND entry_key=? LIMIT 1';
-			tx.executeSql(query, [form_id, immediate_parent_key_value], _getFullParentPathSQLSuccess, _errorCB);
+        //a parent entry consists of multiple
+        var query = 'SELECT parent FROM ec_data WHERE form_id=? AND entry_key=? LIMIT 1';
+        tx.executeSql(query, [form_id, immediate_parent_key_value], _getFullParentPathSQLSuccess, _errorCB);
 
-		};
+    };
 
-		/* The new hierarchy foreign key constraint feature a parent key like key|key|key...
-		 * therefore when downloading remote entries, we need to get the full parent path looking up the parent table on the device.
-		 * If no parent entry is found, the user will be prompted to download from the immediate parent table to keep the referential integrity in the database
-		 */
-		module.getFullParentPath = function(the_form_id, the_immediate_parent_key_value) {
+    /* The new hierarchy foreign key constraint feature a parent key like key|key|key...
+     * therefore when downloading remote entries, we need to get the full parent path looking up the parent table on the device.
+     * If no parent entry is found, the user will be prompted to download from the immediate parent table to keep the referential integrity in the database
+     */
+    module.getFullParentPath = function (the_form_id, the_immediate_parent_key_value) {
 
-			form_id = the_form_id;
-			immediate_parent_key_value = the_immediate_parent_key_value;
-			deferred = new $.Deferred();
-			full_parent_path = null;
+        form_id = the_form_id;
+        immediate_parent_key_value = the_immediate_parent_key_value;
+        deferred = new $.Deferred();
+        full_parent_path = null;
 
-			EC.db.transaction(_getFullParentPathTX, _errorCB, _getFullParentPathSuccessCB);
+        EC.db.transaction(_getFullParentPathTX, _errorCB, _getFullParentPathSuccessCB);
 
-			return deferred.promise();
+        return deferred.promise();
 
-		};
+    };
 
-		return module;
+    return module;
 
-	}(EC.Select));
+}(EC.Select));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -10372,6 +10468,48 @@ EC.Select = ( function(module) {"use strict";
 		return module;
 
 	}(EC.Select));
+
+/**
+ * @module EC
+ * @submodule GetData
+ */
+
+var EC = EC || {};
+
+EC.Select = (function (module) {
+    'use strict';
+
+    var project_id;
+    var project;
+    var deferred;
+
+    var _getProjectByIDTX = function (tx) {
+        var query = 'SELECT * FROM ec_projects WHERE _id=?';
+        tx.executeSql(query, [project_id], _getProjectByIDSQLSuccess, EC.Select.errorCB);
+    };
+
+    var _getProjectByIDSQLSuccess = function (the_tx, the_result) {
+        project = the_result.rows.item(0);
+    };
+
+    var _getProjectByIDSuccessCB = function () {
+        deferred.resolve(project);
+    };
+
+    module.getProjectByID = function (the_project_id) {
+
+        project_id = the_project_id;
+        deferred = new $.Deferred();
+
+        EC.db.transaction(_getProjectByIDTX, EC.Select.errorCB, _getProjectByIDSuccessCB);
+
+        return deferred.promise();
+
+    };
+
+    return module;
+
+}(EC.Select));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -12331,6 +12469,59 @@ EC.Update = ( function(module) {
 
 	}(EC.Update));
 
+var EC = EC || {};
+EC.Update = EC.Update || {};
+EC.Update = (function (module) {
+    'use strict';
+
+    var self;
+    var branch_values;
+    var form_id;
+    var deferred;
+
+    var _updateHierarchyEntryValuesSQLSuccessCB = function (the_tx, the_result) {
+
+    };
+
+    var _setValuesForBranchInputsTX = function (tx) {
+
+        var query = 'UPDATE ec_data SET value=? WHERE form_id=? AND ref=?';
+
+        debugger;
+        $(branch_values).each(function (index, value) {
+
+            var input_value = value.input_ref + '_form,' + value.total;
+
+            tx.executeSql(query, [input_value, form_id, value.input_ref], _updateHierarchyEntryValuesSQLSuccessCB, _errorCB);
+        });
+    };
+
+    var _setValuesForBranchInputsSuccessCB = function () {
+        deferred.resolve();
+    };
+
+    var _errorCB = function (the_tx, the_result) {
+        console.log(the_result);
+        deferred.reject();
+    };
+
+    module.setValuesForBranchInputs = function (the_form_id, the_branch_values) {
+
+        self = this;
+        deferred = new $.Deferred();
+        branch_values = the_branch_values;
+        form_id = the_form_id;
+
+        EC.db.transaction(_setValuesForBranchInputsTX, _errorCB, _setValuesForBranchInputsSuccessCB);
+
+        return deferred.promise();
+
+    };
+
+    return module;
+
+}(EC.Update));
+
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
 var EC = EC || {};
@@ -13087,6 +13278,8 @@ EC.Create = (function (module) {
     var self;
     var deferred;
     var immediate_parent_key_value;
+    var branch_inputs = [];
+    var local_branch_entries_keys = [];
 
 
     var _saveRemoteEntries = function () {
@@ -13103,7 +13296,6 @@ EC.Create = (function (module) {
          Per each group in my local inputs, I need to map the remote data against the local structure
          */
 
-        debugger;
 
         $(groups).each(function (index, single_group) {
 
@@ -13130,9 +13322,8 @@ EC.Create = (function (module) {
 
             current_remote_entry[single_group.ref] = JSON.stringify(temp_array);
 
-            debugger;
-
         });
+
 
         //check if the currenty entry match a primary key of a local entry
         if (EC.Utils.inArray(local_entries_keys, current_remote_entry_key)) {
@@ -13154,8 +13345,20 @@ EC.Create = (function (module) {
             //manage parenting and form tree: if parent_name is '' we are entering data for top form so immediate_parent_key_value is set to ''
             if (parent_form_name === '') {
                 immediate_parent_key_value = '';
-                $.when(EC.Create.insertRemoteFormValues(form_id, inputs, remote_entry, entry_key_ref, immediate_parent_key_value)).then(function () {
-                    deferred.resolve();
+                $.when(EC.Create.insertRemoteFormValues(form_id, inputs, remote_entry, entry_key_ref, immediate_parent_key_value)).then(function (branches) {
+
+                    var local_branch_inputs = JSON.parse(window.localStorage.dre_branch_inputs);
+                    var local_branch_entries_keys = JSON.parse(window.localStorage.dre_local_branch_entries_keys);
+
+                    //any branches for the current entry?
+                    if (branches.length > 0) {
+                        $.when(EC.Create.saveRemoteBranchEntries(form_id, branches, local_branch_inputs, local_branch_entries_keys)).then(function () {
+                            deferred.resolve();
+                        });
+                    }
+                    else {
+                        deferred.resolve();
+                    }
                 });
             } else {
                 //child form therefore use parent entry key value from downloaded data
@@ -13198,6 +13401,7 @@ EC.Create = (function (module) {
         deferred = new $.Deferred();
         groups = [];
 
+
         entry_key_ref = EC.Utils.getFormPrimaryKeyRef(form_id);
 
         //reset array (we might have keys from a previous download)
@@ -13206,33 +13410,45 @@ EC.Create = (function (module) {
         updated_entries_counter = 0;
         //reset inputs array
         inputs = [];
+        branch_inputs = [];
+        local_branch_entries_keys = [];
 
-        debugger;
 
         if (!window.localStorage.dre_local_entries_keys && !window.localStorage.dre_inputs) {
 
             //get all locally stored primary keys and inputs for the current form before saving the new entries,
             //as we need to map against the local row '_id's
-            $.when(EC.Structure.getLocalDataStructure(form_id)).then(function (the_local_inputs, the_local_entries_keys, the_groups) {
+            $.when(EC.Structure.getLocalDataStructure(form_id))
+                .then(function (the_local_inputs,
+                                the_local_entries_keys,
+                                the_groups,
+                                the_local_branch_inputs,
+                                the_local_branch_entries_keys) {
 
-                //cache local data structure (dre_ stands for download remote entries ;))
-                window.localStorage.dre_local_entries_keys = JSON.stringify(the_local_entries_keys);
-                window.localStorage.dre_groups = JSON.stringify(the_groups);
-                window.localStorage.dre_inputs = JSON.stringify(the_local_inputs);
+                    //cache local data structure (dre_ stands for download remote entries ;))
+                    window.localStorage.dre_local_entries_keys = JSON.stringify(the_local_entries_keys);
+                    window.localStorage.dre_groups = JSON.stringify(the_groups);
+                    window.localStorage.dre_inputs = JSON.stringify(the_local_inputs);
+                    window.localStorage.dre_branch_inputs = JSON.stringify(the_local_branch_inputs);
+                    window.localStorage.dre_local_branch_entries_keys = JSON.stringify(the_local_branch_entries_keys);
 
-                inputs = the_local_inputs;
-                local_entries_keys = the_local_entries_keys;
-                groups = the_groups;
+                    inputs = the_local_inputs;
+                    branch_inputs = the_local_branch_inputs
+                    local_entries_keys = the_local_entries_keys;
+                    local_branch_entries_keys = the_local_branch_entries_keys;
+                    groups = the_groups;
 
-                _saveRemoteEntries();
+                    _saveRemoteEntries();
 
-            });
+                });
 
         } else {
 
             //local primary keys and inputs are cached, no need to query db
             local_entries_keys = JSON.parse(window.localStorage.dre_local_entries_keys);
+            local_branch_entries_keys = JSON.parse(window.localStorage.dre_local_branch_entries_keys);
             inputs = JSON.parse(window.localStorage.dre_inputs);
+            branch_inputs = JSON.parse(window.localStorage.dre_branch_inputs);
             groups = JSON.parse(window.localStorage.dre_groups);
 
             _saveRemoteEntries();
@@ -13665,6 +13881,126 @@ EC.Create = ( function (module) {
 
 }(EC.Create));
 
+/*global $, jQuery*/
+/**
+ * @module EC
+ * @submodule Create
+ *
+ */
+
+var EC = EC || {};
+EC.Create = EC.Create || {};
+EC.Create = (function (module) {
+    'use strict';
+
+    var branch_rows;
+    var deferred;
+
+    function _getQuery() {
+
+        var query;
+        query = '';
+        query += 'INSERT INTO ec_branch_data (';
+        query += 'input_id, ';
+        query += 'form_id, ';
+        query += 'hierarchy_entry_key_ref, ';
+        query += 'hierarchy_entry_key_value, ';
+        query += 'position, ';
+        query += 'label, ';
+        query += 'ref, ';
+        query += 'value, ';
+        query += 'is_title, ';
+        query += 'entry_key, ';
+        query += 'type, ';
+        query += 'is_data_synced, ';
+        query += 'is_media_synced, ';
+        query += 'is_cached, ';
+        query += 'is_stored, ';
+        query += 'created_on, ';
+        query += 'is_remote) ';
+        query += 'VALUES (';
+
+        //parameterized query (webSQL only allows '?' http://www.w3.org/TR/webdatabase/)
+        query += '?,';//input_id
+        query += '?,';//form_id
+        query += '?,';//hierarchy_entry_key_ref
+        query += '?,';//hierarchy_entry_key_value
+        query += '?,';//position
+        query += '?,';//label
+        query += '?,';//ref
+        query += '?,';//value
+        query += '?,';//is_title
+        query += '?,';//entry_key
+        query += '?,';//type
+        query += '?,';//is_data_synced
+        query += '?,';//is_media_synced
+        query += '?,';//is_cached
+        query += '?,';//is_stored
+        query += '?,';//created_on
+        query += '?);';//is_remote
+
+        return query;
+    }
+    var _insertRemoteBranchDataRowsTX = function (tx) {
+
+
+        $(branch_rows).each(function (index, row) {
+
+            tx.executeSql(_getQuery(), [
+                    row.input_id,
+                    row.form_id,
+                    row.hierarchy_entry_key_ref,
+                    row.hierarchy_entry_key_value,
+                    row.position,
+                    row.label,
+                    row.ref,
+                    row.value,
+                    row.is_title,
+                    row.entry_key,
+                    row.type,
+                    row.is_data_synced,
+                    row.is_media_synced,
+                    row.is_cached,
+                    row.is_stored,
+                    row.created_on,
+                    row.is_remote
+                ],
+                _sqlSuccessCB,
+                _errorCB);
+        });
+    };
+
+
+
+
+    var _sqlSuccessCB = function (the_tx, the_result) {
+        console.log(the_result);
+    };
+
+    var _insertRemoteBranchDataRowsSuccessCB = function () {
+        deferred.resolve();
+    };
+
+    var _errorCB = function (the_tx, the_result) {
+        console.log(the_result);
+    };
+
+    module.insertRemoteBranchDataRows = function (the_rows) {
+
+
+        branch_rows = the_rows;
+        deferred = new $.Deferred();
+
+        EC.db.transaction(_insertRemoteBranchDataRowsTX, _errorCB, _insertRemoteBranchDataRowsSuccessCB);
+
+        return deferred.promise();
+
+    };
+
+    return module;
+}(EC.Create));
+
+
 var EC = EC || {};
 EC.Create = EC.Create || {};
 EC.Create = (function (module) {
@@ -13676,6 +14012,7 @@ EC.Create = (function (module) {
     var entry_key_ref;
     var immediate_parent_key_value;
     var form_id;
+    var branch_entries;
 
     var _errorCB = function (the_tx, the_result) {
         console.log(the_result);
@@ -13699,22 +14036,40 @@ EC.Create = (function (module) {
         var current_remote_timestamp = current_remote_entry.created;
         var remote_ref_value;
 
-
         //loop all the input fields
         for (i = 0; i < iLength; i++) {
 
             ref = inputs[i].ref;
 
+
             //per each ref, check if the remote entry has a value
             if (current_remote_entry.hasOwnProperty(ref)) {
 
-                //location object needs to be converted to string
-                if (typeof (current_remote_entry[ref]) === 'string') {
-                    remote_ref_value = current_remote_entry[ref];
-                } else {
-                    //location is a json object listing the components, so convert it to string
-                    location_obj = current_remote_entry[ref];
-                    remote_ref_value = EC.Utils.parseLocationObjToString(location_obj);
+
+                //todo deal with branches. They will always be an array (checkbox values come as csv)
+                if (Array.isArray(current_remote_entry[ref])) {
+
+                    debugger;
+                    //we have a branch, save data (if any)
+                    branch_entries.push({
+                        form_id: form_id,
+                        owner_input_ref: ref,
+                        main_form_key_ref: entry_key_ref,
+                        main_form_key_ref_value: current_remote_entry[entry_key_ref],
+                        branch_entries: current_remote_entry[ref]
+                    });
+
+                }
+                else {
+
+                    //location object needs to be converted to string
+                    if (typeof (current_remote_entry[ref]) === 'string') {
+                        remote_ref_value = current_remote_entry[ref];
+                    } else {
+                        //location is a json object listing the components, so convert it to string
+                        location_obj = current_remote_entry[ref];
+                        remote_ref_value = EC.Utils.parseLocationObjToString(location_obj);
+                    }
                 }
 
             } else {
@@ -13722,8 +14077,7 @@ EC.Create = (function (module) {
                 remote_ref_value = '';
             }
 
-            //build query to insert values
-
+            //build query to insert hierarchy (main) values
             query = '';
             obj = inputs[i];
 
@@ -13783,9 +14137,16 @@ EC.Create = (function (module) {
     };
 
     var _insertRemoteFormValuesSuccessCB = function (the_tx, the_result) {
+
         //update entries counter for the current form (adding new entry, + 1)
         $.when(EC.Update.updateCountersOnEntriesDownload(form_id)).then(function () {
-            deferred.resolve();
+
+            //if I have any braches, return them
+            console.log('branch_entries here ***************************************');
+            console.log(branch_entries);
+
+            deferred.resolve(branch_entries);
+
         });
     };
 
@@ -13797,6 +14158,7 @@ EC.Create = (function (module) {
         remote_entry = the_remote_entry;
         entry_key_ref = the_entry_key_ref;
         immediate_parent_key_value = the_immediate_parent_key_value;
+        branch_entries = [];
 
         deferred = new $.Deferred();
 
@@ -13995,6 +14357,133 @@ EC.Create = (function (module) {
             });
         }
     };
+    return module;
+
+}(EC.Create));
+
+var EC = EC || {};
+EC.Create = EC.Create || {};
+EC.Create = (function (module) {
+    'use strict';
+
+    var branch_entries;
+    var local_branch_inputs;
+    var local_branch_entries_keys;
+    var local_input;
+    var rows;
+    var deferred;
+    var branch_input_values;
+    var form_id;
+
+    function _getLocalBranchInput(the_ref) {
+
+        var ref = the_ref;
+        var found = {};
+
+        $(local_branch_inputs).each(function (index, input) {
+            if (input.ref === ref) {
+                found = input;
+                return false;
+            }
+        });
+
+        return found;
+    }
+
+    module.saveRemoteBranchEntries = function (the_form_id, the_branch_entries, the_local_branch_inputs, the_local_branch_entries_keys) {
+
+        form_id = the_form_id;
+        branch_entries = the_branch_entries;
+        local_branch_inputs = the_local_branch_inputs;
+        local_branch_entries_keys = the_local_branch_entries_keys;
+        rows = [];
+        local_input = {};
+        deferred = new $.Deferred();
+        branch_input_values = [];
+
+        /* for each branch entry entries, check if the same primary key is already saved locally,
+         and it that case update, otherwise insert
+         */
+        $(branch_entries).each(function (index, single_branch) {
+
+            debugger;
+
+            branch_input_values.push({
+                input_ref: single_branch.owner_input_ref,
+                branch_ref: single_branch.main_form_key_ref,
+                branch_form_id: single_branch.form_id,
+                total: single_branch.branch_entries.length
+            });
+
+            $(single_branch.branch_entries).each(function (index, single_branch_entry) {
+
+                //cache this property as we need it later
+                var created_on = single_branch_entry.created;
+
+                //delete useless properties from the object first
+                delete single_branch_entry.DeviceID;
+                delete single_branch_entry.id;
+                delete single_branch_entry.lastEdited;
+                delete single_branch_entry.uploaded;
+                delete single_branch_entry.created;
+
+
+                //each property is saved a a single row
+                for (var key in single_branch_entry) {
+                    if (single_branch_entry.hasOwnProperty(key)) {
+
+                        //EC.Create.insertSingleBranchDataRow(key, single_branch_entry[key], _getLocalBranchInput(key));
+                        local_input = _getLocalBranchInput(key);
+
+                        //skip the parent key property, as it is not part of the branch rows we are saving
+                        if (key !== single_branch.main_form_key_ref) {
+
+                            rows.push({
+                                input_id: local_input._id,
+                                form_id: single_branch.form_id,
+                                hierarchy_entry_key_value: single_branch.main_form_key_ref_value,
+                                hierarchy_entry_key_ref: single_branch.main_form_key_ref,
+                                position: local_input.position,
+                                label: local_input.label,
+                                ref: key,
+                                value: single_branch_entry[key],
+                                is_title: local_input.is_title,
+                                entry_key: single_branch.main_form_key_ref,
+                                type: local_input.type,
+                                is_data_synced: 1,
+                                is_media_synced: 1,
+                                is_remote: 1,
+                                is_cached: 1,
+                                is_stored: 1,
+                                created_on: created_on
+                            });
+                        }
+                    }
+                }
+            });
+        });
+
+        //console.log('rows ----------------------------------------->');
+        //console.log(JSON.stringify(rows.slice()));
+
+        $.when(EC.Create.insertRemoteBranchDataRows(rows)).then(function () {
+
+
+            debugger;
+            console.log(JSON.stringify(branch_input_values));
+            //todo insert in the owner form the ref and the total per each branch
+            $.when(EC.Update.setValuesForBranchInputs(form_id, branch_input_values)).then(function () {
+
+
+            });
+
+            deferred.resolve();
+        });
+
+
+        return deferred.promise();
+    };
+
     return module;
 
 }(EC.Create));
@@ -20644,34 +21133,43 @@ EC.BranchInputs = ( function(module) {"use strict";
  */
 var EC = EC || {};
 EC.BranchInputs = EC.BranchInputs || {};
-EC.BranchInputs = ( function(module) {"use strict";
+EC.BranchInputs = (function (module) {
+    'use strict';
 
-		/**
-		 * @method isEmptyPrimaryKey: Check whether a primary key exists in the array of branch values we are abut to save.
-		 */
-		module.isEmptyPrimaryKey = function() {
+    /**
+     * @method isEmptyPrimaryKey: Check whether a primary key exists in the array of branch values we are abut to save.
+     */
+    module.isEmptyPrimaryKey = function () {
 
-			var is_empty_primary_key = true;
-			var branch_inputs_values = JSON.parse(window.localStorage.branch_inputs_values);
-			var i;
-			var iLength;
+        var is_empty_primary_key = true;
+        var branch_inputs_values;
+        var i;
+        var iLength;
 
-			if (branch_inputs_values) {
-				iLength = branch_inputs_values.length;
-				for ( i = 0; i < iLength; i++) {
+        //catch Chrome error `Uncaught SyntaxError: Unexpected end of input` when parsing empty content
+        try {
+            branch_inputs_values = JSON.parse(window.localStorage.branch_inputs_values);
+        } catch (error) {
+            return is_empty_primary_key;
+        }
 
-					if (branch_inputs_values[i].is_primary_key === 1) {
-						is_empty_primary_key = (branch_inputs_values[i].value === "") ? true : false;
-					}
-				}
-			}
+        iLength = branch_inputs_values.length;
+        for (i = 0; i < iLength; i++) {
 
-			return is_empty_primary_key;
-		};
+            //if there is an input valus, check if it is a primary key (some values can be null in the case of jumps)
+            if (branch_inputs_values[i]) {
+                if (parseInt(branch_inputs_values[i].is_primary_key, 10) === 1) {
+                    is_empty_primary_key = (branch_inputs_values[i].value === '');
+                }
+            }
+        }
 
-		return module;
+        return is_empty_primary_key;
+    };
 
-	}(EC.BranchInputs));
+    return module;
+
+}(EC.BranchInputs));
 
 /*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/
@@ -20891,55 +21389,59 @@ EC.Download = (function (module) {
     module.fetchRemoteData = function () {
 
         var url;
+        var project;
 
         // this will reference EC.Utils? Because I am calling the function from that context? Who knows
         self = EC.Download;//self references EC.Utils?
-        url = self.project_server_url + self.project_name + '/' + self.chosen_form_name + '.json';
-
         EC.Notification.showProgressDialog();
 
-        $.ajax({
-            url: url, //url
-            type: 'get', //method type post or get
-            crossDomain: true,
-            timeout: 60000, // stop after 60 seconds
-            dataType: 'json', //return data type
-            success: function (the_data) {
+        //get download url
+        $.when(EC.Select.getProjectByID(self.project_id)).then(function (project) {
 
-                self.data = the_data;
+            url = project.downloadFromServer.replace('download', '') + self.chosen_form_name + '.json';
 
-                if (self.data.length === 0) {
-                    //no entries on the server yet, go back to form list
-                    EC.Notification.showAlert('Sorry', 'No remote entries for the selected form yet!');
-                }
-                else {
-                    self.entries = self.data.splice(0, 500);
-                    self.saveSingleRemoteEntry(self.entries.shift());
-                }
-            },
-            error: function (request, status, error) {
+            $.ajax({
+                url: url,
+                type: 'get',
+                crossDomain: true,
+                timeout: 60000, // stop after 60 seconds
+                dataType: 'json',
+                success: function (the_data) {
 
-                EC.Notification.hideProgressDialog();
+                    self.data = the_data;
 
-                //@bug on the server, which is sending a full html page as
-                // response when project is private
-                if (request.responseText) {
-                    if (request.responseText.trim().charAt(0) === '<') {
-                        EC.Notification.showAlert('Sorry, private project', 'This project is set as private therefore you cannot download data');
+                    if (self.data.length === 0) {
+                        //no entries on the server yet, go back to form list
+                        EC.Notification.showAlert('Sorry', 'No remote entries for the selected form yet!');
                     }
-                }
+                    else {
+                        self.entries = self.data.splice(0, 500);
+                        self.saveSingleRemoteEntry(self.entries.shift());
+                    }
+                },
+                error: function (request, status, error) {
 
-                if (status === 'timeout' && error === 'timeout') {
-                    EC.Notification.showAlert('Error', 'Server Timeout');
-                }
+                    EC.Notification.hideProgressDialog();
 
-                //show request error
-                console.log(status + ', ' + error);
-                console.log(request);
-            }
+                    //@bug on the server, which is sending a full html page as
+                    // response when project is private
+                    if (request.responseText) {
+                        if (request.responseText.trim().charAt(0) === '<') {
+                            EC.Notification.showAlert('Sorry, private project', 'This project is set as private therefore you cannot download data');
+                        }
+                    }
+
+                    if (status === 'timeout' && error === 'timeout') {
+                        EC.Notification.showAlert('Error', 'Server Timeout');
+                    }
+
+                    //show request error
+                    console.log(status + ', ' + error);
+                    console.log(request);
+                }
+            });
         });
     };
-
     return module;
 
 }(EC.Download));
@@ -20982,8 +21484,6 @@ EC.Download = (function (module) {
         //reset inputs array
         inputs = [];
         groups = [];
-
-        debugger;
 
         if (!window.localStorage.dre_local_entries_keys && !window.localStorage.dre_inputs) {
 
@@ -21106,6 +21606,7 @@ EC.Download = (function (module) {
         self = this;
 
         $.when(EC.Create.commitRemoteEntry(self.project_id, self.chosen_form_id, the_single_remote_entry)).then(function () {
+
             if (self.entries.length === 0) {
                 if (self.data.length === 0) {
 
@@ -21428,7 +21929,6 @@ EC.Entries = ( function(module) {
 
     }(EC.Entries));
 
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/
 
 /**
@@ -21437,157 +21937,157 @@ EC.Entries = ( function(module) {
  */
 var EC = EC || {};
 EC.Entries = EC.Entries || {};
-EC.Entries = ( function(module) {"use strict";
+EC.Entries = (function (module) {
+    'use strict';
 
-		/**
-		 *
-		 * @param {String} the_hash_to_parse Query string with information about which data will need to be fetched
-		 * like "#entries?form=1&name=University&entry_key=&direction=backward"
-		 *
-		 * #entries indicates we are requesting a list of entries
-		 * form=1 The form id we are requesting entries for
-		 * name=University The form name
-		 * direction=backward The direction the user is navigating to (either forward or backward)
-		 */
-		module.getList = function(the_hash_to_parse) {
+    /**
+     *
+     * @param {String} the_hash_to_parse Query string with information about which data will need to be fetched
+     * like '#entries?form=1&name=University&entry_key=&direction=backward'
+     *
+     * #entries indicates we are requesting a list of entries
+     * form=1 The form id we are requesting entries for
+     * name=University The form name
+     * direction=backward The direction the user is navigating to (either forward or backward)
+     */
+    module.getList = function (the_hash_to_parse) {
 
-			var form_id;
-			var form;
-			var form_name;
-			var form_tree;
-			var entry_key;
-			var direction;
-			var children;
-			var breadcrumbs_trail = [];
-			var entries_totals = [];
-			var parent_path;
-			var nav_parent_path;
-			var offset = 0;
-			var parent_offset = 0;
-			var children_offset = 0;
-			var total;
-			var current_view_url_parts;
-			var wls = window.localStorage;
+        var form_id;
+        var form;
+        var form_name;
+        var form_tree;
+        var entry_key;
+        var direction;
+        var children;
+        var breadcrumbs_trail = [];
+        var entries_totals = [];
+        var parent_path;
+        var nav_parent_path;
+        var offset = 0;
+        var parent_offset = 0;
+        var children_offset = 0;
+        var total;
+        var current_view_url_parts;
+        var wls = window.localStorage;
 
-			//cache current page url for navigation purposes
-			current_view_url_parts = the_hash_to_parse.split("/");
-			wls.current_view_url = current_view_url_parts[current_view_url_parts.length - 1];
+        //cache current page url for navigation purposes
+        current_view_url_parts = the_hash_to_parse.split('/');
+        wls.current_view_url = current_view_url_parts[current_view_url_parts.length - 1];
 
-			//get form id parsing the href hash
-			var hash = the_hash_to_parse.split('?');
+        //get form id parsing the href hash
+        var hash = the_hash_to_parse.split('?');
 
-			nav_parent_path = wls.parent_path;
+        nav_parent_path = wls.parent_path;
 
-			form = hash[1].split('&');
-			form_id = form[0].replace("form=", "");
-			form_name = form[1].replace("name=", "");
-			entry_key = form[2].replace("entry_key=", "");
-			direction = form[3].replace("direction=", "");
+        form = hash[1].split('&');
+        form_id = form[0].replace('form=', '');
+        form_name = form[1].replace('name=', '');
+        entry_key = form[2].replace('entry_key=', '');
+        direction = form[3].replace('direction=', '');
 
-			children = parseInt(form[4].replace("children=", ""), 10);
+        children = parseInt(form[4].replace('children=', ''), 10);
 
-			//get breadcrumb trail, first iteration will be "" when it is the top form on the tree
-			breadcrumbs_trail = JSON.parse(wls.getItem("breadcrumbs")) || breadcrumbs_trail;
+        //get breadcrumb trail, first iteration will be '' when it is the top form on the tree
+        breadcrumbs_trail = JSON.parse(wls.getItem('breadcrumbs')) || breadcrumbs_trail;
 
-			//get total of entries, first iteration generate empty object
-			entries_totals = JSON.parse(wls.getItem("entries_totals")) || entries_totals;
+        //get total of entries, first iteration generate empty object
+        entries_totals = JSON.parse(wls.getItem('entries_totals')) || entries_totals;
 
-			//update breadcrumb trail and totals based on navigation direction
-			switch(direction) {
+        //update breadcrumb trail and totals based on navigation direction
+        switch (direction) {
 
-				case EC.Const.FORWARD:
+            case EC.Const.FORWARD:
 
-					breadcrumbs_trail.push(entry_key);
+                breadcrumbs_trail.push(entry_key);
 
-					if (entries_totals.length === breadcrumbs_trail.length - 1) {
-						entries_totals.push({
-							form : form_name,
-							entry_key : entry_key,
-							entries_total : children
-						});
-					}
-					
-					//delete cached entries when going forward
-					window.localStorage.removeItem('cached_entries_list');
+                if (entries_totals.length === breadcrumbs_trail.length - 1) {
+                    entries_totals.push({
+                        form: form_name,
+                        entry_key: entry_key,
+                        entries_total: children
+                    });
+                }
 
-					break;
-				case EC.Const.BACKWARD:
-					breadcrumbs_trail.pop();
-					entries_totals.pop();
-					break;
-				case EC.Const.EDITING:
-					//to do
-					break;
-				case EC.Const.ADDING:
-					//to do
-					break;
-				case EC.Const.VIEW:
-					breadcrumbs_trail.pop();
-					//to do
-					break;
+                //delete cached entries when going forward
+                window.localStorage.removeItem('cached_entries_list');
 
-			}
+                break;
+            case EC.Const.BACKWARD:
+                breadcrumbs_trail.pop();
+                entries_totals.pop();
+                break;
+            case EC.Const.EDITING:
+                //to do
+                break;
+            case EC.Const.ADDING:
+                //to do
+                break;
+            case EC.Const.VIEW:
+                breadcrumbs_trail.pop();
+                //to do
+                break;
 
-			wls.setItem("breadcrumbs", JSON.stringify(breadcrumbs_trail));
-			wls.setItem("entries_totals", JSON.stringify(entries_totals));
+        }
 
-			//get current form tree (parent and child form based on the active one)
-			form_tree = EC.Utils.getParentAndChildForms(form_id);
-			wls.form_id = form_id;
-			wls.form_name = form_name;
-			wls.form_tree = JSON.stringify(form_tree);
+        wls.setItem('breadcrumbs', JSON.stringify(breadcrumbs_trail));
+        wls.setItem('entries_totals', JSON.stringify(entries_totals));
 
-			//select all entries for selected form based on tree structure
-			if ((form_tree.parent > 0 && entry_key === "" && nav_parent_path === undefined) || wls.is_child_form_nav) {
+        //get current form tree (parent and child form based on the active one)
+        form_tree = EC.Utils.getParentAndChildForms(form_id);
+        wls.form_id = form_id;
+        wls.form_name = form_name;
+        wls.form_tree = JSON.stringify(form_tree);
 
-				//we did not select the top form, select all the entries for the selected child form
-				EC.Select.getChildEntries(form_id, parent_offset, children_offset);
+        //select all entries for selected form based on tree structure
+        if ((form_tree.parent > 0 && entry_key === '' && nav_parent_path === undefined) || wls.is_child_form_nav) {
 
-				//set a flag to indicate we are in "child form navigation mode" i.e. user selected a child form in the forms list
-				wls.is_child_form_nav = 1;
+            //we did not select the top form, select all the entries for the selected child form
+            EC.Select.getChildEntries(form_id, parent_offset, children_offset);
 
-			} else {
+            //set a flag to indicate we are in 'child form navigation mode' i.e. user selected a child form in the forms list
+            wls.is_child_form_nav = 1;
 
-				//top form was selected, remove child form navigation flag
-				wls.removeItem("is_child_form_nav");
+        } else {
 
-				if (nav_parent_path) {
+            //top form was selected, remove child form navigation flag
+            wls.removeItem('is_child_form_nav');
 
-					console.log(nav_parent_path);
+            if (nav_parent_path) {
 
-					parent_path = nav_parent_path;
+                console.log(nav_parent_path);
 
-				} else {
-					parent_path = (breadcrumbs_trail[0] === "") ? breadcrumbs_trail.join(EC.Const.ENTRY_ROOT_PATH_SEPARATOR).substring(1) : breadcrumbs_trail.join(EC.Const.ENTRY_ROOT_PATH_SEPARATOR);
+                parent_path = nav_parent_path;
 
-				}
+            } else {
+                parent_path = (breadcrumbs_trail[0] === '') ? breadcrumbs_trail.join(EC.Const.ENTRY_ROOT_PATH_SEPARATOR).substring(1) : breadcrumbs_trail.join(EC.Const.ENTRY_ROOT_PATH_SEPARATOR);
 
-				//set parameters for pagination
-				wls.load_more_parameters = JSON.stringify({
-					form_id : form_id,
-					parent_path : parent_path
-				});
+            }
 
-				//TODO: if there are entries cached and we are navigating back from a VIEW action, render the cached list
+            //set parameters for pagination
+            wls.load_more_parameters = JSON.stringify({
+                form_id: form_id,
+                parent_path: parent_path
+            });
 
-				if (direction === EC.Const.VIEW && window.localStorage.cached_entries_list) {
-					//EC.Entries.renderCachedList();
-					EC.Entries.renderList(JSON.parse(window.localStorage.cached_entries_list));
-				} else {
+            //TODO: if there are entries cached and we are navigating back from a VIEW action, render the cached list
 
-					//if entry_key="" we are requesting the list of all entries (parent will be 0), typical when we are in the 'Forms' screen and select the top form
-					$.when(EC.Select.getEntries(form_id, parent_path, offset)).then(function(the_entries) {
-						EC.Entries.renderList(the_entries);
-					});
-				}
+            if (direction === EC.Const.VIEW && window.localStorage.cached_entries_list) {
+                //EC.Entries.renderCachedList();
+                EC.Entries.renderList(JSON.parse(window.localStorage.cached_entries_list));
+            } else {
 
-			}
+                //if entry_key='' we are requesting the list of all entries (parent will be 0), typical when we are in the 'Forms' screen and select the top form
+                $.when(EC.Select.getEntries(form_id, parent_path, offset)).then(function (the_entries) {
+                    EC.Entries.renderList(the_entries);
+                });
+            }
 
-		};
+        }
+    };
 
-		return module;
+    return module;
 
-	}(EC.Entries));
+}(EC.Entries));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -23320,6 +23820,8 @@ EC.Entries = (function (module) {
 
                 case EC.Const.BRANCH:
 
+
+                    //if the input is a branch, the value will be: (branch form key, total branch entries)
                     branch_values = values[i].value.split(',');
                     inputs_values.push({
                         _id: values[i]._id,
@@ -23475,8 +23977,6 @@ EC.Entries = (function (module) {
                         var group_input_values = JSON.parse(values[i].value);
                         var group_input_labels = [];
                         var multiple_value;
-
-                        debugger;
 
                         //map values against labels (to show labels)
                         group_input_labels = EC.Inputs.mapGroupValuesToLabels(group_inputs, group_input_values);
@@ -24310,8 +24810,6 @@ EC.Export.saveProjectDataToCSV = function (the_project_id, the_forms) {
     //get data rows for all the forms for this project
     $.when(EC.Select.getAllProjectEntries(forms, project_id)).then(function (data) {
         console.log(data);
-
-        debugger;
 
         var i;
         var iLength = data.length;
@@ -25473,8 +25971,6 @@ EC.Inputs = (function (module) {
 
     module.prepareFirstInput = function (the_first_input) {
 
-
-
         var self = this;
         var first_input_position = 1;
         var back_nav_url;
@@ -25678,7 +26174,6 @@ EC.Inputs = (function (module) {
 
                 //add current entry key to breadcrumbs
                 breadcrumb_trail = JSON.parse(window.localStorage.breadcrumbs);
-                //TODO: where entry_key comes from?
                 breadcrumb_trail.push(self.entry_key);
                 window.localStorage.breadcrumbs = JSON.stringify(breadcrumb_trail);
 
@@ -25691,6 +26186,10 @@ EC.Inputs = (function (module) {
                 });
 
                 window.localStorage.entries_totals = JSON.stringify(entries_totals);
+
+                //remove cached primary keys
+                //todo test
+                window.localStorage.removeItem('primary_keys');
 
                 EC.Entries.addEntry();
             });
@@ -26135,8 +26634,6 @@ EC.Inputs = (function (module) {
         var form_name = window.localStorage.form_name;
         var parent_key;
 
-
-
         //get parent key based on the user navigating or editing
         if (window.localStorage.edit_mode) {
             parent_key = breadcrumb_trail[breadcrumb_trail.length - 2];
@@ -26208,39 +26705,40 @@ EC.Inputs = (function (module) {
 
 var EC = EC || {};
 EC.Inputs = EC.Inputs || {};
-EC.Inputs = ( function(module) {"use strict";
+EC.Inputs = ( function (module) {
+    "use strict";
 
-		/**
-		 * @method renderStoreEditFeedback Show feedback after an edit action and redirect the entries-list page
-		 * @param {Object} is_positive
-		 */
-		module.renderStoreEditFeedback = function(is_positive) {
+    /**
+     * @method renderStoreEditFeedback Show feedback after an edit action and redirect the entries-list page
+     * @param {Object} is_positive
+     */
+    module.renderStoreEditFeedback = function (is_positive) {
 
-			EC.Notification.hideProgressDialog();
+        EC.Notification.hideProgressDialog();
 
-			if (is_positive) {
+        if (is_positive) {
 
-				EC.Notification.showToast(EC.Localise.getTranslation("edit_saved"), "short");
+            EC.Notification.showToast(EC.Localise.getTranslation("edit_saved"), "short");
 
-				window.localStorage.removeItem("edit_hash");
-				window.localStorage.removeItem("edit_id");
-				window.localStorage.removeItem("edit_mode");
-				window.localStorage.removeItem("edit_position");
-				window.localStorage.removeItem("edit_type");
-				window.localStorage.removeItem("edit_key_value");
+            window.localStorage.removeItem("edit_hash");
+            window.localStorage.removeItem("edit_id");
+            window.localStorage.removeItem("edit_mode");
+            window.localStorage.removeItem("edit_position");
+            window.localStorage.removeItem("edit_type");
+            window.localStorage.removeItem("edit_key_value");
 
-				//remove flag that disable store edit from an intermediate screen
-				window.localStorage.removeItem("has_new_jump_sequence");
+            //remove flag that disable store edit from an intermediate screen
+            window.localStorage.removeItem("has_new_jump_sequence");
 
-				//go back to entries-list page using cached back navigation url
-				EC.Routing.changePage(window.localStorage.back_nav_url);
-			}
+            //go back to entries-list page using cached back navigation url
+            EC.Routing.changePage(window.localStorage.back_nav_url);
+        }
 
-		};
+    };
 
-		return module;
+    return module;
 
-	}(EC.Inputs));
+}(EC.Inputs));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -27708,7 +28206,7 @@ EC.InputTypes = (function (module) {
         var value = the_value;
         var input = the_input;
 
-        var group_wrapper = $('div#input-group');
+        var group_wrapper = $('div.input-group');
         var RADIO_CHECKED = '';
         var SELECTED = '';
         var CHECKBOX_CHECKED = '';
@@ -27881,16 +28379,18 @@ EC.InputTypes = (function (module) {
                     //render list of options
                     $(single_group_input.options).each(function (index) {
 
+
+
                         //increase value by 1, as we use value = 0 when no option is selected (like for select/dropdown) We are using the index as radio jumps are mapped against the index of the value
                         var option_value = this.value;
                         var option_index = (index + 1);
                         var option_label = this.label;
-                        var option_id = 'radio-choice-' + (index + 1);
+                        var option_id = single_group_input.ref + '-radio-choice-' + (index + 1);
 
                         //pre select an element if the value matches the cached value
                         RADIO_CHECKED = (single_group_input.value === option_value) ? 'checked="checked"' : '';
 
-                        html += '<input type="radio" name="radio-options" id="' + option_id + '" value="' + option_value + '"' + RADIO_CHECKED + ' data-index="' + option_index + '">';
+                        html += '<input type="radio" name="' + single_group_input.ref + '-radio-options" id="' + option_id + '" value="' + option_value + '"' + RADIO_CHECKED + ' data-index="' + option_index + '">';
                         html += '<label for="' + option_id + '">' + option_label + '</label>';
                     });
 
@@ -27937,7 +28437,7 @@ EC.InputTypes = (function (module) {
                 //render time inputs
                 case EC.Const.TIME:
 
-                    debugger;
+
 
                     //set default value to date input
                     if (single_group_input.value === single_group_input.datetime_format) {
@@ -29697,43 +30197,44 @@ EC.Inputs = ( function(module) {"use strict";
  */
 var EC = EC || {};
 EC.Inputs = EC.Inputs || {};
-EC.Inputs = ( function(module) {"use strict";
+EC.Inputs = (function (module) {
+    'use strict';
 
-		/**
-		 * @method isEmptyPrimaryKey: Check whether a primary key exists in the array of values we are abut to save.
-		 */
-		module.isEmptyPrimaryKey = function() {
+    /**
+     * @method isEmptyPrimaryKey: Check whether a primary key exists in the array of values we are abut to save.
+     */
+    module.isEmptyPrimaryKey = function () {
 
-			var is_empty_primary_key = true;
-			var inputs_values;
-			var i;
-			var iLength;
+        var is_empty_primary_key = true;
+        var inputs_values;
+        var i;
+        var iLength;
 
-			//catch Chrome error `Uncaught SyntaxError: Unexpected end of input` when parsing empty content
-			try {
-				inputs_values = JSON.parse(window.localStorage.inputs_values);
-			} catch(error) {
-				return is_empty_primary_key;
-			}
+        //catch Chrome error `Uncaught SyntaxError: Unexpected end of input` when parsing empty content
+        try {
+            inputs_values = JSON.parse(window.localStorage.inputs_values);
+        } catch (error) {
+            return is_empty_primary_key;
+        }
 
-			iLength = inputs_values.length;
-			for ( i = 0; i < iLength; i++) {
-				
-				//if there is an input valus, check if it is a primary key (some values can be null in the case of jumps)
-				if (inputs_values[i]) {
-					if (parseInt(inputs_values[i].is_primary_key, 10) === 1) {
-						is_empty_primary_key = (inputs_values[i].value === "") ? true : false;
-					}
-				}
-			}
+        iLength = inputs_values.length;
+        for (i = 0; i < iLength; i++) {
 
-			return is_empty_primary_key;
+            //if there is an input valus, check if it is a primary key (some values can be null in the case of jumps)
+            if (inputs_values[i]) {
+                if (parseInt(inputs_values[i].is_primary_key, 10) === 1) {
+                    is_empty_primary_key = (inputs_values[i].value === '');
+                }
+            }
+        }
 
-		};
+        return is_empty_primary_key;
 
-		return module;
+    };
 
-	}(EC.Inputs));
+    return module;
+
+}(EC.Inputs));
 
 /*global $, jQuery*/
 /**
@@ -31547,43 +32048,47 @@ EC.Upload = (function (module) {
                     console.log(status + ', ' + error);
                     console.log('request: ' + JSON.stringify(request));
 
-                    /**
-                     * Recover an entry to be uploaded (it will be the last one the user tried to upload but the upload failed)
-                     */
+                    //TODO: SQL issues
+                    if (request.status === 405) {
+                        EC.Notification.showAlert(EC.Localise.getTranslation('error'), request.responseText);
 
-                    $.when(EC.Select.getOneHierarchyEntry(self.current_form, true).then(function (entry) {
+                        //get back button url and send user back to the page he came from to fix/delete entries
+                        var page_id = $.mobile.activePage.attr('id');
+                        EC.Routing.goBack(page_id);
+                    }
+                    else {
 
-                        debugger;
+                        /**
+                         * Recover an entry to be uploaded (it will be the last one the user tried to upload but the upload failed)
+                         */
 
-                        //Entry found, prepare entry for upload
-                        EC.Upload.current_entry = entry;
-                        self.hierarchy_rows_to_sync.length = 0;
-                        EC.Notification.hideProgressDialog();
+                        $.when(EC.Select.getOneHierarchyEntry(self.current_form, true).then(function (entry) {
 
-                        //connection lost BEFORE tryng the ajax request
-                        if (status === 'error' && error === '') {
+                            //Entry found, prepare entry for upload
+                            EC.Upload.current_entry = entry;
+                            self.hierarchy_rows_to_sync.length = 0;
+                            EC.Notification.hideProgressDialog();
 
-                            EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('connection_lost'));
-                        }
+                            //connection lost BEFORE tryng the ajax request
+                            if (status === 'error' && error === '') {
 
-                        //server timeout
-                        //connection lost BEFORE tryng the ajax request
-                        if (status === 'timeout' && error === 'timeout') {
+                                EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('connection_lost'));
+                            }
 
-                            EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('connection_timeout'));
-                        }
+                            //server timeout
+                            //connection lost BEFORE tryng the ajax request
+                            if (status === 'timeout' && error === 'timeout') {
 
-                        //TODO: SQL issues
-                        if (request.status === 405) {
-                            EC.Notification.showAlert(EC.Localise.getTranslation('error'), request.responseText);
-                        }
+                                EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('connection_timeout'));
+                            }
 
-                        //TODO / network issues
-                        if (request.status === 403) {
-                            EC.Notification.showAlert(EC.Localise.getTranslation('error'), error + EC.Localise.getTranslation('check_your_internet'));
-                        }
+                            //TODO / network issues
+                            if (request.status === 403) {
+                                EC.Notification.showAlert(EC.Localise.getTranslation('error'), error + EC.Localise.getTranslation('check_your_internet'));
+                            }
 
-                    }));
+                        }));
+                    }
 
                 }
             });
@@ -31716,7 +32221,7 @@ EC.Upload = (function (module) {
      */
     module.prepareOneHierarchyEntry = function (the_table, the_entry) {
 
-        debugger;
+
 
         var self = this;
         var parent_ref;

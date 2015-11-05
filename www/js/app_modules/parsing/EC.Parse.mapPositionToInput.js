@@ -21,7 +21,6 @@ EC.Parse = (function (module) {
 
         $(group_inputs).each(function (index, single_group_input) {
 
-            debugger;
             group_input.positions.push({
                 ref: $(single_group_input).attr('ref'),
                 position: index + 1
@@ -52,12 +51,10 @@ EC.Parse = (function (module) {
         var form_name;
         var hierarchy_skip_key;
         var branch_skip_keys = [];
-        var groups = [];
-
+        var group = {};
 
 
         $(xml).find('form').each(function (i) {
-
                 form_children = $(this).children();
                 positions = [];
                 position = 1;
@@ -76,7 +73,7 @@ EC.Parse = (function (module) {
                 //loop all the inputs
                 $(form_children).each(function (index) {
 
-                    groups = [];
+                    group = [];
 
                     var ref = $(this).attr('ref');
 
@@ -90,7 +87,7 @@ EC.Parse = (function (module) {
                         //if it is a group, the ref will have '_group' at the end
                         //we need to map the gruop inputs to keep the position when saving them as json: xml does not keep the order
                         if (ref.slice(-6) === '_group') {
-                            groups.push(_mapGroupInputsPositions($(this)));
+                            group = _mapGroupInputsPositions($(this));
                         }
 
                         positions.push({
@@ -100,7 +97,7 @@ EC.Parse = (function (module) {
                             form_position: form_position,
                             position: position,
                             ref: ref,
-                            groups: groups
+                            group: group
                         });
 
                         position++;
@@ -121,7 +118,7 @@ EC.Parse = (function (module) {
                                 form_position: form_position,
                                 position: 'skip',
                                 ref: ref,
-                                groups: groups
+                                group: group
 
                             });
                         } else {
@@ -137,15 +134,15 @@ EC.Parse = (function (module) {
                                     form_position: form_position,
                                     position: 'skip',
                                     ref: ref,
-                                    groups: groups
+                                    group: group
                                 });
 
                             } else {
 
                                 //if it is a group, the ref will have '_group' at the end
-                                //we need to map the gruop inputs to keep the position when saving them as json: xml does not keep the order
+                                //we need to map the group inputs to keep the position when saving them as json: xml does not keep the order
                                 if (ref.slice(-6) === '_group') {
-                                    groups.push(_mapGroupInputsPositions($(this)));
+                                    group = _mapGroupInputsPositions($(this));
                                 }
 
                                 positions.push({
@@ -155,7 +152,7 @@ EC.Parse = (function (module) {
                                     form_position: form_position,
                                     position: position,
                                     ref: ref,
-                                    groups: groups
+                                    group: group
                                 });
                             }
                             position++;
@@ -185,7 +182,6 @@ EC.Parse = (function (module) {
         console.log('input_positions');
         console.log(input_positions, true);
 
-        debugger;
         return input_positions;
     };
 

@@ -85,7 +85,6 @@ EC.Inputs = (function (module) {
 
                 //add current entry key to breadcrumbs
                 breadcrumb_trail = JSON.parse(window.localStorage.breadcrumbs);
-                //TODO: where entry_key comes from?
                 breadcrumb_trail.push(self.entry_key);
                 window.localStorage.breadcrumbs = JSON.stringify(breadcrumb_trail);
 
@@ -98,6 +97,10 @@ EC.Inputs = (function (module) {
                 });
 
                 window.localStorage.entries_totals = JSON.stringify(entries_totals);
+
+                //remove cached primary keys
+                //todo test
+                window.localStorage.removeItem('primary_keys');
 
                 EC.Entries.addEntry();
             });

@@ -59,7 +59,6 @@ EC.Boot.handleDeviceEvents = function () {
 
         }
 
-
     };
     document.addEventListener('resume', window.onResume, false);
 };

@@ -520,38 +520,55 @@ div.location-accuracy-tip {
 div.group-date .ui-body-a, div.group-time .ui-body-a {
     border: 0;
 }
+
 /*remove border from date and time, JQM quirk*/
 div.group-date > div.ui-body-a:first-of-type, div.group-time > div.ui-body-a:first-of-type {
     border: 1px solid #aaaaaa;
 }
+
 div.group-inputs-grid {
 
 }
+
 .group-inputs-grid-top-margin {
-    margin-top:30px;
+    margin-top: 30px;
 }
+
 .group-inputs-grid-bottom-border {
-    border-bottom:1px solid #333;
+    border-bottom: 1px solid #333;
 }
 
-div.group-inputs-grid .group-inputs-grid__label{
- border-top:1px solid #333;
-    border-left:1px solid #333;
-    border-right:1px solid #333;
+div.group-inputs-grid .group-inputs-grid__label {
+    border-top: 1px solid #333;
+    border-left: 1px solid #333;
+    border-right: 1px solid #333;
 }
 
-div.group-inputs-grid .group-inputs-grid__value{
-    border-top:1px solid #333;
-    border-left:1px solid #333;
-    border-right:1px solid #333;
-    font-weight:normal;
+div.group-inputs-grid .group-inputs-grid__value {
+    border-top: 1px solid #333;
+    border-left: 1px solid #333;
+    border-right: 1px solid #333;
+    font-weight: normal;
     background-color: #ffffff;
 }
 
 /* Hack to fix the background color when focusing on a dropdown or radio*/
-div.group-checkbox .ui-btn-down-a{
-    background-color: #DDD!important;
+div.group-checkbox .ui-btn-down-a {
+    background-color: #DDD !important;
 }
-div.group-radio .ui-btn-down-a{
-    background-color: #DDD!important;
+
+div.group-radio .ui-btn-down-a {
+    background-color: #DDD !important;
 }
+
+/* Group Title*/
+span.group-header.label {
+    display: block;
+    margin-bottom: 20px;
+    font-size: 120%;
+    font-style: italic;
+}
+div.input-group > div{
+margin-bottom: 20px;
+}
+

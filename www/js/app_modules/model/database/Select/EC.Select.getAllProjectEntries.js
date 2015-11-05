@@ -133,7 +133,7 @@ EC.Select = (function (module) {
      */
     module.getAllProjectEntries = function (the_forms, the_project_id) {
 
-        debugger;
+
 
         forms = the_forms;
         project_id = the_project_id;

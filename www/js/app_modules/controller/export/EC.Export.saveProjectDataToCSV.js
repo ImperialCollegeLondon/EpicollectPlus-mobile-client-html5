@@ -99,8 +99,6 @@ EC.Export.saveProjectDataToCSV = function (the_project_id, the_forms) {
     $.when(EC.Select.getAllProjectEntries(forms, project_id)).then(function (data) {
         console.log(data);
 
-        debugger;
-
         var i;
         var iLength = data.length;
 

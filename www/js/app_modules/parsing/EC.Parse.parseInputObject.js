@@ -10,6 +10,65 @@ EC.Parse = (function (module) {
 
     var self;
 
+    var _getGroupInputsPositions = function (the_input_ref, the_form_name) {
+
+        var input_ref = the_input_ref;
+        var form_name = the_form_name;
+        var positions = [];
+
+        $(self.form_inputs_positions).each(function (index, single_form) {
+
+            //all the inputs belong to the same form, just get the form name
+            if (form_name === single_form[0].form_name) {
+
+                //loop all inputs for current form and find the single group we need
+                $(single_form).each(function (index, single_input) {
+
+                    //groups are matched against owner inputs ref
+                    if (single_input.ref === input_ref) {
+                        //ok we found the group, get positions
+                        positions = single_input.group.positions.slice();
+                    }
+                });
+            }
+        });
+
+        return positions;
+    };
+
+    var _reorderedGroupInputs = function (the_group_inputs, the_input_ref, the_form_name) {
+
+
+
+
+        var shuffled_group_inputs = the_group_inputs;
+        var input_ref = the_input_ref;
+        var group_inputs_positions = [];
+        var ordered_group_inputs = [];
+
+        //get group inputs positions (order)
+        group_inputs_positions = _getGroupInputsPositions(the_input_ref, the_form_name);
+
+        $(group_inputs_positions).each(function (index, single_group_input_position) {
+
+            $(shuffled_group_inputs).each(function (index, single_shuffled_input) {
+
+                if (single_shuffled_input.ref === single_group_input_position.ref) {
+
+                    ordered_group_inputs[single_group_input_position.position - 1] = single_shuffled_input;
+
+                }
+
+            });
+
+        });
+
+        console.log(ordered_group_inputs);
+
+        return ordered_group_inputs;
+
+    };
+
     /*
      * Return the position of an input within a form based on form name AND the input @ref (uniqueness is given by the composite key)
      */
@@ -72,6 +131,7 @@ EC.Parse = (function (module) {
         var form_name;
         var is_genkey_hidden;
         var type = the_type;
+        var reordered_group_inputs = [];
 
         self = this;
         ref = the_raw_input['@ref'];
@@ -211,10 +271,9 @@ EC.Parse = (function (module) {
         //if the type is branch, set branch_form value
         parsed_input.branch_form_name = (the_raw_input['@branch_form'] === undefined) ? '' : the_raw_input['@branch_form'];
 
-        //if the type is 'group', parse inputs withing the group
+        //if the type is 'group', parse inputs withing the group.
+        //We do this because when going from xml to json, the same tags are grouped together as arrays
         if (type === EC.Const.GROUP) {
-
-            //todo group input position, so to save them in the right order (xml sucks!)
 
             var raw_group_inputs = [];
             var parsed_group_inputs = [];
@@ -249,7 +308,7 @@ EC.Parse = (function (module) {
             }
 
 
-            //todo are there any <radio> inputs?
+            //are there any <radio> inputs?
             if (the_raw_input.radio) {
                 //ok, add them as inputs (could be array or object if only one)
                 if (Array.isArray(the_raw_input.radio)) {
@@ -306,9 +365,6 @@ EC.Parse = (function (module) {
 
             //parse all the inputs nested withing the <group> tag
             $.each(raw_group_inputs, function (index, single_group_input) {
-
-                //parse attributes into object properties. We are not parsing position, is it still needed?
-
 
                 single_group_input.ref = single_group_input['@ref'];
                 //delete @ref property as not used
@@ -380,8 +436,15 @@ EC.Parse = (function (module) {
                 parsed_group_inputs.push(single_group_input);
             });
 
+
+            //reorder group inputs according to original group input position,
+            //to save them in the right order (xml sucks!)
+            //todo
+
+            reordered_group_inputs = _reorderedGroupInputs(parsed_group_inputs, parsed_input.ref, form_name);
+
             //add group_inputs to main input
-            parsed_input.group_inputs = parsed_group_inputs;
+            parsed_input.group_inputs = reordered_group_inputs;
 
         }
 

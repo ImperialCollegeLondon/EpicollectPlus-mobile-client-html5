@@ -9,6 +9,7 @@ EC.Create = (function (module) {
     var entry_key_ref;
     var immediate_parent_key_value;
     var form_id;
+    var branch_entries;
 
     var _errorCB = function (the_tx, the_result) {
         console.log(the_result);
@@ -32,22 +33,40 @@ EC.Create = (function (module) {
         var current_remote_timestamp = current_remote_entry.created;
         var remote_ref_value;
 
-
         //loop all the input fields
         for (i = 0; i < iLength; i++) {
 
             ref = inputs[i].ref;
 
+
             //per each ref, check if the remote entry has a value
             if (current_remote_entry.hasOwnProperty(ref)) {
 
-                //location object needs to be converted to string
-                if (typeof (current_remote_entry[ref]) === 'string') {
-                    remote_ref_value = current_remote_entry[ref];
-                } else {
-                    //location is a json object listing the components, so convert it to string
-                    location_obj = current_remote_entry[ref];
-                    remote_ref_value = EC.Utils.parseLocationObjToString(location_obj);
+
+                //todo deal with branches. They will always be an array (checkbox values come as csv)
+                if (Array.isArray(current_remote_entry[ref])) {
+
+                    debugger;
+                    //we have a branch, save data (if any)
+                    branch_entries.push({
+                        form_id: form_id,
+                        owner_input_ref: ref,
+                        main_form_key_ref: entry_key_ref,
+                        main_form_key_ref_value: current_remote_entry[entry_key_ref],
+                        branch_entries: current_remote_entry[ref]
+                    });
+
+                }
+                else {
+
+                    //location object needs to be converted to string
+                    if (typeof (current_remote_entry[ref]) === 'string') {
+                        remote_ref_value = current_remote_entry[ref];
+                    } else {
+                        //location is a json object listing the components, so convert it to string
+                        location_obj = current_remote_entry[ref];
+                        remote_ref_value = EC.Utils.parseLocationObjToString(location_obj);
+                    }
                 }
 
             } else {
@@ -55,8 +74,7 @@ EC.Create = (function (module) {
                 remote_ref_value = '';
             }
 
-            //build query to insert values
-
+            //build query to insert hierarchy (main) values
             query = '';
             obj = inputs[i];
 
@@ -116,9 +134,16 @@ EC.Create = (function (module) {
     };
 
     var _insertRemoteFormValuesSuccessCB = function (the_tx, the_result) {
+
         //update entries counter for the current form (adding new entry, + 1)
         $.when(EC.Update.updateCountersOnEntriesDownload(form_id)).then(function () {
-            deferred.resolve();
+
+            //if I have any braches, return them
+            console.log('branch_entries here ***************************************');
+            console.log(branch_entries);
+
+            deferred.resolve(branch_entries);
+
         });
     };
 
@@ -130,6 +155,7 @@ EC.Create = (function (module) {
         remote_entry = the_remote_entry;
         entry_key_ref = the_entry_key_ref;
         immediate_parent_key_value = the_immediate_parent_key_value;
+        branch_entries = [];
 
         deferred = new $.Deferred();
 

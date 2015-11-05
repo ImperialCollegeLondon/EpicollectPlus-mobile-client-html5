@@ -16,7 +16,7 @@ EC.Upload = (function (module) {
      */
     module.prepareOneHierarchyEntry = function (the_table, the_entry) {
 
-        debugger;
+
 
         var self = this;
         var parent_ref;
