@@ -12487,9 +12487,7 @@ EC.Update = (function (module) {
 
         var query = 'UPDATE ec_data SET value=? WHERE form_id=? AND ref=?';
 
-        debugger;
         $(branch_values).each(function (index, value) {
-
             var input_value = value.input_ref + '_form,' + value.total;
 
             tx.executeSql(query, [input_value, form_id, value.input_ref], _updateHierarchyEntryValuesSQLSuccessCB, _errorCB);
@@ -17082,54 +17080,55 @@ EC.BranchInputs = (function (module) {
 
 }(EC.BranchInputs));
 
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
-/*global $, jQuery*/
 /*
  *	@module EC
-    @submodule BranchInputs
+ @submodule BranchInputs
  *
  * Route back user from a branch form to the linked hierararchy form, clearing cached branch data
  * 
  */
 var EC = EC || {};
 EC.BranchInputs = EC.BranchInputs || {};
-EC.BranchInputs = ( function(module) {"use strict";
+EC.BranchInputs = (function (module) {
+    'use strict';
 
-		module.backToHierarchyForm = function() {
+    module.backToHierarchyForm = function () {
 
-			var inputs;
-			var current_input;
-			var current_input_position;
-			var page;
+        debugger;
 
-			inputs = JSON.parse(window.localStorage.inputs);
-			current_input_position = parseInt(window.localStorage.current_position, 10);
-			current_input = inputs[current_input_position - 1];
+        var inputs;
+        var current_input;
+        var current_input_position;
+        var page;
 
-			//clear branch data cache
-			window.localStorage.removeItem("branch_current_position");
-			window.localStorage.removeItem("branch_form_has_jumps");
-			window.localStorage.removeItem("branch_form_name");
-			window.localStorage.removeItem("branch_inputs_total");
-			window.localStorage.removeItem("branch_inputs_trail");
-			window.localStorage.removeItem("branch_inputs_values");
-			window.localStorage.removeItem("branch_form_id");
-			window.localStorage.removeItem("branch_edit_hash");
-			window.localStorage.removeItem("branch_edit_key_value");
-			window.localStorage.removeItem("branch_edit_type");
+        inputs = JSON.parse(window.localStorage.inputs);
+        current_input_position = parseInt(window.localStorage.current_position, 10);
+        current_input = inputs[current_input_position - 1];
 
-			window.localStorage.back_from_branch = 1;
+        //clear branch data cache
+        window.localStorage.removeItem('branch_current_position');
+        window.localStorage.removeItem('branch_form_has_jumps');
+        window.localStorage.removeItem('branch_form_name');
+        window.localStorage.removeItem('branch_inputs_total');
+        window.localStorage.removeItem('branch_inputs_trail');
+        window.localStorage.removeItem('branch_inputs_values');
+        window.localStorage.removeItem('branch_form_id');
+        window.localStorage.removeItem('branch_edit_hash');
+        window.localStorage.removeItem('branch_edit_key_value');
+        window.localStorage.removeItem('branch_edit_type');
 
-			page = EC.Const.INPUT_VIEWS_DIR + current_input.type + EC.Const.HTML_FILE_EXT;
+        window.localStorage.back_from_branch = 1;
 
-			//EC.Inputs.renderInput(current_input);
-			EC.Routing.changePage(page);
+        page = EC.Const.INPUT_VIEWS_DIR + current_input.type + EC.Const.HTML_FILE_EXT;
 
-		};
+        //EC.Inputs.renderInput(current_input);
+        EC.Routing.changePage(page);
 
-		return module;
+    };
 
-	}(EC.BranchInputs));
+    return module;
+
+}(EC.BranchInputs));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -17140,33 +17139,38 @@ EC.BranchInputs = ( function(module) {"use strict";
 
 var EC = EC || {};
 EC.BranchInputs = EC.BranchInputs || {};
-EC.BranchInputs = ( function(module) {"use strict";
+EC.BranchInputs = (function (module) {
+    'use strict';
 
-		module.bindBackBtn = function(is_data_saved) {
+    module.bindBackBtn = function (is_data_saved) {
 
-			var self = this;
-			var back_btn = $("div[data-role='header'] div[data-href='back-btn']");
-			var back_btn_label = back_btn.find("span.main-form-name");
-			var form_name = window.localStorage.form_name;
+        debugger;
 
-			//set back button label to go back to main form
-			back_btn_label.text("Back to " + form_name.trunc(EC.Const.FORM_NAME_MAX_LENGTH));
+        var self = this;
+        var back_btn = $('div[data-role="header"] div[data-href="back-btn"]');
+        var back_btn_label = back_btn.find('span.main-form-name');
+        var form_name = window.localStorage.form_name;
 
-			back_btn.off().one('vclick', function(evt) {
+        //set back button label to go back to main form
+        back_btn_label.text('Back to ' + form_name.trunc(EC.Const.FORM_NAME_MAX_LENGTH));
 
-				if (is_data_saved) {
-					//go back to main form input
-					self.backToHierarchyForm();
-				} else {
-					//id data are not saved, ask confirmation to user before proceeding
-					EC.Notification.askConfirm(EC.Localise.getTranslation("exit"), EC.Localise.getTranslation("exit_confirm"), "EC.BranchInputs.backToHierarchyForm");
-				}
-			});
-		};
+        back_btn.off().one('vclick', function (evt) {
 
-		return module;
+            debugger;
 
-	}(EC.BranchInputs));
+            if (is_data_saved) {
+                //go back to main form input
+                self.backToHierarchyForm();
+            } else {
+                //id data are not saved, ask confirmation to user before proceeding
+                EC.Notification.askConfirm(EC.Localise.getTranslation('exit'), EC.Localise.getTranslation('exit_confirm'), 'EC.BranchInputs.backToHierarchyForm');
+            }
+        });
+    };
+
+    return module;
+
+}(EC.BranchInputs));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -17682,7 +17686,6 @@ EC.BranchInputs = ( function(module) {"use strict";
 
 	}(EC.BranchInputs));
 
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/
 /*
  *	@module EC
@@ -17691,59 +17694,60 @@ EC.BranchInputs = ( function(module) {"use strict";
  */
 var EC = EC || {};
 EC.BranchInputs = EC.BranchInputs || {};
-EC.BranchInputs = ( function(module) {"use strict";
+EC.BranchInputs = (function (module) {
+    'use strict';
 
-		module.prepareFirstInput = function(the_first_input) {
+    module.prepareFirstInput = function (the_first_input) {
 
-			var self = this;
-			var first_input_position = 1;
-			var branch_input = the_first_input;
-			var page = EC.Const.BRANCH_VIEWS_DIR + EC.Const.BRANCH_PREFIX + branch_input.type + EC.Const.HTML_FILE_EXT;
-			var is_genkey_hidden = EC.Utils.isBranchFormGenKeyHidden();
+        var self = this;
+        var first_input_position = 1;
+        var branch_input = the_first_input;
+        var page = EC.Const.BRANCH_VIEWS_DIR + EC.Const.BRANCH_PREFIX + branch_input.type + EC.Const.HTML_FILE_EXT;
+        var is_genkey_hidden = EC.Utils.isBranchFormGenKeyHidden();
 
-			//set array to keep track of input navigation (get pre-built one when editing)
-			if (!window.localStorage.branch_edit_mode) {
-				window.localStorage.branch_inputs_trail = [];
-			} else {
-				//update inputs trail to remove all the elements past the current edit position
-				self.spliceInputsTrail(window.localStorage.branch_edit_position);
-			}
+        //set array to keep track of input navigation (get pre-built one when editing)
+        if (!window.localStorage.branch_edit_mode) {
+            window.localStorage.branch_inputs_trail = [];
+        } else {
+            //update inputs trail to remove all the elements past the current edit position
+            self.spliceInputsTrail(window.localStorage.branch_edit_position);
+        }
 
-			//update current position in session depending on mode
-			window.localStorage.branch_current_position = (window.localStorage.branch_edit_mode) ? window.localStorage.branch_edit_position : first_input_position;
+        //update current position in session depending on mode
+        window.localStorage.branch_current_position = (window.localStorage.branch_edit_mode) ? window.localStorage.branch_edit_position : first_input_position;
 
-			/*
-			 * If if the genkey hidden flag is set to 1 and the input is a primary key input, do not render this input on screen but:
-			 *
-			 * - just cache it with an auto genkey in localStorage if we are entering a new entry
-			 * - do nothing if we are editing, ad the inputs_values array will be set already (it is set when listing the entry values)
-			 */
-			if (is_genkey_hidden === 1 && branch_input.is_primary_key === 1) {
+        /*
+         * If if the genkey hidden flag is set to 1 and the input is a primary key input, do not render this input on screen but:
+         *
+         * - just cache it with an auto genkey in localStorage if we are entering a new entry
+         * - do nothing if we are editing, ad the inputs_values array will be set already (it is set when listing the entry values)
+         */
+        if (is_genkey_hidden === 1 && branch_input.is_primary_key === 1) {
 
-				//skip input
-				window.localStorage.branch_current_position = first_input_position + 1;
+            //skip input
+            window.localStorage.branch_current_position = first_input_position + 1;
 
-				//if we are entering a new entry add an auto generated key in input_values
-				if (!window.localStorage.branch_edit_mode) {
-					window.localStorage.branch_inputs_values = JSON.stringify([{
-						_id : "",
-						type : "",
-						value : EC.Utils.getGenKey(),
-						position : 1,
-						is_primary_key : 1
-					}]);
-				}
-				//get next input to set page we have to go to (first_input_position is equal to current_position-1, so...)
-				branch_input = self.branch_inputs[first_input_position];
-				page = EC.Const.BRANCH_VIEWS_DIR + EC.Const.BRANCH_PREFIX + branch_input.type + EC.Const.HTML_FILE_EXT;
-			}
+            //if we are entering a new entry add an auto generated key in input_values
+            if (!window.localStorage.branch_edit_mode) {
+                window.localStorage.branch_inputs_values = JSON.stringify([{
+                    _id: '',
+                    type: '',
+                    value: EC.Utils.getGenKey(),
+                    position: 1,
+                    is_primary_key: 1
+                }]);
+            }
+            //get next input to set page we have to go to (first_input_position is equal to current_position-1, so...)
+            branch_input = self.branch_inputs[first_input_position];
+            page = EC.Const.BRANCH_VIEWS_DIR + EC.Const.BRANCH_PREFIX + branch_input.type + EC.Const.HTML_FILE_EXT;
+        }
 
-			EC.Routing.changePage(page);
-		};
+        EC.Routing.changePage(page);
+    };
 
-		return module;
+    return module;
 
-	}(EC.BranchInputs));
+}(EC.BranchInputs));
 
 /*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery, cordova, device*/
@@ -17801,7 +17805,6 @@ EC.BranchInputs = ( function(module) {"use strict";
 
 	}(EC.BranchInputs));
 
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery, cordova, device*/
 /*
  *	@module EC
@@ -17810,184 +17813,186 @@ EC.BranchInputs = ( function(module) {"use strict";
  */
 var EC = EC || {};
 EC.BranchInputs = EC.BranchInputs || {};
-EC.BranchInputs = ( function(module) {"use strict";
+EC.BranchInputs = (function (module) {
+    'use strict';
 
-		//render input calling the proper page and passing input attributes
-		module.renderInput = function(the_input) {
+    //render input calling the proper page and passing input attributes
+    module.renderInput = function (the_input) {
 
-			//get module context
-			var self = this;
-			var wls = window.localStorage;
-			var branch_input = the_input;
-			var branch_current_value;
-			var branch_current_position = parseInt(wls.branch_current_position, 10);
-			var branch_cached_value = self.getCachedInputValue(branch_current_position);
-			var back_btn = $("div#branch-" + branch_input.type + " div[data-role='header'] div[data-href='back-btn']");
-			var back_btn_label = $("div[data-role='header'] div[data-href='back-btn'] span.form-name");
-			var parent_key;
-			var rows_to_save = [];
-			var prev_btn = $('div.branch-input-nav-tabs div.ui-block-a.input-prev-btn');
-			var next_btn = $('div.branch-input-nav-tabs div.ui-block-c.input-next-btn');
-			var form_name = wls.form_name;
-			var branch_inputs_total = self.branch_inputs.length;
-			var branch_form = JSON.parse(wls.branch_form);
-			var is_genkey_hidden = EC.Utils.isBranchFormGenKeyHidden();
-			var branch_inputs_values;
-			var first_branch_input;
-			var is_prev_button_hidden = false;
+        //get module context
+        var self = this;
+        var wls = window.localStorage;
+        var branch_input = the_input;
+        var branch_current_value;
+        var branch_current_position = parseInt(wls.branch_current_position, 10);
+        var branch_cached_value = self.getCachedInputValue(branch_current_position);
+        var back_btn = $('div#branch-' + branch_input.type + ' div[data-role="header"] div[data-href="back-btn"]');
+        var back_btn_label = $('div[data-role="header"] div[data-href="back-btn"] span.form-name');
+        var parent_key;
+        var rows_to_save = [];
+        var prev_btn = $('div.branch-input-nav-tabs div.ui-block-a.input-prev-btn');
+        var next_btn = $('div.branch-input-nav-tabs div.ui-block-c.input-next-btn');
+        var form_name = wls.form_name;
+        var branch_inputs_total = self.branch_inputs.length;
+        var branch_form = JSON.parse(wls.branch_form);
+        var is_genkey_hidden = EC.Utils.isBranchFormGenKeyHidden();
+        var branch_inputs_values;
+        var first_branch_input;
+        var is_prev_button_hidden = false;
 
-			back_btn.off().on('vclick', function(e) {
+        back_btn.off().on('vclick', function (e) {
 
-				//TODO: when editing an existing branch form, go back to entry values list?
+            //TODO: when editing an existing branch form, go back to entry values list?
+            debugger;
 
-				if (wls.branch_edit_mode) {
-					if (wls.branch_has_new_jump_sequence) {
-						EC.Notification.askConfirm(EC.Localise.getTranslation("leaving_current_form"), EC.Localise.getTranslation("exit_confirm"), "EC.Inputs.backToHierarchyForm", false, branch_input, true);
+            if (wls.branch_edit_mode) {
+                if (wls.branch_has_new_jump_sequence) {
+                    EC.Notification.askConfirm(EC.Localise.getTranslation('leaving_current_form'), EC.Localise.getTranslation('exit_confirm'), 'EC.Inputs.backToHierarchyForm', false, branch_input, true);
 
-					} else {
+                } else {
 
-						//check if user is leaving after modifying a jump and neither "Store Edit", "prev" or "next" button were tapped
-						if (parseInt(branch_input.has_jump, 10) === 1) {
+                    //check if user is leaving after modifying a jump and neither 'Store Edit', 'prev' or 'next' button were tapped
+                    if (parseInt(branch_input.has_jump, 10) === 1) {
 
-							branch_current_value = EC.Inputs.getCurrentValue(branch_input.type);
+                        branch_current_value = EC.Inputs.getCurrentValue(branch_input.type);
 
-							if (!EC.Inputs.valuesMatch(branch_cached_value, branch_current_value, branch_input.type)) {
+                        if (!EC.Inputs.valuesMatch(branch_cached_value, branch_current_value, branch_input.type)) {
 
-								EC.Notification.askConfirm(EC.Localise.getTranslation("leaving_current_form"), EC.Localise.getTranslation("exit_confirm"), "EC.Inputs.backToHierarchyForm", false, branch_input, true);
-							} else {
+                            EC.Notification.askConfirm(EC.Localise.getTranslation('leaving_current_form'), EC.Localise.getTranslation('exit_confirm'), 'EC.Inputs.backToHierarchyForm', false, branch_input, true);
+                        } else {
 
-								EC.Notification.askConfirm(EC.Localise.getTranslation("leaving_current_form"), EC.Localise.getTranslation("save_before_leave"), "EC.Inputs.backToBranchEntryValuesList", true, branch_input, true);
-							}
-						} else {
-							EC.Notification.askConfirm(EC.Localise.getTranslation("leaving_current_form"), EC.Localise.getTranslation("save_before_leave"), "EC.Inputs.backToBranchEntryValuesList", true, branch_input, true);
-						}
-					}
-				} else {
-					//not editing, go to entries list
-					EC.Notification.askConfirm(EC.Localise.getTranslation("leaving_current_form"), EC.Localise.getTranslation("save_before_leave"), "EC.Inputs.backToBranchEntryValuesList", true, branch_input, true);
-				}
+                            EC.Notification.askConfirm(EC.Localise.getTranslation('leaving_current_form'), EC.Localise.getTranslation('save_before_leave'), 'EC.Inputs.backToBranchEntryValuesList', true, branch_input, true);
+                        }
+                    } else {
+                        EC.Notification.askConfirm(EC.Localise.getTranslation('leaving_current_form'), EC.Localise.getTranslation('save_before_leave'), 'EC.Inputs.backToBranchEntryValuesList', true, branch_input, true);
+                    }
+                }
+            } else {
+                //not editing, go to entries list
+                EC.Notification.askConfirm(EC.Localise.getTranslation('leaving_current_form'), EC.Localise.getTranslation('save_before_leave'), 'EC.BranchInputs.backToHierarchyForm', true, branch_input, true);
+            }
 
-			});
+        });
 
-			back_btn_label.text("Back to " + form_name.trunc(EC.Const.FORM_NAME_MAX_LENGTH));
+        back_btn_label.text('Back to ' + form_name.trunc(EC.Const.FORM_NAME_MAX_LENGTH));
 
-			//show branch form name in the top bar
-			$('div.branch-form-name div.ui-block-a span.ui-btn-active span.ui-btn-inner').text(branch_form.name);
+        //show branch form name in the top bar
+        $('div.branch-form-name div.ui-block-a span.ui-btn-active span.ui-btn-inner').text(branch_form.name);
 
-			//reset button visibility
-			$(prev_btn, next_btn).removeClass("invisible");
+        //reset button visibility
+        $(prev_btn, next_btn).removeClass('invisible');
 
-			//TODO :doe we need to -> skip input rendering if it is the preloader screen
-			if (branch_current_position !== 0) {
+        //TODO :doe we need to -> skip input rendering if it is the preloader screen
+        if (branch_current_position !== 0) {
 
-				//check if we have a cached value for this input in session
-				branch_current_value = self.getCachedInputValue(branch_current_position).value;
+            //check if we have a cached value for this input in session
+            branch_current_value = self.getCachedInputValue(branch_current_position).value;
 
-				//check it the value is _skipp3d_ keyword
-				branch_current_value = (branch_current_value === EC.Const.SKIPPED) ? "" : branch_current_value;
+            //check it the value is _skipp3d_ keyword
+            branch_current_value = (branch_current_value === EC.Const.SKIPPED) ? '' : branch_current_value;
 
-				//if the input is either photo, audio or video, no default value will be available so we pass an empty object {cached: "", stored: ""}
-				if (branch_input.type === EC.Const.PHOTO || branch_input.type === EC.Const.AUDIO || branch_input.type === EC.Const.VIDEO) {
+            //if the input is either photo, audio or video, no default value will be available so we pass an empty object {cached: '', stored: ''}
+            if (branch_input.type === EC.Const.PHOTO || branch_input.type === EC.Const.AUDIO || branch_input.type === EC.Const.VIDEO) {
 
-					if (branch_current_value) {
-						self.renderInputView(branch_input, branch_current_value);
-					} else {
-						self.renderInputView(branch_input, {
-							cached : "",
-							stored : ""
-						});
-					}
+                if (branch_current_value) {
+                    self.renderInputView(branch_input, branch_current_value);
+                } else {
+                    self.renderInputView(branch_input, {
+                        cached: '',
+                        stored: ''
+                    });
+                }
 
-				} else {
+            } else {
 
-					//for normal inputs, render view passing the default value (or empty if not defined) if no input value is cached
-					if (branch_current_value) {
-						self.renderInputView(branch_input, branch_current_value);
-					} else {
-						self.renderInputView(branch_input, branch_input.default_value);
-					}
-				}
-			}
+                //for normal inputs, render view passing the default value (or empty if not defined) if no input value is cached
+                if (branch_current_value) {
+                    self.renderInputView(branch_input, branch_current_value);
+                } else {
+                    self.renderInputView(branch_input, branch_input.default_value);
+                }
+            }
+        }
 
-			//set next button to go to next input (if any)
-			if (branch_current_position <= branch_inputs_total) {
+        //set next button to go to next input (if any)
+        if (branch_current_position <= branch_inputs_total) {
 
-				//Next button handler
-				next_btn.off().on('vclick', function(e) {
-					self.onNextBtnTapped(e, branch_input);
-				});
+            //Next button handler
+            next_btn.off().on('vclick', function (e) {
+                self.onNextBtnTapped(e, branch_input);
+            });
 
-				//set previous button to fade to previous input (if any)
-				if (branch_current_position - 1 > 0) {
+            //set previous button to fade to previous input (if any)
+            if (branch_current_position - 1 > 0) {
 
-					//check if the first input is a hidden genkey, in that case do not show prev button
-					if (branch_current_position === 2) {
+                //check if the first input is a hidden genkey, in that case do not show prev button
+                if (branch_current_position === 2) {
 
-						branch_inputs_values = JSON.parse(wls.branch_inputs_values);
-						first_branch_input = branch_inputs_values[0];
+                    branch_inputs_values = JSON.parse(wls.branch_inputs_values);
+                    first_branch_input = branch_inputs_values[0];
 
-						if (first_branch_input.is_primary_key === 1 && is_genkey_hidden === 1) {
+                    if (first_branch_input.is_primary_key === 1 && is_genkey_hidden === 1) {
 
-							//hide prev button for first input of the form
-							prev_btn.addClass("invisible");
-							is_prev_button_hidden = true;
+                        //hide prev button for first input of the form
+                        prev_btn.addClass('invisible');
+                        is_prev_button_hidden = true;
 
-						}
+                    }
 
-					}
+                }
 
-					//bind vclick event only if the button is not hidden
-					if (!is_prev_button_hidden) {
-						//handler for prev button, showing prev input
-						prev_btn.off().on('vclick', function(e) {
-							self.onPrevBtnTapped(e, branch_input);
-						});
-					}
+                //bind vclick event only if the button is not hidden
+                if (!is_prev_button_hidden) {
+                    //handler for prev button, showing prev input
+                    prev_btn.off().on('vclick', function (e) {
+                        self.onPrevBtnTapped(e, branch_input);
+                    });
+                }
 
-				} else {
+            } else {
 
-					//hide prev button for first input of the form
-					prev_btn.addClass("invisible");
+                //hide prev button for first input of the form
+                prev_btn.addClass('invisible');
 
-					//reset inputs_trail in session
-					wls.removeItem('branch_inputs_trail');
-				}
+                //reset inputs_trail in session
+                wls.removeItem('branch_inputs_trail');
+            }
 
-				//show store edit button if we are in "editing mode" and bind it to callback
-				if (wls.branch_edit_mode) {
+            //show store edit button if we are in 'editing mode' and bind it to callback
+            if (wls.branch_edit_mode) {
 
-					$('div.store-edit').removeClass('hidden');
+                $('div.store-edit').removeClass('hidden');
 
-					if (branch_input.has_jump === 1) {
+                if (branch_input.has_jump === 1) {
 
-						// disable store edit button, to force the user to go through the form again to retain the jumps sequence
-						$('div.store-edit').addClass('ui-disabled');
+                    // disable store edit button, to force the user to go through the form again to retain the jumps sequence
+                    $('div.store-edit').addClass('ui-disabled');
 
-					} else {
+                } else {
 
-						$('div.store-edit').removeClass('ui-disabled');
+                    $('div.store-edit').removeClass('ui-disabled');
 
-					}
+                }
 
-					//bind events with on(), as we need to submit again if the input does not validate successfully
-					$('div.store-edit').off().on('vclick', function() {
+                //bind events with on(), as we need to submit again if the input does not validate successfully
+                $('div.store-edit').off().on('vclick', function () {
 
-						self.prepareStoreEdit(branch_current_value, branch_current_position, branch_input);
+                    self.prepareStoreEdit(branch_current_value, branch_current_position, branch_input);
 
-					});
+                });
 
-				}
+            }
 
-			}
+        }
 
-			//update completion percentage and bar for this form
-			self.updateFormCompletion(branch_current_position, branch_inputs_total);
+        //update completion percentage and bar for this form
+        self.updateFormCompletion(branch_current_position, branch_inputs_total);
 
-		};
+    };
 
-		return module;
+    return module;
 
-	}(EC.BranchInputs));
+}(EC.BranchInputs));
 
 /*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/

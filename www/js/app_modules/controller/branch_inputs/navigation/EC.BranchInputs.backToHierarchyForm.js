@@ -1,48 +1,49 @@
-/*jslint vars: true , nomen: true devel: true, plusplus: true*/
-/*global $, jQuery*/
 /*
  *	@module EC
-    @submodule BranchInputs
+ @submodule BranchInputs
  *
  * Route back user from a branch form to the linked hierararchy form, clearing cached branch data
  * 
  */
 var EC = EC || {};
 EC.BranchInputs = EC.BranchInputs || {};
-EC.BranchInputs = ( function(module) {"use strict";
+EC.BranchInputs = (function (module) {
+    'use strict';
 
-		module.backToHierarchyForm = function() {
+    module.backToHierarchyForm = function () {
 
-			var inputs;
-			var current_input;
-			var current_input_position;
-			var page;
+        debugger;
 
-			inputs = JSON.parse(window.localStorage.inputs);
-			current_input_position = parseInt(window.localStorage.current_position, 10);
-			current_input = inputs[current_input_position - 1];
+        var inputs;
+        var current_input;
+        var current_input_position;
+        var page;
 
-			//clear branch data cache
-			window.localStorage.removeItem("branch_current_position");
-			window.localStorage.removeItem("branch_form_has_jumps");
-			window.localStorage.removeItem("branch_form_name");
-			window.localStorage.removeItem("branch_inputs_total");
-			window.localStorage.removeItem("branch_inputs_trail");
-			window.localStorage.removeItem("branch_inputs_values");
-			window.localStorage.removeItem("branch_form_id");
-			window.localStorage.removeItem("branch_edit_hash");
-			window.localStorage.removeItem("branch_edit_key_value");
-			window.localStorage.removeItem("branch_edit_type");
+        inputs = JSON.parse(window.localStorage.inputs);
+        current_input_position = parseInt(window.localStorage.current_position, 10);
+        current_input = inputs[current_input_position - 1];
 
-			window.localStorage.back_from_branch = 1;
+        //clear branch data cache
+        window.localStorage.removeItem('branch_current_position');
+        window.localStorage.removeItem('branch_form_has_jumps');
+        window.localStorage.removeItem('branch_form_name');
+        window.localStorage.removeItem('branch_inputs_total');
+        window.localStorage.removeItem('branch_inputs_trail');
+        window.localStorage.removeItem('branch_inputs_values');
+        window.localStorage.removeItem('branch_form_id');
+        window.localStorage.removeItem('branch_edit_hash');
+        window.localStorage.removeItem('branch_edit_key_value');
+        window.localStorage.removeItem('branch_edit_type');
 
-			page = EC.Const.INPUT_VIEWS_DIR + current_input.type + EC.Const.HTML_FILE_EXT;
+        window.localStorage.back_from_branch = 1;
 
-			//EC.Inputs.renderInput(current_input);
-			EC.Routing.changePage(page);
+        page = EC.Const.INPUT_VIEWS_DIR + current_input.type + EC.Const.HTML_FILE_EXT;
 
-		};
+        //EC.Inputs.renderInput(current_input);
+        EC.Routing.changePage(page);
 
-		return module;
+    };
 
-	}(EC.BranchInputs));
+    return module;
+
+}(EC.BranchInputs));

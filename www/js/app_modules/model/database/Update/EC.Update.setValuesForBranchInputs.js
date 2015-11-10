@@ -16,9 +16,7 @@ EC.Update = (function (module) {
 
         var query = 'UPDATE ec_data SET value=? WHERE form_id=? AND ref=?';
 
-        debugger;
         $(branch_values).each(function (index, value) {
-
             var input_value = value.input_ref + '_form,' + value.total;
 
             tx.executeSql(query, [input_value, form_id, value.input_ref], _updateHierarchyEntryValuesSQLSuccessCB, _errorCB);
