@@ -16,7 +16,7 @@ EC.Branch = ( function(module) {"use strict";
 		var branch_inputs_IDs = [];
 
 		//Transaction to save each options to the db (form multiple option branch_inputs like radio, checkbox, select)
-		var _commitBranchInputOptionsTX = function(tx) {
+	var _commitBranchInputOptionsTX = function(tx) {
 
 			var i;
 			var j;

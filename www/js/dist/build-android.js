@@ -3547,8 +3547,13 @@ EC.Parse = (function (module) {
                                     ref: ref,
                                     group: group
                                 });
+
+
+                                position++;
                             }
-                            position++;
+
+                            //position was updated here
+                           // position++;
                         }
                     }
                 });
@@ -5750,7 +5755,7 @@ EC.Branch = ( function(module) {"use strict";
 		var branch_inputs_IDs = [];
 
 		//Transaction to save each options to the db (form multiple option branch_inputs like radio, checkbox, select)
-		var _commitBranchInputOptionsTX = function(tx) {
+	var _commitBranchInputOptionsTX = function(tx) {
 
 			var i;
 			var j;
@@ -6021,8 +6026,9 @@ EC.Branch = (function (module) {
     'use strict';
 
     //callback for a transaction error
-    module.errorCB = function (the_error) {
+    module.errorCB = function (the_tx, the_error) {
         console.log('Error INSERT STRUCTURE BRANCH');
+        console.log(the_tx);
         console.log(the_error);
         console.log(EC.Utils.TRANSACTION_ERROR);
     };
@@ -13345,6 +13351,7 @@ EC.Create = (function (module) {
                 immediate_parent_key_value = '';
                 $.when(EC.Create.insertRemoteFormValues(form_id, inputs, remote_entry, entry_key_ref, immediate_parent_key_value)).then(function (branches) {
 
+                    debugger;
                     var local_branch_inputs = JSON.parse(window.localStorage.dre_branch_inputs);
                     var local_branch_entries_keys = JSON.parse(window.localStorage.dre_local_branch_entries_keys);
 
@@ -17133,19 +17140,15 @@ EC.BranchInputs = (function (module) {
 
     module.bindBackBtn = function (is_data_saved) {
 
-        debugger;
-
         var self = this;
         var back_btn = $('div[data-role="header"] div[data-href="back-btn"]');
         var back_btn_label = back_btn.find('span.main-form-name');
         var form_name = window.localStorage.form_name;
 
         //set back button label to go back to main form
-        back_btn_label.text('Back to ' + form_name.trunc(EC.Const.FORM_NAME_MAX_LENGTH));
+        back_btn_label.text('Back to:  ' + form_name.trunc(EC.Const.FORM_NAME_MAX_LENGTH));
 
         back_btn.off().one('vclick', function (evt) {
-
-            debugger;
 
             if (is_data_saved) {
                 //go back to main form input
@@ -17170,199 +17173,200 @@ EC.BranchInputs = (function (module) {
  */
 var EC = EC || {};
 EC.BranchInputs = EC.BranchInputs || {};
-EC.BranchInputs = ( function(module) {"use strict";
+EC.BranchInputs = ( function (module) {
+    "use strict";
 
-		var self;
-		var branch_current_position;
-		var is_jump_found;
-		
-		/*
-		 * @function _checkJumps check if there is any jump to perform based on the input value and jumps mapped to that input
-		 */
-		var _checkJumps = function(the_jumps, the_current_value) {
+    var self;
+    var branch_current_position;
+    var is_jump_found;
 
-			var jumps = the_jumps;
-			var i;
-			var iLength = jumps.length;
-			var branch_destination_position;
-			var branch_destination;
-			var current_value = the_current_value;
-			var branch_inputs_total = window.localStorage.branch_inputs_total;
+    /*
+     * @function _checkJumps check if there is any jump to perform based on the input value and jumps mapped to that input
+     */
+    var _checkJumps = function (the_jumps, the_current_value) {
 
-			//if not any jump conditions match, set destination to the next input as default
-			branch_destination_position = branch_current_position + 1;
+        var jumps = the_jumps;
+        var i;
+        var iLength = jumps.length;
+        var branch_destination_position;
+        var branch_destination;
+        var current_value = the_current_value;
+        var branch_inputs_total = window.localStorage.branch_inputs_total;
 
-			for ( i = 0; i < iLength; i++) {
+        //if not any jump conditions match, set destination to the next input as default
+        branch_destination_position = branch_current_position + 1;
 
-				//check if we jump always
-				if (jumps[i].jump_when === EC.Const.JUMP_ALWAYS) {
-					
-					is_jump_found = true;
-					branch_destination = jumps[i].jump_to;
-					branch_destination_position = (branch_destination === EC.Const.END_OF_FORM) ? branch_inputs_total : self.getJumpDestinationPosition(branch_destination);
-					break;
-				}
+        for (i = 0; i < iLength; i++) {
 
-				//check if we jump whan a value is not selected
-				if (jumps[i].jump_when === EC.Const.JUMP_FIELD_IS_BLANK && (current_value === null || current_value === EC.Const.NO_OPTION_SELECTED)) {
-					
-					is_jump_found = true;
-					branch_destination = jumps[i].jump_to;
-					branch_destination_position = (branch_destination === EC.Const.END_OF_FORM) ? branch_inputs_total : self.getJumpDestinationPosition(branch_destination);
-					break;
-				}
+            //check if we jump always
+            if (jumps[i].jump_when === EC.Const.JUMP_ALWAYS) {
 
-				if (jumps[i].jump_when === EC.Const.JUMP_VALUE_IS && current_value.toString() === jumps[i].jump_value.toString()) {
-					
-					is_jump_found = true;
-					branch_destination = jumps[i].jump_to;
-					branch_destination_position = (branch_destination === EC.Const.END_OF_FORM) ? branch_inputs_total : self.getJumpDestinationPosition(branch_destination);
-					break;
-				}
+                is_jump_found = true;
+                branch_destination = jumps[i].jump_to;
+                branch_destination_position = (branch_destination === EC.Const.END_OF_FORM) ? branch_inputs_total : self.getJumpDestinationPosition(branch_destination);
+                break;
+            }
 
-				if (jumps[i].jump_when === EC.Const.JUMP_VALUE_IS_NOT && current_value.toString() !== jumps[i].jump_value.toString()) {
-					
-					is_jump_found = true;
-					branch_destination = jumps[i].jump_to;
-					branch_destination_position = (branch_destination === EC.Const.END_OF_FORM) ? branch_inputs_total : self.getJumpDestinationPosition(branch_destination);
-					break;
-				}
+            //check if we jump whan a value is not selected
+            if (jumps[i].jump_when === EC.Const.JUMP_FIELD_IS_BLANK && (current_value === null || current_value === EC.Const.NO_OPTION_SELECTED)) {
 
-			}
+                is_jump_found = true;
+                branch_destination = jumps[i].jump_to;
+                branch_destination_position = (branch_destination === EC.Const.END_OF_FORM) ? branch_inputs_total : self.getJumpDestinationPosition(branch_destination);
+                break;
+            }
 
-			//override current_input_position with the position of the input set by the jump (-1 because we are adding +1 later)
-			branch_current_position = branch_destination_position - 1;
-			
-			return branch_destination;
-		};
-		
-		/*
-		 * @method gotoNextPage load next input into view, checking for jumps etc.
-		 */
-		module.gotoNextPage = function(evt, the_current_value) {
+            if (jumps[i].jump_when === EC.Const.JUMP_VALUE_IS && current_value.toString() === jumps[i].jump_value.toString()) {
 
-			var branch_current_input;
-			var current_value = the_current_value;
-			var next_branch_input;
-			var next_page;
-			var options;
-			var i;
-			var iLength;
-			var obj;
-			var branch_destination;
-			var branch_destination_position;
-			var jumps;
-			var is_branch_genkey_hidden = EC.Utils.isBranchFormGenKeyHidden();
-			var next_branch_value;
-			var is_checkbox = false;
-			
-			self = this;
-			branch_current_position = parseInt(window.localStorage.branch_current_position, 10);
-			
-			//get value from object in the case of a dropdown/radio (object is like {label:"<label>", index:"<value>"})
-			if (current_value.hasOwnProperty("value")) {
-				current_value = current_value.value;
-			}
-			
-			//if current value is an array, we have checkbox values to parse and check each of them against jumps
-			if (Array.isArray(current_value)) {
-				is_checkbox = true;
-			}
+                is_jump_found = true;
+                branch_destination = jumps[i].jump_to;
+                branch_destination_position = (branch_destination === EC.Const.END_OF_FORM) ? branch_inputs_total : self.getJumpDestinationPosition(branch_destination);
+                break;
+            }
 
-			//check if we have reached the end of the form
-			if (branch_current_position === self.branch_inputs.length) {
-				next_page = EC.Const.BRANCH_VIEWS_DIR + EC.Const.BRANCH_SAVE_CONFIRM_VIEW;
-			} else {
+            if (jumps[i].jump_when === EC.Const.JUMP_VALUE_IS_NOT && current_value.toString() !== jumps[i].jump_value.toString()) {
 
-				//check if the current input triggers a jump
-				branch_current_input = self.getInputAt(branch_current_position);
+                is_jump_found = true;
+                branch_destination = jumps[i].jump_to;
+                branch_destination_position = (branch_destination === EC.Const.END_OF_FORM) ? branch_inputs_total : self.getJumpDestinationPosition(branch_destination);
+                break;
+            }
 
-				if (parseInt(branch_current_input.has_jump, 10) === 1) {
+        }
 
-					//get jumps
-					jumps = EC.Utils.parseJumpString(branch_current_input.jumps);
+        //override current_input_position with the position of the input set by the jump (-1 because we are adding +1 later)
+        branch_current_position = branch_destination_position - 1;
 
-					//if we have an arry of values (checkboxes) check each of them if it triggers a jump
-					if (is_checkbox) {
+        return branch_destination;
+    };
 
-						is_jump_found = false;
-						iLength = current_value.length;
+    /*
+     * @method gotoNextPage load next input into view, checking for jumps etc.
+     */
+    module.gotoNextPage = function (evt, the_current_value) {
 
-						//loop each selected value until the first jump is found (or no more elements to check against)
-						for ( i = 0; i < iLength; i++) {
+        var branch_current_input;
+        var current_value = the_current_value;
+        var next_branch_input;
+        var next_page;
+        var options;
+        var i;
+        var iLength;
+        var obj;
+        var branch_destination;
+        var branch_destination_position;
+        var jumps;
+        var is_branch_genkey_hidden = EC.Utils.isBranchFormGenKeyHidden();
+        var next_branch_value;
+        var is_checkbox = false;
 
-							branch_destination = _checkJumps(jumps, current_value[i].value);
-							if (is_jump_found) {
-								break;
-							}
-						}
+        self = this;
+        branch_current_position = parseInt(window.localStorage.branch_current_position, 10);
 
-					} else {
-						//single value
-						branch_destination = _checkJumps(jumps, current_value);
-					}
+        //get value from object in the case of a dropdown/radio (object is like {label:"<label>", index:"<value>"})
+        if (current_value.hasOwnProperty("value")) {
+            current_value = current_value.value;
+        }
 
-				}//if has jump
+        //if current value is an array, we have checkbox values to parse and check each of them against jumps
+        if (Array.isArray(current_value)) {
+            is_checkbox = true;
+        }
 
-				if (branch_destination === EC.Const.END_OF_FORM) {
-					next_page = EC.Const.BRANCH_VIEWS_DIR + EC.Const.BRANCH_SAVE_CONFIRM_VIEW;
-				} else {
+        //check if we have reached the end of the form
+        if (branch_current_position === self.branch_inputs.length) {
+            next_page = EC.Const.BRANCH_VIEWS_DIR + EC.Const.BRANCH_SAVE_CONFIRM_VIEW;
+        } else {
 
-					next_branch_input = self.getInputAt(branch_current_position + 1);
+            //check if the current input triggers a jump
+            branch_current_input = self.getInputAt(branch_current_position);
 
-					/*
-					 * if is_genkey_hidden = 1, the from creator decided to hide the auto genkey
-					 * The nasty form builder allows users to drag the primary key input fields to any position (lol)
-					 * therefore we have to test each input if it is a primary key field
-					 * We have to skip the next input (from the user) but add an entry to inputs_values, inputs_trail with the UUID
-					 *
-					 */
+            if (parseInt(branch_current_input.has_jump, 10) === 1) {
 
-					if (is_branch_genkey_hidden && next_branch_input.is_primary_key === 1) {
+                //get jumps
+                jumps = EC.Utils.parseJumpString(branch_current_input.jumps);
 
-						//add skipped genkey entry also in inputs_trail
-						self.pushInputsTrail(next_branch_input);
+                //if we have an arry of values (checkboxes) check each of them if it triggers a jump
+                if (is_checkbox) {
 
-						//add an entry with UUID to inputs_values if we are entering a new entry
-						next_branch_value = EC.Utils.getGenKey();
+                    is_jump_found = false;
+                    iLength = current_value.length;
 
-						//cache next value in localStorage
-						self.setCachedInputValue(next_branch_value, branch_current_position + 1, next_branch_input.type, next_branch_input.is_primary_key);
+                    //loop each selected value until the first jump is found (or no more elements to check against)
+                    for (i = 0; i < iLength; i++) {
 
-						//go to the next  input AFTER the hidden primary key (if it exists, otherwise the save confirm page)
-						next_branch_input = self.getInputAt(branch_current_position + 2);
-						if (!next_branch_input) {
+                        branch_destination = _checkJumps(jumps, current_value[i].value);
+                        if (is_jump_found) {
+                            break;
+                        }
+                    }
 
-							next_page = EC.Const.BRANCH_VIEWS_DIR + EC.Const.BRANCH_SAVE_CONFIRM_VIEW;
+                } else {
+                    //single value
+                    branch_destination = _checkJumps(jumps, current_value);
+                }
 
-							//TODO check this???
-						}
+            }//if has jump
 
-						//update current input position in session (store confirm screen will get a position = array.length)
-						window.localStorage.branch_current_position = branch_current_position + 2;
+            if (branch_destination === EC.Const.END_OF_FORM) {
+                next_page = EC.Const.BRANCH_VIEWS_DIR + EC.Const.BRANCH_SAVE_CONFIRM_VIEW;
+            } else {
 
-					} else {
-						//update current input position in session (store confirm screen will get a position = array.length)
-						window.localStorage.branch_current_position = branch_current_position + 1;
-					}
+                next_branch_input = self.getInputAt(branch_current_position + 1);
 
-					if (next_branch_input) {
-						next_page = EC.Const.BRANCH_VIEWS_DIR + EC.Const.BRANCH_PREFIX + next_branch_input.type + EC.Const.HTML_FILE_EXT;
-					}
+                /*
+                 * if is_genkey_hidden = 1, the from creator decided to hide the auto genkey
+                 * The nasty form builder allows users to drag the primary key input fields to any position (lol)
+                 * therefore we have to test each input if it is a primary key field
+                 * We have to skip the next input (from the user) but add an entry to inputs_values, inputs_trail with the UUID
+                 *
+                 */
 
-				}
+                if (is_branch_genkey_hidden && next_branch_input.is_primary_key === 1) {
 
-			}
+                    //add skipped genkey entry also in inputs_trail
+                    self.pushInputsTrail(next_branch_input);
 
-			EC.Routing.changePage(next_page);
+                    //add an entry with UUID to inputs_values if we are entering a new entry
+                    next_branch_value = EC.Utils.getGenKey();
 
-			//avoid events triggering multiple times
-			evt.preventDefault();
+                    //cache next value in localStorage
+                    self.setCachedInputValue(next_branch_value, branch_current_position + 1, next_branch_input.type, next_branch_input.is_primary_key);
 
-		};
-		return module;
+                    //go to the next  input AFTER the hidden primary key (if it exists, otherwise the save confirm page)
+                    next_branch_input = self.getInputAt(branch_current_position + 2);
+                    if (!next_branch_input) {
 
-	}(EC.BranchInputs));
+                        next_page = EC.Const.BRANCH_VIEWS_DIR + EC.Const.BRANCH_SAVE_CONFIRM_VIEW;
+
+                        //TODO check this???
+                    }
+
+                    //update current input position in session (store confirm screen will get a position = array.length)
+                    window.localStorage.branch_current_position = branch_current_position + 2;
+
+                } else {
+                    //update current input position in session (store confirm screen will get a position = array.length)
+                    window.localStorage.branch_current_position = branch_current_position + 1;
+                }
+
+                if (next_branch_input) {
+                    next_page = EC.Const.BRANCH_VIEWS_DIR + EC.Const.BRANCH_PREFIX + next_branch_input.type + EC.Const.HTML_FILE_EXT;
+                }
+
+            }
+
+        }
+
+        EC.Routing.changePage(next_page);
+
+        //avoid events triggering multiple times
+        evt.preventDefault();
+
+    };
+    return module;
+
+}(EC.BranchInputs));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -18529,36 +18533,38 @@ EC.BranchInputs = ( function(module) {"use strict";
 /*global $, jQuery*/
 var EC = EC || {};
 EC.BranchInputs = EC.BranchInputs || {};
-EC.BranchInputs = ( function(module) {"use strict";
+EC.BranchInputs = (function (module) {
+    'use strict';
 
-		module.saveValuesOnExit = function(the_current_input) {
+    module.saveValuesOnExit = function (the_current_input) {
 
-			var self = this;
-			var current_input = the_current_input;
-			//get current value from the input currently on screen
-			var current_value = self.getCurrentValue(current_input.type);
-			var current_position = parseInt(window.localStorage.branch_current_position, 10);
-			var validation = self.validateValue(current_input, current_value, current_position);
+        var self = this;
+        var current_input = the_current_input;
+        //get current value from the input currently on screen
+        var current_value = self.getCurrentValue(current_input.type);
+        var current_position = parseInt(window.localStorage.branch_current_position, 10);
+        var validation = self.validateValue(current_input, current_value, current_position);
 
-			//back to same screen if invalid value
-			if (!validation.is_valid) {
-				//warn user about the type of error
-				EC.Notification.hideProgressDialog();
-				EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation(validation.message));
-				return;
-			}
+        //back to same screen if invalid value
+        if (!validation.is_valid) {
+            //warn user about the type of error
+            EC.Notification.hideProgressDialog();
+            //validation.message comes translated already
+            EC.Notification.showAlert(EC.Localise.getTranslation('error'), validation.message);
+            return;
+        }
 
-			//cache current value in localStorage
-			self.setCachedInputValue(current_value, current_position, current_input.type, current_input.is_primary_key);
-			self.pushInputsTrail(current_input);
+        //cache current value in localStorage
+        self.setCachedInputValue(current_value, current_position, current_input.type, current_input.is_primary_key);
+        self.pushInputsTrail(current_input);
 
-			self.onStoreValues();
+        self.onStoreValues();
 
-		};
+    };
 
-		return module;
+    return module;
 
-	}(EC.BranchInputs));
+}(EC.BranchInputs));
 
 /*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery, cordova, device*/
@@ -21658,39 +21664,40 @@ EC.Download = (function (module) {
  */
 var EC = EC || {};
 EC.Entries = EC.Entries || {};
-EC.Entries = ( function(module) {"use strict";
+EC.Entries = ( function (module) {
+    "use strict";
 
-		module.getBranchEntriesList = function() {
+    module.getBranchEntriesList = function () {
 
-			/* hierarchy_entry_key_value is the current value of the primary key for the form we want to enter branches to;
-			 * we need it as we need to link the branch entries to a single hierarchy form entry (like it is its parent)
-			 */
-			var parent_key_position = EC.Inputs.getPrimaryKeyRefPosition();
-			var hierarchy_entry_key_value = EC.Inputs.getMainFormCurrentKeyValue(parent_key_position);
-			var project_id = parseInt(window.localStorage.project_id, 10);
-			var branch_form = JSON.parse(window.localStorage.branch_form);
-			var offset = 0;
+        /* hierarchy_entry_key_value is the current value of the primary key for the form we want to enter branches to;
+         * we need it as we need to link the branch entries to a single hierarchy form entry (like it is its parent)
+         */
+        var parent_key_position = EC.Inputs.getPrimaryKeyRefPosition();
+        var hierarchy_entry_key_value = EC.Inputs.getMainFormCurrentKeyValue(parent_key_position);
+        var project_id = parseInt(window.localStorage.project_id, 10);
+        var branch_form = JSON.parse(window.localStorage.branch_form);
+        var offset = 0;
 
-			//look for branch entries
-			$.when(EC.Select.getBranchEntries(project_id, branch_form.name, hierarchy_entry_key_value, 0)).then(function(the_branch_entries) {
+        //look for branch entries
+        $.when(EC.Select.getBranchEntries(project_id, branch_form.name, hierarchy_entry_key_value, 0)).then(function (the_branch_entries) {
 
-				if (the_branch_entries.length > 0) {
-					//entries found, render list
-					EC.Entries.renderBranchEntriesList(the_branch_entries);
-				} else {
-					
-					//no branch entries, user probably deleted all of them, go back to hierarchy form
-					EC.BranchInputs.backToHierarchyForm();
+            if (the_branch_entries.length > 0) {
+                //entries found, render list
+                EC.Entries.renderBranchEntriesList(the_branch_entries);
+            } else {
 
-				}
+                //no branch entries, user probably deleted all of them, go back to hierarchy form
+                EC.BranchInputs.backToHierarchyForm();
 
-			});
+            }
 
-		};
+        });
 
-		return module;
+    };
 
-	}(EC.Entries));
+    return module;
+
+}(EC.Entries));
 
 /*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/
@@ -22656,6 +22663,8 @@ EC.Entries = (function (module) {
      */
     module.renderBranchEntryValues = function (the_values) {
 
+        debugger;
+
         //build HTML
         var HTML = '';
         var i;
@@ -22772,6 +22781,7 @@ EC.Entries = (function (module) {
                         is_primary_key: is_primary_key
                     });
             }//switch
+
 
             //build input_trail array to be used for navigation between
             // inputs (skip _skipp3d_ values, to retain jump sequence)
@@ -27189,7 +27199,7 @@ EC.Inputs = (function (module) {
                 if (input.type === EC.Const.PHOTO || input.type === EC.Const.VIDEO || input.type === EC.Const.AUDIO) {
 
                     // If cache path is empty, we do not have a file to save for that input so skip it
-                    if (value.cached !== "") {
+                    if (value.cached !== '') {
                         files.push({
                             type: input.type,
                             cached: value.cached,
@@ -31861,112 +31871,121 @@ EC.Upload = ( function(module) {"use strict";
  */
 var EC = EC || {};
 EC.Upload = EC.Upload || {};
-EC.Upload = ( function(module) {"use strict";
+EC.Upload = (function (module) {
+    'use strict';
 
-		module.postOneBranchEntry = function() {
 
-			var self = this;
-			var upload_URL;
-			var project_id = parseInt(window.localStorage.project_id,10);
-			console.log(self.branch_entry_post_obj);
+    module.postOneBranchEntry = function () {
 
-			upload_URL = self.getUploadURL();
+        var self = this;
+        var upload_URL;
+        var project_id = parseInt(window.localStorage.project_id, 10);
 
-			//set upload URL for this project if not in localStorage yet
-			if (!EC.Utils.isChrome() && !upload_URL) {
-				$.when(EC.Select.getUploadURL(project_id)).then(function(the_project_url) {
-					//enable upload data button
-					console.log("Project URL is: " + the_project_url);
-					upload_URL = the_project_url;
-				});
-			}
+        function _sendRequest() {
 
-			//branch object ready to be posted
-			$.ajax({
-				type : "POST",
-				url : upload_URL,
-				crossDomain : true,
-				timeout : 20000, //timeout after 20 secs
-				data : $.param(self.branch_entry_post_obj), //use $.param() to convert the object to a query string (?key=value&key2=value2...)
-				success : function(response) {
+            //branch object ready to be posted
+            $.ajax({
+                type: 'POST',
+                url: upload_URL,
+                crossDomain: true,
+                timeout: 20000, //timeout after 20 secs
+                data: $.param(self.branch_entry_post_obj), //use $.param() to convert the object to a query string (?key=value&key2=value2...)
+                success: function (response) {
 
-					//server response is 1 when successful
-					if (response === '1') {
+                    //server response is 1 when successful
+                    if (response === '1') {
 
-						//clear post object
-						self.branch_entry_post_obj = {};
+                        //clear post object
+                        self.branch_entry_post_obj = {};
 
-						// //halt execution and flag the branch rows just uploaded as synced
-						EC.Update.setBranchEntryAsSynced(self.branch_rows_to_sync).then(function() {
+                        // //halt execution and flag the branch rows just uploaded as synced
+                        EC.Update.setBranchEntryAsSynced(self.branch_rows_to_sync).then(function () {
 
-							//entry rows synced, upload next entry (if any)
-							self.action = EC.Const.BRANCH_RECURSION;
-							EC.Select.getOneBranchEntry(project_id, self.current_branch_form.name, false);
+                            //entry rows synced, upload next entry (if any)
+                            self.action = EC.Const.BRANCH_RECURSION;
+                            EC.Select.getOneBranchEntry(project_id, self.current_branch_form.name, false);
 
-						});
+                        });
 
-					} else {
+                    } else {
 
-						//a problem occured while uploading/saving data on the server side
+                        //a problem occured while uploading/saving data on the server side
 
-						/**
-						 * Recover an entry to be uploaded (it will be the last one the user tried to upload but the upload failed)
-						 */
+                        /**
+                         * Recover an entry to be uploaded (it will be the last one the user tried to upload but the upload failed)
+                         */
 
-						$.when(EC.Select.getOneBranchEntry(self.current_branch_form).then(function(branch_entry) {
+                        $.when(EC.Select.getOneBranchEntry(self.current_branch_form).then(function (branch_entry) {
 
-							//Entry found, prepare entry for upload
-							EC.Upload.current_entry = branch_entry;
+                            //Entry found, prepare entry for upload
+                            EC.Upload.current_entry = branch_entry;
 
-							EC.Notification.hideProgressDialog();
-							EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("upload_error"));
+                            EC.Notification.hideProgressDialog();
+                            EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('upload_error'));
 
-							self.branch_rows_to_sync.length = 0;
+                            self.branch_rows_to_sync.length = 0;
 
-						}));
+                        }));
 
-					}
+                    }
 
-				},
-				error : function(request, status, error) {
+                },
+                error: function (request, status, error) {
 
-					//show request error
-					console.log(status + ", " + error);
-					console.log('request: ' + JSON.stringify(request));
+                    //show request error
+                    console.log(status + ', ' + error);
+                    console.log('request: ' + JSON.stringify(request));
 
-					/**
-					 * Recover an entry to be uploaded (it will be the last one the user tried to upload but the upload failed)
-					 */
+                    /**
+                     * Recover an entry to be uploaded (it will be the last one the user tried to upload but the upload failed)
+                     */
 
-					$.when(EC.Select.getOneBranchEntry(self.current_branch_form).then(function(entry) {
+                    $.when(EC.Select.getOneBranchEntry(self.current_branch_form).then(function (entry) {
 
-						//Entry found, prepare entry for upload
-						EC.Upload.current_entry = entry;
-						self.branch_rows_to_sync.length = 0;
-						EC.Notification.hideProgressDialog();
+                        //Entry found, prepare entry for upload
+                        EC.Upload.current_entry = entry;
+                        self.branch_rows_to_sync.length = 0;
+                        EC.Notification.hideProgressDialog();
 
-						//connection lost BEFORE tryng the ajax request
-						if (status === "error" && error === "") {
+                        //connection lost BEFORE tryng the ajax request
+                        if (status === 'error' && error === '') {
 
-							EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("connection_lost"));
-						}
+                            EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('connection_lost'));
+                        }
 
-						//server timeout
-						//connection lost BEFORE tryng the ajax request
-						if (status === "timeout" && error === "timeout") {
+                        //server timeout
+                        //connection lost BEFORE tryng the ajax request
+                        if (status === 'timeout' && error === 'timeout') {
 
-							EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation("connection_timeout"));
-						}
+                            EC.Notification.showAlert(EC.Localise.getTranslation('error'), EC.Localise.getTranslation('connection_timeout'));
+                        }
 
-					}));
-				}
-			});
+                    }));
+                }
+            });
 
-		};
+        }
 
-		return module;
 
-	}(EC.Upload));
+        upload_URL = self.getUploadURL();
+
+        //set upload URL for this project if not in localStorage yet
+        if (!EC.Utils.isChrome() && !upload_URL) {
+            $.when(EC.Select.getUploadURL(project_id)).then(function (the_project_url) {
+                //enable upload data button
+                console.log('Project URL is: ' + the_project_url);
+                upload_URL = the_project_url;
+                _sendRequest();
+            });
+        }
+        else {
+            _sendRequest();
+        }
+    };
+
+    return module;
+
+}(EC.Upload));
 
 /*jslint vars: true , nomen: true devel: true, plusplus: true*/
 /*global $, jQuery*/

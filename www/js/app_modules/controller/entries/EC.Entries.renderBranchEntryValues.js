@@ -76,6 +76,8 @@ EC.Entries = (function (module) {
      */
     module.renderBranchEntryValues = function (the_values) {
 
+        debugger;
+
         //build HTML
         var HTML = '';
         var i;
@@ -192,6 +194,7 @@ EC.Entries = (function (module) {
                         is_primary_key: is_primary_key
                     });
             }//switch
+
 
             //build input_trail array to be used for navigation between
             // inputs (skip _skipp3d_ values, to retain jump sequence)

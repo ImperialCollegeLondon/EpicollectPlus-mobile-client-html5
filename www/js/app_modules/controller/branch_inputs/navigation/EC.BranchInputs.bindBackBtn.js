@@ -12,19 +12,15 @@ EC.BranchInputs = (function (module) {
 
     module.bindBackBtn = function (is_data_saved) {
 
-        debugger;
-
         var self = this;
         var back_btn = $('div[data-role="header"] div[data-href="back-btn"]');
         var back_btn_label = back_btn.find('span.main-form-name');
         var form_name = window.localStorage.form_name;
 
         //set back button label to go back to main form
-        back_btn_label.text('Back to ' + form_name.trunc(EC.Const.FORM_NAME_MAX_LENGTH));
+        back_btn_label.text('Back to:  ' + form_name.trunc(EC.Const.FORM_NAME_MAX_LENGTH));
 
         back_btn.off().one('vclick', function (evt) {
-
-            debugger;
 
             if (is_data_saved) {
                 //go back to main form input

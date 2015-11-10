@@ -154,8 +154,13 @@ EC.Parse = (function (module) {
                                     ref: ref,
                                     group: group
                                 });
+
+
+                                position++;
                             }
-                            position++;
+
+                            //position was updated here
+                           // position++;
                         }
                     }
                 });

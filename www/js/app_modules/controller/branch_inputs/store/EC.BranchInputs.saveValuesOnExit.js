@@ -2,33 +2,35 @@
 /*global $, jQuery*/
 var EC = EC || {};
 EC.BranchInputs = EC.BranchInputs || {};
-EC.BranchInputs = ( function(module) {"use strict";
+EC.BranchInputs = (function (module) {
+    'use strict';
 
-		module.saveValuesOnExit = function(the_current_input) {
+    module.saveValuesOnExit = function (the_current_input) {
 
-			var self = this;
-			var current_input = the_current_input;
-			//get current value from the input currently on screen
-			var current_value = self.getCurrentValue(current_input.type);
-			var current_position = parseInt(window.localStorage.branch_current_position, 10);
-			var validation = self.validateValue(current_input, current_value, current_position);
+        var self = this;
+        var current_input = the_current_input;
+        //get current value from the input currently on screen
+        var current_value = self.getCurrentValue(current_input.type);
+        var current_position = parseInt(window.localStorage.branch_current_position, 10);
+        var validation = self.validateValue(current_input, current_value, current_position);
 
-			//back to same screen if invalid value
-			if (!validation.is_valid) {
-				//warn user about the type of error
-				EC.Notification.hideProgressDialog();
-				EC.Notification.showAlert(EC.Localise.getTranslation("error"), EC.Localise.getTranslation(validation.message));
-				return;
-			}
+        //back to same screen if invalid value
+        if (!validation.is_valid) {
+            //warn user about the type of error
+            EC.Notification.hideProgressDialog();
+            //validation.message comes translated already
+            EC.Notification.showAlert(EC.Localise.getTranslation('error'), validation.message);
+            return;
+        }
 
-			//cache current value in localStorage
-			self.setCachedInputValue(current_value, current_position, current_input.type, current_input.is_primary_key);
-			self.pushInputsTrail(current_input);
+        //cache current value in localStorage
+        self.setCachedInputValue(current_value, current_position, current_input.type, current_input.is_primary_key);
+        self.pushInputsTrail(current_input);
 
-			self.onStoreValues();
+        self.onStoreValues();
 
-		};
+    };
 
-		return module;
+    return module;
 
-	}(EC.BranchInputs));
+}(EC.BranchInputs));

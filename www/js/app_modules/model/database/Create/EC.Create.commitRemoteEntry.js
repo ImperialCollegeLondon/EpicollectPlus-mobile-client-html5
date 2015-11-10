@@ -89,6 +89,7 @@ EC.Create = (function (module) {
                 immediate_parent_key_value = '';
                 $.when(EC.Create.insertRemoteFormValues(form_id, inputs, remote_entry, entry_key_ref, immediate_parent_key_value)).then(function (branches) {
 
+                    debugger;
                     var local_branch_inputs = JSON.parse(window.localStorage.dre_branch_inputs);
                     var local_branch_entries_keys = JSON.parse(window.localStorage.dre_local_branch_entries_keys);
 

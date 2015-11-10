@@ -13,8 +13,9 @@ EC.Branch = (function (module) {
     'use strict';
 
     //callback for a transaction error
-    module.errorCB = function (the_error) {
+    module.errorCB = function (the_tx, the_error) {
         console.log('Error INSERT STRUCTURE BRANCH');
+        console.log(the_tx);
         console.log(the_error);
         console.log(EC.Utils.TRANSACTION_ERROR);
     };
