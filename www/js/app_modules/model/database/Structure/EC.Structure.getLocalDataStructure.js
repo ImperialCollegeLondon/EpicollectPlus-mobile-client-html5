@@ -8,11 +8,13 @@ EC.Structure = EC.Structure || {};
 EC.Structure = (function (module) {
     'use strict';
 
+    var project_id;
     var form_id;
     var inputs;
     var branch_inputs;
     var local_entries_keys;
     var local_branch_entries_keys;
+    var local_branch_forms;
     var groups;
     var deferred;
     var self;
@@ -93,18 +95,23 @@ EC.Structure = (function (module) {
 
         tx.executeSql(query_entry_key, [form_id], _getFormPrimaryKeysSQLSuccessCB, self.errorCB);
         tx.executeSql(query_inputs, [form_id], _getFormInputsSQLSuccessCB, self.errorCB);
-        tx.executeSql(query_branch_entry_key, [form_id], _getBranchFormPrimaryKeysSQLSuccessCB, self.errorCB);
-        tx.executeSql(query_branch_inputs, [form_id], _getBranchFormInputsSQLSuccessCB, self.errorCB);
+
+        //get entry_keys and inputs for all the branches forms
+        $(local_branch_forms).each(function (index, single_branch_form) {
+            tx.executeSql(query_branch_entry_key, [single_branch_form._id], _getBranchFormPrimaryKeysSQLSuccessCB, self.errorCB);
+            tx.executeSql(query_branch_inputs, [single_branch_form._id], _getBranchFormInputsSQLSuccessCB, self.errorCB);
+        });
 
     };
 
     var _getLocalDataStructureSuccessCB = function () {
-        deferred.resolve(inputs, local_entries_keys, groups, branch_inputs, local_branch_entries_keys);
+        deferred.resolve(inputs, local_entries_keys, groups, branch_inputs, local_branch_entries_keys, local_branch_forms);
     };
 
 
-    module.getLocalDataStructure = function (the_form_id) {
+    module.getLocalDataStructure = function (the_project_id, the_form_id) {
 
+        project_id = the_project_id;
         inputs = [];
         branch_inputs = [];
         local_entries_keys = [];
@@ -113,9 +120,16 @@ EC.Structure = (function (module) {
         deferred = new $.Deferred();
         self = this;
         form_id = the_form_id;
+        local_branch_forms = [];
 
-        //get all local primary keys and inputs for the current form before saving the new entries
-        EC.db.transaction(_getLocalDataStructureTX, _errorCB, _getLocalDataStructureSuccessCB);
+        //get all the branch forms belonging to this hierarchy form
+        $.when(EC.Select.getBranchForms(project_id)).then(function (the_branch_forms) {
+            local_branch_forms = the_branch_forms;
+
+            //get all local primary keys and inputs for the current form before saving the new entries
+            EC.db.transaction(_getLocalDataStructureTX, _errorCB, _getLocalDataStructureSuccessCB);
+        });
+
 
         return deferred.promise();
     };

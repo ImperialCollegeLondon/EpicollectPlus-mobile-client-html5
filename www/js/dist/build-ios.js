@@ -7605,11 +7605,13 @@ EC.Structure = EC.Structure || {};
 EC.Structure = (function (module) {
     'use strict';
 
+    var project_id;
     var form_id;
     var inputs;
     var branch_inputs;
     var local_entries_keys;
     var local_branch_entries_keys;
+    var local_branch_forms;
     var groups;
     var deferred;
     var self;
@@ -7690,18 +7692,23 @@ EC.Structure = (function (module) {
 
         tx.executeSql(query_entry_key, [form_id], _getFormPrimaryKeysSQLSuccessCB, self.errorCB);
         tx.executeSql(query_inputs, [form_id], _getFormInputsSQLSuccessCB, self.errorCB);
-        tx.executeSql(query_branch_entry_key, [form_id], _getBranchFormPrimaryKeysSQLSuccessCB, self.errorCB);
-        tx.executeSql(query_branch_inputs, [form_id], _getBranchFormInputsSQLSuccessCB, self.errorCB);
+
+        //get entry_keys and inputs for all the branches forms
+        $(local_branch_forms).each(function (index, single_branch_form) {
+            tx.executeSql(query_branch_entry_key, [single_branch_form._id], _getBranchFormPrimaryKeysSQLSuccessCB, self.errorCB);
+            tx.executeSql(query_branch_inputs, [single_branch_form._id], _getBranchFormInputsSQLSuccessCB, self.errorCB);
+        });
 
     };
 
     var _getLocalDataStructureSuccessCB = function () {
-        deferred.resolve(inputs, local_entries_keys, groups, branch_inputs, local_branch_entries_keys);
+        deferred.resolve(inputs, local_entries_keys, groups, branch_inputs, local_branch_entries_keys, local_branch_forms);
     };
 
 
-    module.getLocalDataStructure = function (the_form_id) {
+    module.getLocalDataStructure = function (the_project_id, the_form_id) {
 
+        project_id = the_project_id;
         inputs = [];
         branch_inputs = [];
         local_entries_keys = [];
@@ -7710,9 +7717,16 @@ EC.Structure = (function (module) {
         deferred = new $.Deferred();
         self = this;
         form_id = the_form_id;
+        local_branch_forms = [];
 
-        //get all local primary keys and inputs for the current form before saving the new entries
-        EC.db.transaction(_getLocalDataStructureTX, _errorCB, _getLocalDataStructureSuccessCB);
+        //get all the branch forms belonging to this hierarchy form
+        $.when(EC.Select.getBranchForms(project_id)).then(function (the_branch_forms) {
+            local_branch_forms = the_branch_forms;
+
+            //get all local primary keys and inputs for the current form before saving the new entries
+            EC.db.transaction(_getLocalDataStructureTX, _errorCB, _getLocalDataStructureSuccessCB);
+        });
+
 
         return deferred.promise();
     };
@@ -8453,108 +8467,109 @@ EC.Select = ( function(module) {"use strict";
 /*global $, jQuery*/
 var EC = EC || {};
 EC.Select = EC.Select || {};
-EC.Select = ( function(module) {"use strict";
+EC.Select = (function (module) {
+    'use strict';
 
-		var project_id;
-		var branch_form_names;
-		var mapped_branch_forms;
-		var deferred;
+    var project_id;
+    var branch_form_names;
+    var mapped_branch_forms;
+    var deferred;
 
-		var _getBranchFormLocalIDsTX = function(tx) {
+    var _getBranchFormLocalIDsTX = function (tx) {
 
-			var i;
-			var iLength = branch_form_names.length;
-			var query = "SELECT _id, name FROM ec_branch_forms WHERE name=? AND project_id=?";
+        var i;
+        var iLength = branch_form_names.length;
+        var query = 'SELECT _id, name FROM ec_branch_forms WHERE name=? AND project_id=?';
 
-			for ( i = 0; i < iLength; i++) {
-				tx.executeSql(query, [branch_form_names[i], project_id], _getBranchFormLocalIDsSQLSuccess, EC.Select.errorCB);
-			}
+        for (i = 0; i < iLength; i++) {
+            tx.executeSql(query, [branch_form_names[i], project_id], _getBranchFormLocalIDsSQLSuccess, EC.Select.errorCB);
+        }
 
-		};
+    };
 
-		var _getBranchFormLocalIDsSQLSuccess = function(the_tx, the_result) {
-			
-			//map form names against _id
-			//TODO: is this right? why are we getting the first row only??
-			mapped_branch_forms.push({
-				_id : the_result.rows.item(0)._id,
-				name : the_result.rows.item(0).name
-			});
+    var _getBranchFormLocalIDsSQLSuccess = function (the_tx, the_result) {
 
-		};
+        //map form names against _id
+        //TODO: is this right? why are we getting the first row only??
+        mapped_branch_forms.push({
+            _id: the_result.rows.item(0)._id,
+            name: the_result.rows.item(0).name
+        });
 
-		var _getBranchFormLocalIDsSuccessCB = function() {
+    };
 
-			//return mappped branch forms
-			deferred.resolve(mapped_branch_forms);
+    var _getBranchFormLocalIDsSuccessCB = function () {
 
-		};
+        //return mappped branch forms
+        deferred.resolve(mapped_branch_forms);
 
-		module.getBranchFormLocalIDs = function(the_project_id, the_branch_form_names) {
+    };
 
-			project_id = the_project_id;
-			branch_form_names = the_branch_form_names;
-			deferred = new $.Deferred();
-			mapped_branch_forms = [];
+    module.getBranchFormLocalIDs = function (the_project_id, the_branch_form_names) {
 
-			EC.db.transaction(_getBranchFormLocalIDsTX, EC.Select.errorCB, _getBranchFormLocalIDsSuccessCB);
+        project_id = the_project_id;
+        branch_form_names = the_branch_form_names;
+        deferred = new $.Deferred();
+        mapped_branch_forms = [];
 
-			// return promise
-			return deferred.promise();
+        EC.db.transaction(_getBranchFormLocalIDsTX, EC.Select.errorCB, _getBranchFormLocalIDsSuccessCB);
 
-		};
+        // return promise
+        return deferred.promise();
 
-		return module;
+    };
 
-	}(EC.Select));
+    return module;
+
+}(EC.Select));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
 var EC = EC || {};
 EC.Select = EC.Select || {};
-EC.Select = ( function(module) {
-		"use strict";
+EC.Select = (function (module) {
+    'use strict';
 
-		var branch_forms;
-		var project_id;
-		var deferred;
+    var branch_forms;
+    var project_id;
+    var deferred;
 
-		var _getBranchFormsSuccessCB = function() {
-			deferred.resolve(branch_forms);
-		};
+    var _getBranchFormsSuccessCB = function () {
+        deferred.resolve(branch_forms);
+    };
 
-		var _getBranchFormsSQLSuccess = function(the_tx, the_result) {
+    var _getBranchFormsSQLSuccess = function (the_tx, the_result) {
 
-			var i;
-			var iLenght = the_result.rows.length;
+        var i;
+        var iLenght = the_result.rows.length;
 
-			//build object with project data
-			for ( i = 0; i < iLenght; i++) {
-				branch_forms.push(the_result.rows.item(i));
-			}
-		};
+        //build object with project data
+        for (i = 0; i < iLenght; i++) {
+            branch_forms.push(the_result.rows.item(i));
+        }
+    };
 
-		var _getBranchFormsTX = function(tx) {
-			var query = 'SELECT _id, name, key, num, has_media, is_genkey_hidden, total_inputs, entries FROM ec_branch_forms WHERE project_id=?';
-			tx.executeSql(query, [project_id], _getBranchFormsSQLSuccess, EC.Select.errorCB);
-		};
+    var _getBranchFormsTX = function (tx) {
+        var query = 'SELECT _id, name, key, num, has_media, is_genkey_hidden, total_inputs, entries FROM ec_branch_forms WHERE project_id=?';
+        tx.executeSql(query, [project_id], _getBranchFormsSQLSuccess, EC.Select.errorCB);
+    };
 
-		module.getBranchForms = function(the_project_id) {
+    module.getBranchForms = function (the_project_id) {
 
-			project_id = the_project_id;
-			branch_forms =[];
-			deferred = new $.Deferred();
+        project_id = the_project_id;
+        branch_forms = [];
+        deferred = new $.Deferred();
 
-			EC.db.transaction(_getBranchFormsTX, EC.Select.errorCB, _getBranchFormsSuccessCB);
+        EC.db.transaction(_getBranchFormsTX, EC.Select.errorCB, _getBranchFormsSuccessCB);
 
-			return deferred.promise();
+        return deferred.promise();
 
-		};
-		
+    };
 
-		return module;
 
-	}(EC.Select));
+    return module;
+
+}(EC.Select));
 
 /*jslint vars: true , nomen: true, devel: true, plusplus:true*/
 /*global $, jQuery*/
@@ -13284,6 +13299,7 @@ EC.Create = (function (module) {
     var immediate_parent_key_value;
     var branch_inputs = [];
     var local_branch_entries_keys = [];
+    var local_branch_forms = [];
 
 
     var _saveRemoteEntries = function () {
@@ -13354,10 +13370,11 @@ EC.Create = (function (module) {
                     debugger;
                     var local_branch_inputs = JSON.parse(window.localStorage.dre_branch_inputs);
                     var local_branch_entries_keys = JSON.parse(window.localStorage.dre_local_branch_entries_keys);
+                    var local_branch_forms = JSON.parse(window.localStorage.dre_local_branch_forms);
 
                     //any branches for the current entry?
                     if (branches.length > 0) {
-                        $.when(EC.Create.saveRemoteBranchEntries(form_id, branches, local_branch_inputs, local_branch_entries_keys)).then(function () {
+                        $.when(EC.Create.saveRemoteBranchEntries(form_id, branches, local_branch_inputs, local_branch_entries_keys, local_branch_forms)).then(function () {
                             deferred.resolve();
                         });
                     }
@@ -13423,12 +13440,13 @@ EC.Create = (function (module) {
 
             //get all locally stored primary keys and inputs for the current form before saving the new entries,
             //as we need to map against the local row '_id's
-            $.when(EC.Structure.getLocalDataStructure(form_id))
+            $.when(EC.Structure.getLocalDataStructure(project_id, form_id))
                 .then(function (the_local_inputs,
                                 the_local_entries_keys,
                                 the_groups,
                                 the_local_branch_inputs,
-                                the_local_branch_entries_keys) {
+                                the_local_branch_entries_keys,
+                                the_local_branch_forms) {
 
                     //cache local data structure (dre_ stands for download remote entries ;))
                     window.localStorage.dre_local_entries_keys = JSON.stringify(the_local_entries_keys);
@@ -13436,12 +13454,14 @@ EC.Create = (function (module) {
                     window.localStorage.dre_inputs = JSON.stringify(the_local_inputs);
                     window.localStorage.dre_branch_inputs = JSON.stringify(the_local_branch_inputs);
                     window.localStorage.dre_local_branch_entries_keys = JSON.stringify(the_local_branch_entries_keys);
+                    window.localStorage.dre_local_branch_forms = JSON.stringify(the_local_branch_forms);
 
                     inputs = the_local_inputs;
-                    branch_inputs = the_local_branch_inputs
+                    branch_inputs = the_local_branch_inputs;
                     local_entries_keys = the_local_entries_keys;
                     local_branch_entries_keys = the_local_branch_entries_keys;
                     groups = the_groups;
+                    local_branch_forms = the_local_branch_forms;
 
                     _saveRemoteEntries();
 
@@ -13450,11 +13470,13 @@ EC.Create = (function (module) {
         } else {
 
             //local primary keys and inputs are cached, no need to query db
+            //(dre_ stands for download remote entries ;))
             local_entries_keys = JSON.parse(window.localStorage.dre_local_entries_keys);
             local_branch_entries_keys = JSON.parse(window.localStorage.dre_local_branch_entries_keys);
             inputs = JSON.parse(window.localStorage.dre_inputs);
             branch_inputs = JSON.parse(window.localStorage.dre_branch_inputs);
             groups = JSON.parse(window.localStorage.dre_groups);
+            local_branch_forms = JSON.parse(window.localStorage.dre_local_branch_forms);
 
             _saveRemoteEntries();
         }
@@ -13993,6 +14015,8 @@ EC.Create = (function (module) {
     module.insertRemoteBranchDataRows = function (the_rows) {
 
 
+        console.log(JSON.stringify(the_rows));
+
         branch_rows = the_rows;
         deferred = new $.Deferred();
 
@@ -14379,6 +14403,8 @@ EC.Create = (function (module) {
     var deferred;
     var branch_input_values;
     var form_id;
+    var local_branch_forms;
+    var  branch_form_id;
 
     function _getLocalBranchInput(the_ref) {
 
@@ -14395,12 +14421,29 @@ EC.Create = (function (module) {
         return found;
     }
 
-    module.saveRemoteBranchEntries = function (the_form_id, the_branch_entries, the_local_branch_inputs, the_local_branch_entries_keys) {
+    function _getBranchFormIDbyName(the_name) {
+
+        var name = the_name;
+        var id = 0;
+
+        $(local_branch_forms).each(function (index, local_branch_form) {
+            if (local_branch_form.name === name) {
+                id = local_branch_form._id;
+                return false;
+            }
+        });
+
+        return id;
+
+    }
+
+    module.saveRemoteBranchEntries = function (the_form_id, the_branch_entries, the_local_branch_inputs, the_local_branch_entries_keys, the_local_branch_forms) {
 
         form_id = the_form_id;
         branch_entries = the_branch_entries;
         local_branch_inputs = the_local_branch_inputs;
         local_branch_entries_keys = the_local_branch_entries_keys;
+        local_branch_forms = the_local_branch_forms;
         rows = [];
         local_input = {};
         deferred = new $.Deferred();
@@ -14412,6 +14455,8 @@ EC.Create = (function (module) {
         $(branch_entries).each(function (index, single_branch) {
 
             debugger;
+            //a branch form name in EC+ is always generated adding "_form" to the owner input
+            branch_form_id = _getBranchFormIDbyName(single_branch.owner_input_ref + '_form');
 
             branch_input_values.push({
                 input_ref: single_branch.owner_input_ref,
@@ -14445,7 +14490,7 @@ EC.Create = (function (module) {
 
                             rows.push({
                                 input_id: local_input._id,
-                                form_id: single_branch.form_id,
+                                form_id: branch_form_id,
                                 hierarchy_entry_key_value: single_branch.main_form_key_ref_value,
                                 hierarchy_entry_key_ref: single_branch.main_form_key_ref,
                                 position: local_input.position,
@@ -14473,18 +14518,12 @@ EC.Create = (function (module) {
 
         $.when(EC.Create.insertRemoteBranchDataRows(rows)).then(function () {
 
-
-            debugger;
             console.log(JSON.stringify(branch_input_values));
             //todo insert in the owner form the ref and the total per each branch
             $.when(EC.Update.setValuesForBranchInputs(form_id, branch_input_values)).then(function () {
-
-
+                deferred.resolve();
             });
-
-            deferred.resolve();
         });
-
 
         return deferred.promise();
     };
@@ -21465,82 +21504,6 @@ EC.Download = (function (module) {
     'use strict';
 
     var self;
-    var deferred;
-    var project_id;
-    var form_id;
-    var remote_entry;
-    var groups;
-    var entry_key_ref;
-    var local_entries_keys;
-    var updated_entries_counter;
-    var inputs;
-
-
-    module.prepareForRemoteDataSaving = function (the_project_id, the_form_id, the_remote_entry) {
-
-        self = this;
-        self.project_id = the_project_id;
-        self.form_id = the_form_id;
-        self.remote_entry = the_remote_entry;
-
-        deferred = new $.Deferred();
-
-        //todo move dependency outside?
-        entry_key_ref = EC.Utils.getFormPrimaryKeyRef(form_id);
-
-        //reset array (we might have keys from a previous download)
-        local_entries_keys = [];
-        //reset counter
-        updated_entries_counter = 0;
-        //reset inputs array
-        inputs = [];
-        groups = [];
-
-        if (!window.localStorage.dre_local_entries_keys && !window.localStorage.dre_inputs) {
-
-            //get all locally stored primary keys and inputs for the current form before saving the new entries,
-            //as we need to map against the local row '_id's
-            $.when(EC.Structure.getLocalDataStructure(form_id)).then(function (the_local_inputs, the_local_entries_keys, the_groups) {
-
-                //cache local data structure (dre_ stands for download remote entries ;))
-                window.localStorage.dre_local_entries_keys = JSON.stringify(the_local_entries_keys);
-                window.localStorage.dre_groups = JSON.stringify(the_groups);
-                window.localStorage.dre_inputs = JSON.stringify(the_local_inputs);
-
-                inputs = the_local_inputs;
-                local_entries_keys = the_local_entries_keys;
-                groups = the_groups;
-
-                //_saveRemoteEntries();
-                deferred.resolve(inputs, local_entries_keys, groups);
-
-            });
-
-        } else {
-
-            //local primary keys and inputs are cached, no need to query db
-            local_entries_keys = JSON.parse(window.localStorage.dre_local_entries_keys);
-            inputs = JSON.parse(window.localStorage.dre_inputs);
-            groups = JSON.parse(window.localStorage.dre_groups);
-
-            //_saveRemoteEntries();
-            deferred.resolve(inputs, local_entries_keys, groups);
-        }
-
-        return deferred.promise();
-    };
-    return module;
-
-}(EC.Download));
-
-/*global $, jQuery, cordova, device*/
-
-var EC = EC || {};
-EC.Download = EC.Download || {};
-EC.Download = (function (module) {
-    'use strict';
-
-    var self;
     module.renderDownloadView = function () {
 
         var forms = JSON.parse(window.localStorage.forms);
@@ -21613,6 +21576,8 @@ EC.Download = (function (module) {
     var self;
 
     module.saveSingleRemoteEntry = function (the_single_remote_entry) {
+
+        debugger;
 
         self = this;
 

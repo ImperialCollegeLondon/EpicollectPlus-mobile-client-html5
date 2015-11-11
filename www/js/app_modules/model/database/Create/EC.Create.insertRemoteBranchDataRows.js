@@ -105,6 +105,8 @@ EC.Create = (function (module) {
     module.insertRemoteBranchDataRows = function (the_rows) {
 
 
+        console.log(JSON.stringify(the_rows));
+
         branch_rows = the_rows;
         deferred = new $.Deferred();
 

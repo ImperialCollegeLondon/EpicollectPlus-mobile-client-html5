@@ -9,6 +9,8 @@ EC.Download = (function (module) {
 
     module.saveSingleRemoteEntry = function (the_single_remote_entry) {
 
+        debugger;
+
         self = this;
 
         $.when(EC.Create.commitRemoteEntry(self.project_id, self.chosen_form_id, the_single_remote_entry)).then(function () {

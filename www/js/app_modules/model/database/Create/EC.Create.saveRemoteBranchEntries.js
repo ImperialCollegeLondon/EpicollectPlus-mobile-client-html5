@@ -11,6 +11,8 @@ EC.Create = (function (module) {
     var deferred;
     var branch_input_values;
     var form_id;
+    var local_branch_forms;
+    var  branch_form_id;
 
     function _getLocalBranchInput(the_ref) {
 
@@ -27,12 +29,29 @@ EC.Create = (function (module) {
         return found;
     }
 
-    module.saveRemoteBranchEntries = function (the_form_id, the_branch_entries, the_local_branch_inputs, the_local_branch_entries_keys) {
+    function _getBranchFormIDbyName(the_name) {
+
+        var name = the_name;
+        var id = 0;
+
+        $(local_branch_forms).each(function (index, local_branch_form) {
+            if (local_branch_form.name === name) {
+                id = local_branch_form._id;
+                return false;
+            }
+        });
+
+        return id;
+
+    }
+
+    module.saveRemoteBranchEntries = function (the_form_id, the_branch_entries, the_local_branch_inputs, the_local_branch_entries_keys, the_local_branch_forms) {
 
         form_id = the_form_id;
         branch_entries = the_branch_entries;
         local_branch_inputs = the_local_branch_inputs;
         local_branch_entries_keys = the_local_branch_entries_keys;
+        local_branch_forms = the_local_branch_forms;
         rows = [];
         local_input = {};
         deferred = new $.Deferred();
@@ -43,7 +62,8 @@ EC.Create = (function (module) {
          */
         $(branch_entries).each(function (index, single_branch) {
 
-            debugger;
+            //a branch form name in EC+ is always generated adding "_form" to the owner input
+            branch_form_id = _getBranchFormIDbyName(single_branch.owner_input_ref + '_form');
 
             branch_input_values.push({
                 input_ref: single_branch.owner_input_ref,
@@ -77,7 +97,7 @@ EC.Create = (function (module) {
 
                             rows.push({
                                 input_id: local_input._id,
-                                form_id: single_branch.form_id,
+                                form_id: branch_form_id,
                                 hierarchy_entry_key_value: single_branch.main_form_key_ref_value,
                                 hierarchy_entry_key_ref: single_branch.main_form_key_ref,
                                 position: local_input.position,
@@ -105,18 +125,12 @@ EC.Create = (function (module) {
 
         $.when(EC.Create.insertRemoteBranchDataRows(rows)).then(function () {
 
-
-            debugger;
             console.log(JSON.stringify(branch_input_values));
             //todo insert in the owner form the ref and the total per each branch
             $.when(EC.Update.setValuesForBranchInputs(form_id, branch_input_values)).then(function () {
-
-
+                deferred.resolve();
             });
-
-            deferred.resolve();
         });
-
 
         return deferred.promise();
     };

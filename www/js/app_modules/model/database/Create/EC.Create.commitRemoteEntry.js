@@ -22,6 +22,7 @@ EC.Create = (function (module) {
     var immediate_parent_key_value;
     var branch_inputs = [];
     var local_branch_entries_keys = [];
+    var local_branch_forms = [];
 
 
     var _saveRemoteEntries = function () {
@@ -72,6 +73,8 @@ EC.Create = (function (module) {
             //update existing row
             console.log('***********************************************************  update ' + current_remote_entry_key);
             $.when(EC.Update.updateLocalRowsWithRemoteData(form_id, inputs, remote_entry, entry_key_ref)).then(function () {
+
+                //todo update/insert any branches for this updated entry!!
                 deferred.resolve();
             });
 
@@ -92,10 +95,11 @@ EC.Create = (function (module) {
                     debugger;
                     var local_branch_inputs = JSON.parse(window.localStorage.dre_branch_inputs);
                     var local_branch_entries_keys = JSON.parse(window.localStorage.dre_local_branch_entries_keys);
+                    var local_branch_forms = JSON.parse(window.localStorage.dre_local_branch_forms);
 
                     //any branches for the current entry?
                     if (branches.length > 0) {
-                        $.when(EC.Create.saveRemoteBranchEntries(form_id, branches, local_branch_inputs, local_branch_entries_keys)).then(function () {
+                        $.when(EC.Create.saveRemoteBranchEntries(form_id, branches, local_branch_inputs, local_branch_entries_keys, local_branch_forms)).then(function () {
                             deferred.resolve();
                         });
                     }
@@ -161,12 +165,13 @@ EC.Create = (function (module) {
 
             //get all locally stored primary keys and inputs for the current form before saving the new entries,
             //as we need to map against the local row '_id's
-            $.when(EC.Structure.getLocalDataStructure(form_id))
+            $.when(EC.Structure.getLocalDataStructure(project_id, form_id))
                 .then(function (the_local_inputs,
                                 the_local_entries_keys,
                                 the_groups,
                                 the_local_branch_inputs,
-                                the_local_branch_entries_keys) {
+                                the_local_branch_entries_keys,
+                                the_local_branch_forms) {
 
                     //cache local data structure (dre_ stands for download remote entries ;))
                     window.localStorage.dre_local_entries_keys = JSON.stringify(the_local_entries_keys);
@@ -174,12 +179,14 @@ EC.Create = (function (module) {
                     window.localStorage.dre_inputs = JSON.stringify(the_local_inputs);
                     window.localStorage.dre_branch_inputs = JSON.stringify(the_local_branch_inputs);
                     window.localStorage.dre_local_branch_entries_keys = JSON.stringify(the_local_branch_entries_keys);
+                    window.localStorage.dre_local_branch_forms = JSON.stringify(the_local_branch_forms);
 
                     inputs = the_local_inputs;
-                    branch_inputs = the_local_branch_inputs
+                    branch_inputs = the_local_branch_inputs;
                     local_entries_keys = the_local_entries_keys;
                     local_branch_entries_keys = the_local_branch_entries_keys;
                     groups = the_groups;
+                    local_branch_forms = the_local_branch_forms;
 
                     _saveRemoteEntries();
 
@@ -188,11 +195,13 @@ EC.Create = (function (module) {
         } else {
 
             //local primary keys and inputs are cached, no need to query db
+            //(dre_ stands for download remote entries ;))
             local_entries_keys = JSON.parse(window.localStorage.dre_local_entries_keys);
             local_branch_entries_keys = JSON.parse(window.localStorage.dre_local_branch_entries_keys);
             inputs = JSON.parse(window.localStorage.dre_inputs);
             branch_inputs = JSON.parse(window.localStorage.dre_branch_inputs);
             groups = JSON.parse(window.localStorage.dre_groups);
+            local_branch_forms = JSON.parse(window.localStorage.dre_local_branch_forms);
 
             _saveRemoteEntries();
         }
