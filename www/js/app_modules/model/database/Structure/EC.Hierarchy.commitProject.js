@@ -16,7 +16,7 @@ EC.Hierarchy = ( function (module) {
     //Transaction to save the project object
     var _commitProjectTX = function (tx) {
 
-        var query = "";
+        var query = '';
         query += 'INSERT INTO ec_projects ( ';
         query += 'name, ';
         query += 'allowDownloadEdits, ';
