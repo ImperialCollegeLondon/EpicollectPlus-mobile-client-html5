@@ -61,6 +61,6 @@ Enable file sharing on iOS (useful for "Export to CSV" feature to be able to get
 to `info.plist`
 
 #### We are happy to be part of the Citizen CyberLab
-<p align="center">
+
 <img src="https://github.com/ImperialCollegeLondon/EpicollectPlus-mobile-client-html5/blob/release/1.0.0/res/graphics/branding/CitizenCyberLab.png?raw=true" >
-</p>
+
